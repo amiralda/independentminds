@@ -8,10 +8,11 @@ import { CheckInForm } from "@/components/CheckInForm";
 import { BadgesPanel } from "@/components/BadgesPanel";
 import { LibraryPanel } from "@/components/LibraryPanel";
 import { DadPanel } from "@/components/DadPanel";
-import { BookOpen, CheckSquare, Trophy, Library, ShieldCheck, GraduationCap, LogOut } from "lucide-react";
+import { TutorChat } from "@/components/TutorChat";
+import { BookOpen, CheckSquare, Trophy, Library, ShieldCheck, GraduationCap, LogOut, Bot } from "lucide-react";
 
 type Role = "student" | "parent";
-type StudentTab = "today" | "checkin" | "badges" | "library";
+type StudentTab = "today" | "checkin" | "badges" | "library" | "tutor";
 
 const Index = () => {
   const { t } = useI18n();
@@ -55,6 +56,7 @@ const Index = () => {
 
   const studentTabs: { key: StudentTab; icon: React.ElementType; label: string }[] = [
     { key: "today", icon: BookOpen, label: t("nav.today") },
+    { key: "tutor", icon: Bot, label: t("nav.tutor") },
     { key: "checkin", icon: CheckSquare, label: t("nav.checkin") },
     { key: "badges", icon: Trophy, label: t("nav.badges") },
     { key: "library", icon: Library, label: t("nav.library") },
@@ -127,6 +129,7 @@ const Index = () => {
 
             {/* Tab content */}
             {tab === "today" && <TodayBlocks blocks={blocks} onRefresh={fetchBlocks} />}
+            {tab === "tutor" && <TutorChat />}
             {tab === "checkin" && <CheckInForm onDone={fetchBlocks} />}
             {tab === "badges" && <BadgesPanel />}
             {tab === "library" && <LibraryPanel />}
