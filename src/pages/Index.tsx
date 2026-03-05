@@ -1,22 +1,35 @@
 import { useEffect, useState, useCallback } from "react";
 import { useI18n } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { TodayBlocks } from "@/components/TodayBlocks";
 import { CheckInForm } from "@/components/CheckInForm";
 import { BadgesPanel } from "@/components/BadgesPanel";
 import { LibraryPanel } from "@/components/LibraryPanel";
 import { DadPanel } from "@/components/DadPanel";
-import { BookOpen, CheckSquare, Trophy, Library, ShieldCheck, GraduationCap } from "lucide-react";
+import { BookOpen, CheckSquare, Trophy, Library, ShieldCheck, GraduationCap, LogOut } from "lucide-react";
 
 type Role = "student" | "parent";
 type StudentTab = "today" | "checkin" | "badges" | "library";
 
 const Index = () => {
   const { t } = useI18n();
+  const navigate = useNavigate();
   const [role, setRole] = useState<Role>("student");
   const [tab, setTab] = useState<StudentTab>("today");
   const [blocks, setBlocks] = useState<any[]>([]);
+  const [userName, setUserName] = useState("Chris");
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        const userRole = user.user_metadata?.role || "student";
+        setRole(userRole as Role);
+        setUserName(user.user_metadata?.display_name || "User");
+      }
+    });
+  }, []);
 
   const fetchBlocks = useCallback(async () => {
     const today = new Date().toISOString().split("T")[0];
@@ -63,6 +76,13 @@ const Index = () => {
           </div>
           <div className="flex items-center gap-2">
             <LanguageToggle />
+            <button
+              onClick={async () => { await supabase.auth.signOut(); navigate("/login"); }}
+              className="text-primary-foreground/70 hover:text-primary-foreground p-1"
+              title="Sign Out"
+            >
+              <LogOut size={18} />
+            </button>
           </div>
         </div>
       </header>

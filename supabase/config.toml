@@ -1,1 +1,16 @@
 project_id = "wkvattbvybvgaeobtidl"
+
+[functions.morning-reminder]
+verify_jwt = false
+
+[functions.checkin-reminder]
+verify_jwt = false
+
+[functions.daily-report]
+verify_jwt = false
+
+[functions.weekly-badge]
+verify_jwt = false
+
+[functions.seed-users]
+verify_jwt = false
