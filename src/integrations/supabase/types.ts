@@ -211,6 +211,38 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string
+          id: string
+          role: string
+          student_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          display_name: string
+          id: string
+          role?: string
+          student_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          display_name?: string
+          id?: string
+          role?: string
+          student_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["student_id"]
+          },
+        ]
+      }
       students: {
         Row: {
           created_at: string
