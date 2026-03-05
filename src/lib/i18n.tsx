@@ -6,6 +6,7 @@ const translations: Record<string, Record<Lang, string>> = {
   "app.title": { EN: "Lekòl Fasil", HT: "Lekòl Fasil", FR: "Lekòl Fasil" },
   "app.subtitle": { EN: "Learning Made Easy", HT: "Aprann Fasil", FR: "Apprentissage Facile" },
   "nav.today": { EN: "Today", HT: "Jodi a", FR: "Aujourd'hui" },
+  "nav.tutor": { EN: "Tutor", HT: "Titè", FR: "Tuteur" },
   "nav.checkin": { EN: "Check-In", HT: "Tcheke", FR: "Bilan" },
   "nav.badges": { EN: "Badges", HT: "Badj", FR: "Badges" },
   "nav.library": { EN: "Library", HT: "Bibliyotèk", FR: "Bibliothèque" },
