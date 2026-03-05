@@ -62,11 +62,7 @@ export default function Login() {
           </Button>
         </form>
 
-        <div className="text-center text-xs text-muted-foreground space-y-1">
-          <p><strong>Chris:</strong> chris@lekolfasil.app</p>
-          <p><strong>Dad:</strong> dad@lekolfasil.app</p>
-          <p>Password: <strong>lekol2025</strong></p>
-        </div>
+        <p className="text-center text-xs text-muted-foreground">Learning Made Easy · Aprann Fasil</p>
       </div>
     </div>
   );
