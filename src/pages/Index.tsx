@@ -1,5 +1,5 @@
-import { useEffect, useState, useCallback } from "react";
 import { useI18n } from "@/lib/i18n";
+import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { LanguageToggle } from "@/components/LanguageToggle";
@@ -8,55 +8,36 @@ import { CheckInForm } from "@/components/CheckInForm";
 import { BadgesPanel } from "@/components/BadgesPanel";
 import { LibraryPanel } from "@/components/LibraryPanel";
 import { DadPanel } from "@/components/DadPanel";
-import { TutorChat } from "@/components/TutorChat";
-import { BookOpen, CheckSquare, Trophy, Library, ShieldCheck, GraduationCap, LogOut, Bot } from "lucide-react";
+import { useDailyBlocks, useRefreshBlocks } from "@/hooks/useDailyBlocks";
+import { Skeleton } from "@/components/ui/skeleton";
+import { BookOpen, CheckSquare, Trophy, Library, GraduationCap, LogOut } from "lucide-react";
+import { useState } from "react";
 
-type Role = "student" | "parent";
-type StudentTab = "today" | "checkin" | "badges" | "library" | "tutor";
+type StudentTab = "today" | "checkin" | "badges" | "library";
 
 const Index = () => {
   const { t } = useI18n();
   const navigate = useNavigate();
-  const [role, setRole] = useState<Role>("student");
+  const { profile } = useAuth();
   const [tab, setTab] = useState<StudentTab>("today");
-  const [blocks, setBlocks] = useState<any[]>([]);
-  const [userName, setUserName] = useState("Chris");
 
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) {
-        const userRole = user.user_metadata?.role || "student";
-        setRole(userRole as Role);
-        setUserName(user.user_metadata?.display_name || "User");
-      }
-    });
-  }, []);
+  const role = profile?.role || "student";
+  const studentId = profile?.studentId || null;
+  const displayName = profile?.displayName || "User";
 
-  const fetchBlocks = useCallback(async () => {
-    const today = new Date().toISOString().split("T")[0];
-    const { data } = await supabase
-      .from("daily_plan")
-      .select("*")
-      .eq("student_id", "CHRIS")
-      .eq("plan_date", today)
-      .order("block_order");
-    if (data) setBlocks(data);
-  }, []);
-
-  useEffect(() => {
-    fetchBlocks();
-  }, [fetchBlocks]);
+  const { data: blocks = [], isLoading } = useDailyBlocks(studentId);
+  const refreshBlocks = useRefreshBlocks();
 
   const getGreeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return t("greeting.morning");
-    if (hour < 17) return t("greeting.afternoon");
-    return t("greeting.evening");
+    const name = displayName;
+    if (hour < 12) return `Good morning, ${name}!`;
+    if (hour < 17) return `Good afternoon, ${name}!`;
+    return `Good evening, ${name}!`;
   };
 
   const studentTabs: { key: StudentTab; icon: React.ElementType; label: string }[] = [
     { key: "today", icon: BookOpen, label: t("nav.today") },
-    { key: "tutor", icon: Bot, label: t("nav.tutor") },
     { key: "checkin", icon: CheckSquare, label: t("nav.checkin") },
     { key: "badges", icon: Trophy, label: t("nav.badges") },
     { key: "library", icon: Library, label: t("nav.library") },
@@ -71,9 +52,9 @@ const Index = () => {
             <GraduationCap size={28} className="text-primary-foreground" />
             <div>
               <h1 className="font-display text-xl font-bold text-primary-foreground leading-tight">
-                {t("app.title")}
+                Independent Minds
               </h1>
-              <p className="text-primary-foreground/70 text-xs">{t("app.subtitle")}</p>
+              <p className="text-primary-foreground/70 text-xs">Learn Smart. Grow Every Day.</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -89,32 +70,6 @@ const Index = () => {
         </div>
       </header>
 
-      {/* Role switcher */}
-      <div className="container py-2">
-        <div className="flex gap-2 rounded-xl bg-muted p-1">
-          <button
-            onClick={() => setRole("student")}
-            className={`flex-1 flex items-center justify-center gap-2 rounded-lg py-2.5 font-display text-sm font-medium transition-all ${
-              role === "student"
-                ? "bg-card shadow-sm text-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <GraduationCap size={16} /> {t("role.student")}
-          </button>
-          <button
-            onClick={() => setRole("parent")}
-            className={`flex-1 flex items-center justify-center gap-2 rounded-lg py-2.5 font-display text-sm font-medium transition-all ${
-              role === "parent"
-                ? "bg-card shadow-sm text-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <ShieldCheck size={16} /> {t("role.parent")}
-          </button>
-        </div>
-      </div>
-
       {/* Content */}
       <main className="container pb-24">
         {role === "student" ? (
@@ -123,14 +78,26 @@ const Index = () => {
             <div className="py-4">
               <h2 className="font-display text-2xl font-bold">{getGreeting()}</h2>
               <p className="text-muted-foreground text-sm mt-1">
-                {blocks.filter(b => b.status === "Done").length}/{blocks.length} blocks done today
+                {isLoading
+                  ? "Loading..."
+                  : `${blocks.filter(b => b.status === "Done").length}/${blocks.length} blocks done today`}
               </p>
             </div>
 
             {/* Tab content */}
-            {tab === "today" && <TodayBlocks blocks={blocks} onRefresh={fetchBlocks} />}
-            {tab === "tutor" && <TutorChat />}
-            {tab === "checkin" && <CheckInForm onDone={fetchBlocks} />}
+            {tab === "today" && (
+              isLoading ? (
+                <div className="space-y-4">
+                  <Skeleton className="h-20 w-full rounded-xl" />
+                  <Skeleton className="h-24 w-full rounded-xl" />
+                  <Skeleton className="h-24 w-full rounded-xl" />
+                  <Skeleton className="h-24 w-full rounded-xl" />
+                </div>
+              ) : (
+                <TodayBlocks blocks={blocks} onRefresh={refreshBlocks} />
+              )
+            )}
+            {tab === "checkin" && <CheckInForm studentId={studentId} onDone={refreshBlocks} />}
             {tab === "badges" && <BadgesPanel />}
             {tab === "library" && <LibraryPanel />}
           </>

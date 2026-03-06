@@ -29,8 +29,8 @@ export default function Login() {
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center">
           <GraduationCap size={48} className="mx-auto text-primary mb-3" />
-          <h1 className="font-display text-3xl font-bold">Lekòl Fasil</h1>
-          <p className="text-muted-foreground text-sm mt-1">Learning Made Easy / Aprann Fasil</p>
+          <h1 className="font-display text-3xl font-bold">Independent Minds</h1>
+          <p className="text-muted-foreground text-sm mt-1">Learn Smart. Grow Every Day.</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4 rounded-xl bg-card p-6 border shadow-sm">
@@ -62,7 +62,7 @@ export default function Login() {
           </Button>
         </form>
 
-        <p className="text-center text-xs text-muted-foreground">Learning Made Easy · Aprann Fasil</p>
+        <p className="text-center text-xs text-muted-foreground">Learn Smart. Grow Every Day.</p>
       </div>
     </div>
   );
