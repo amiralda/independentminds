@@ -15,11 +15,11 @@
     --popover: 0 0% 100%;
     --popover-foreground: 220 25% 15%;
 
-    --primary: 210 70% 45%;
+    --primary: 221 57% 29%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 145 45% 45%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 43 89% 61%;
+    --secondary-foreground: 221 57% 29%;
 
     --muted: 40 20% 93%;
     --muted-foreground: 220 10% 45%;
@@ -32,7 +32,7 @@
 
     --border: 220 15% 88%;
     --input: 220 15% 88%;
-    --ring: 210 70% 45%;
+    --ring: 221 57% 29%;
 
     --radius: 0.75rem;
 
@@ -40,16 +40,16 @@
     --success-foreground: 0 0% 100%;
     --warning: 35 90% 55%;
     --warning-foreground: 0 0% 100%;
-    --info: 210 70% 45%;
+    --info: 221 57% 29%;
     --info-foreground: 0 0% 100%;
 
-    --sidebar-background: 210 70% 45%;
+    --sidebar-background: 221 57% 29%;
     --sidebar-foreground: 0 0% 100%;
     --sidebar-primary: 0 0% 100%;
-    --sidebar-primary-foreground: 210 70% 45%;
-    --sidebar-accent: 210 70% 38%;
+    --sidebar-primary-foreground: 221 57% 29%;
+    --sidebar-accent: 221 57% 24%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 210 60% 52%;
+    --sidebar-border: 221 50% 40%;
     --sidebar-ring: 0 0% 100%;
 
     --font-display: 'Fredoka', sans-serif;

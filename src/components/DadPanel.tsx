@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertTriangle, BarChart3, Calendar, Plus, BookOpen } from "lucide-react";
+import { AlertTriangle, BarChart3, Calendar, Plus, BookOpen, Trash2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { SubjectIcon } from "@/components/SubjectIcon";
 
@@ -46,6 +46,15 @@ interface CheckInRow {
   need_help: boolean;
   comment: string | null;
 }
+
+const EMPTY_FORM = {
+  plan_date: new Date().toISOString().split("T")[0],
+  start_time: "08:00",
+  end_time: "08:50",
+  subject: "English",
+  block_order: 1,
+  notes: "",
+};
 
 export function DadPanel() {
   const { t } = useI18n();
@@ -84,6 +93,11 @@ export function DadPanel() {
           <CurriculumTab />
         </TabsContent>
       </Tabs>
+
+      {/* Production footer */}
+      <p className="text-center text-xs text-muted-foreground pt-6 border-t mt-8">
+        Independent Minds v1.0 — Production Ready
+      </p>
     </div>
   );
 }
@@ -162,7 +176,6 @@ function TodayProgressTab({ studentId }: { studentId: string }) {
 
   return (
     <div className="space-y-4">
-      {/* Summary cards */}
       <div className="grid grid-cols-3 gap-3">
         <div className="rounded-xl bg-card border p-3 text-center">
           <p className="font-display text-2xl font-bold text-primary">{done}</p>
@@ -180,7 +193,6 @@ function TodayProgressTab({ studentId }: { studentId: string }) {
         </div>
       </div>
 
-      {/* Block list */}
       {blocks.length === 0 ? (
         <p className="text-center text-muted-foreground py-8">No blocks scheduled for today.</p>
       ) : (
@@ -219,16 +231,9 @@ function TodayProgressTab({ studentId }: { studentId: string }) {
 function ScheduleBuilderTab({ studentId }: { studentId: string }) {
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [form, setForm] = useState({
-    plan_date: new Date().toISOString().split("T")[0],
-    start_time: "08:00",
-    end_time: "08:50",
-    subject: "English",
-    block_order: 1,
-    notes: "",
-  });
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState({ ...EMPTY_FORM });
 
-  // Upcoming schedule (next 7 days)
   const startDate = new Date().toISOString().split("T")[0];
   const endDate = new Date(Date.now() + 7 * 86400000).toISOString().split("T")[0];
 
@@ -248,30 +253,77 @@ function ScheduleBuilderTab({ studentId }: { studentId: string }) {
     },
   });
 
-  const insertMutation = useMutation({
+  const invalidateAll = () => {
+    queryClient.invalidateQueries({ queryKey: ["dad_schedule"] });
+    queryClient.invalidateQueries({ queryKey: ["dad_today"] });
+    queryClient.invalidateQueries({ queryKey: ["daily_blocks"] });
+  };
+
+  const upsertMutation = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("daily_plan").insert({
-        student_id: studentId,
-        plan_date: form.plan_date,
-        start_time: form.start_time,
-        end_time: form.end_time,
-        subject: form.subject,
-        block_order: form.block_order,
-        notes: form.notes || null,
-        status: "Planned",
-      });
+      if (editingId) {
+        const { error } = await supabase.from("daily_plan").update({
+          plan_date: form.plan_date,
+          start_time: form.start_time,
+          end_time: form.end_time,
+          subject: form.subject,
+          block_order: form.block_order,
+          notes: form.notes || null,
+        }).eq("id", editingId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("daily_plan").insert({
+          student_id: studentId,
+          plan_date: form.plan_date,
+          start_time: form.start_time,
+          end_time: form.end_time,
+          subject: form.subject,
+          block_order: form.block_order,
+          notes: form.notes || null,
+          status: "Planned",
+        });
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      toast.success(editingId ? "Block updated!" : "Block added!");
+      closeDialog();
+      invalidateAll();
+    },
+    onError: () => toast.error("Failed to save block"),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("daily_plan").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Block added!");
-      setDialogOpen(false);
-      queryClient.invalidateQueries({ queryKey: ["dad_schedule"] });
-      queryClient.invalidateQueries({ queryKey: ["dad_today"] });
+      toast.success("Block deleted!");
+      invalidateAll();
     },
-    onError: () => toast.error("Failed to add block"),
+    onError: () => toast.error("Failed to delete block"),
   });
 
-  // Group by date
+  const closeDialog = () => {
+    setDialogOpen(false);
+    setEditingId(null);
+    setForm({ ...EMPTY_FORM });
+  };
+
+  const openEdit = (p: DailyPlanRow) => {
+    setEditingId(p.id);
+    setForm({
+      plan_date: p.plan_date,
+      start_time: p.start_time.slice(0, 5),
+      end_time: p.end_time.slice(0, 5),
+      subject: p.subject,
+      block_order: p.block_order,
+      notes: p.notes || "",
+    });
+    setDialogOpen(true);
+  };
+
   const byDate = upcoming.reduce<Record<string, DailyPlanRow[]>>((acc, p) => {
     (acc[p.plan_date] ||= []).push(p);
     return acc;
@@ -279,15 +331,15 @@ function ScheduleBuilderTab({ studentId }: { studentId: string }) {
 
   return (
     <div className="space-y-4">
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) closeDialog(); else setDialogOpen(true); }}>
         <DialogTrigger asChild>
-          <Button className="w-full font-display">
+          <Button className="w-full font-display" onClick={() => { setEditingId(null); setForm({ ...EMPTY_FORM }); }}>
             <Plus size={16} className="mr-2" /> Add Block
           </Button>
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="font-display">Add Schedule Block</DialogTitle>
+            <DialogTitle className="font-display">{editingId ? "Edit Block" : "Add Schedule Block"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <div>
@@ -330,8 +382,8 @@ function ScheduleBuilderTab({ studentId }: { studentId: string }) {
                 rows={3}
               />
             </div>
-            <Button onClick={() => insertMutation.mutate()} disabled={insertMutation.isPending} className="w-full font-display">
-              {insertMutation.isPending ? "Saving..." : "Save Block"}
+            <Button onClick={() => upsertMutation.mutate()} disabled={upsertMutation.isPending} className="w-full font-display">
+              {upsertMutation.isPending ? "Saving..." : editingId ? "Update Block" : "Save Block"}
             </Button>
           </div>
         </DialogContent>
@@ -358,6 +410,16 @@ function ScheduleBuilderTab({ studentId }: { studentId: string }) {
                     p.status === "In Progress" ? "bg-warning/20 text-warning" :
                     "bg-muted text-muted-foreground"
                   }`}>{p.status}</span>
+                  <button onClick={() => openEdit(p)} className="text-muted-foreground hover:text-primary transition-colors p-1" title="Edit">
+                    <Pencil size={14} />
+                  </button>
+                  <button
+                    onClick={() => { if (confirm("Delete this block?")) deleteMutation.mutate(p.id); }}
+                    className="text-muted-foreground hover:text-destructive transition-colors p-1"
+                    title="Delete"
+                  >
+                    <Trash2 size={14} />
+                  </button>
                 </div>
               ))}
             </div>
