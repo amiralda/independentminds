@@ -3,10 +3,9 @@ import React, { createContext, useContext, useState } from "react";
 type Lang = "EN" | "HT" | "FR";
 
 const translations: Record<string, Record<Lang, string>> = {
-  "app.title": { EN: "Lekòl Fasil", HT: "Lekòl Fasil", FR: "Lekòl Fasil" },
-  "app.subtitle": { EN: "Learning Made Easy", HT: "Aprann Fasil", FR: "Apprentissage Facile" },
+  "app.title": { EN: "Independent Minds", HT: "Independent Minds", FR: "Independent Minds" },
+  "app.subtitle": { EN: "Learn Smart. Grow Every Day.", HT: "Aprann Enpòtan. Grandi Chak Jou.", FR: "Apprendre intelligemment. Grandir chaque jour." },
   "nav.today": { EN: "Today", HT: "Jodi a", FR: "Aujourd'hui" },
-  "nav.tutor": { EN: "Tutor", HT: "Titè", FR: "Tuteur" },
   "nav.checkin": { EN: "Check-In", HT: "Tcheke", FR: "Bilan" },
   "nav.badges": { EN: "Badges", HT: "Badj", FR: "Badges" },
   "nav.library": { EN: "Library", HT: "Bibliyotèk", FR: "Bibliothèque" },
@@ -33,9 +32,9 @@ const translations: Record<string, Record<Lang, string>> = {
   "badge.goldStar": { EN: "⭐ Gold Star!", HT: "⭐ Zetwal Lò!", FR: "⭐ Étoile d'or!" },
   "badge.keepGoing": { EN: "💪 Keep Going!", HT: "💪 Kontinye!", FR: "💪 Continue!" },
   "badge.newWeek": { EN: "🔄 New Week, New Start!", HT: "🔄 Nouvo Semèn, Nouvo Kòmansman!", FR: "🔄 Nouvelle semaine, nouveau départ!" },
-  "greeting.morning": { EN: "Good morning, Chris!", HT: "Bonjou, Chris!", FR: "Bonjour, Chris!" },
-  "greeting.afternoon": { EN: "Good afternoon, Chris!", HT: "Bonswa, Chris!", FR: "Bon après-midi, Chris!" },
-  "greeting.evening": { EN: "Good evening, Chris!", HT: "Bonswa, Chris!", FR: "Bonsoir, Chris!" },
+  "greeting.morning": { EN: "Good morning!", HT: "Bonjou!", FR: "Bonjour!" },
+  "greeting.afternoon": { EN: "Good afternoon!", HT: "Bonswa!", FR: "Bon après-midi!" },
+  "greeting.evening": { EN: "Good evening!", HT: "Bonswa!", FR: "Bonsoir!" },
   "role.student": { EN: "Student", HT: "Elèv", FR: "Élève" },
   "role.parent": { EN: "Parent/Admin", HT: "Paran/Admin", FR: "Parent/Admin" },
   "dad.schedule": { EN: "Weekly Schedule", HT: "Orè Semèn", FR: "Emploi du temps" },

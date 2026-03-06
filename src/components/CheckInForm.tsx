@@ -1,46 +1,51 @@
 import { useState } from "react";
 import { useI18n } from "@/lib/i18n";
-import { supabase } from "@/integrations/supabase/client";
+import { useSubmitCheckIn } from "@/hooks/useSubmitCheckIn";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Heart, Zap, HelpCircle, Send } from "lucide-react";
 
-export function CheckInForm({ onDone }: { onDone?: () => void }) {
+interface Props {
+  studentId: string | null;
+  onDone?: () => void;
+}
+
+export function CheckInForm({ studentId, onDone }: Props) {
   const { t } = useI18n();
   const [mood, setMood] = useState<string>("");
   const [focus, setFocus] = useState<string>("");
   const [needHelp, setNeedHelp] = useState(false);
   const [comment, setComment] = useState("");
   const [blocksDone, setBlocksDone] = useState(0);
-  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = async () => {
+  const mutation = useSubmitCheckIn(() => {
+    toast.success(t("checkin.success"));
+    setMood("");
+    setFocus("");
+    setNeedHelp(false);
+    setComment("");
+    setBlocksDone(0);
+    onDone?.();
+  });
+
+  const handleSubmit = () => {
     if (!mood || !focus) {
-      toast.error("Please select mood and focus / Chwazi kijan ou santi ou");
+      toast.error("Please select mood and focus");
       return;
     }
-    setSubmitting(true);
-    const { error } = await supabase.from("check_ins").insert({
-      student_id: "CHRIS",
+    if (!studentId) {
+      toast.error("No student profile found");
+      return;
+    }
+    mutation.mutate({
+      student_id: studentId,
       mood,
       focus,
       blocks_done: blocksDone,
       need_help: needHelp,
       comment: comment || null,
     });
-    setSubmitting(false);
-    if (error) {
-      toast.error("Error submitting check-in");
-    } else {
-      toast.success(t("checkin.success"));
-      setMood("");
-      setFocus("");
-      setNeedHelp(false);
-      setComment("");
-      setBlocksDone(0);
-      onDone?.();
-    }
   };
 
   const moodOptions = [
@@ -153,13 +158,13 @@ export function CheckInForm({ onDone }: { onDone?: () => void }) {
           value={comment}
           onChange={e => setComment(e.target.value)}
           rows={3}
-          placeholder="Tell us more... / Di nou plis..."
+          placeholder="Tell us more..."
         />
       </div>
 
       <Button
         onClick={handleSubmit}
-        disabled={submitting}
+        disabled={mutation.isPending}
         className="w-full font-display text-lg h-12"
         size="lg"
       >
