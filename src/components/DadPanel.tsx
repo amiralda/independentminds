@@ -120,20 +120,24 @@ export function DadPanel() {
 /* ── Telegram Setup Info ── */
 function TelegramSetupInfo() {
   return (
-    <div className="rounded-xl bg-muted/50 border p-4 space-y-2">
-      <h4 className="font-display font-semibold text-sm flex items-center gap-2">
-        📱 Telegram Notifications Setup
-      </h4>
-      <ol className="text-xs text-muted-foreground space-y-1.5 list-decimal list-inside">
-        <li>Open Telegram and search for <strong>@BotFather</strong></li>
-        <li>Send <code>/newbot</code> and follow prompts to create your bot</li>
-        <li>Copy the <strong>Bot Token</strong> provided by BotFather</li>
-        <li>Search for <strong>@userinfobot</strong> (or <strong>@RawDataBot</strong>) and start it</li>
-        <li>It will reply with your <strong>Chat ID</strong> number</li>
-        <li>Add both values as secrets in the backend settings</li>
-      </ol>
+    <div className="rounded-xl bg-muted/50 border p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <h4 className="font-display font-semibold text-sm flex items-center gap-2">
+          📱 Telegram Notifications
+        </h4>
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 text-green-700 px-2.5 py-0.5 text-[11px] font-semibold">
+          <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+          Active — AmiralDaBot
+        </span>
+      </div>
+      <div className="text-xs text-muted-foreground space-y-1">
+        <p>✅ Badge earned alerts</p>
+        <p>🚨 Urgent help intervention</p>
+        <p>📊 Daily reports &amp; weekly summaries</p>
+        <p>☀️ Morning reminders &amp; check-in nudges</p>
+      </div>
       <p className="text-[10px] text-muted-foreground/70 italic">
-        All alerts (badge earned, help needed, daily reports, weekly summaries) will be sent to your Telegram.
+        All notifications are delivered via Telegram to your linked account.
       </p>
     </div>
   );
