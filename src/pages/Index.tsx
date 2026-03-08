@@ -10,13 +10,14 @@ import { TrophyRoom } from "@/components/TrophyRoom";
 import { LibraryPanel } from "@/components/LibraryPanel";
 import { DadPanel } from "@/components/DadPanel";
 import { StudentStatsBar } from "@/components/StudentStatsBar";
+import { CategoryCards } from "@/components/CategoryCards";
 import { useDailyBlocks, useRefreshBlocks } from "@/hooks/useDailyBlocks";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BookOpen, CheckSquare, Trophy, Library, LogOut, Award } from "lucide-react";
+import { BookOpen, CheckSquare, Trophy, Library, LogOut, Award, Target } from "lucide-react";
 import logo from "@/assets/logo.svg";
 import { useState } from "react";
 
-type StudentTab = "today" | "checkin" | "badges" | "trophies" | "library";
+type StudentTab = "today" | "tracks" | "checkin" | "badges" | "trophies" | "library";
 
 const Index = () => {
   const { t } = useI18n();
@@ -41,10 +42,10 @@ const Index = () => {
 
   const studentTabs: { key: StudentTab; icon: React.ElementType; label: string }[] = [
     { key: "today", icon: BookOpen, label: t("nav.today") },
+    { key: "tracks", icon: Target, label: "Tracks" },
     { key: "checkin", icon: CheckSquare, label: t("nav.checkin") },
     { key: "badges", icon: Trophy, label: t("nav.badges") },
     { key: "trophies", icon: Award, label: "Trophies" },
-    { key: "library", icon: Library, label: t("nav.library") },
   ];
 
   return (
@@ -104,10 +105,10 @@ const Index = () => {
                 <TodayBlocks blocks={blocks} onRefresh={refreshBlocks} />
               )
             )}
+            {tab === "tracks" && <CategoryCards />}
             {tab === "checkin" && <CheckInForm studentId={studentId} onDone={refreshBlocks} />}
             {tab === "badges" && <BadgesPanel />}
             {tab === "trophies" && <TrophyRoom />}
-            {tab === "library" && <LibraryPanel />}
           </>
         ) : (
           <div className="py-4">
