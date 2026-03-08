@@ -13,17 +13,15 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const twilioSID = Deno.env.get("twilioSID")!;
-    const twilioSecret = Deno.env.get("twilioSecret")!;
+    const telegramToken = Deno.env.get("TELEGRAM_BOT_TOKEN")!;
+    const telegramChatId = Deno.env.get("TELEGRAM_CHAT_ID")!;
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Get today's date in Haiti timezone
     const now = new Date();
     const haitiDate = new Date(now.toLocaleString("en-US", { timeZone: "America/Port-au-Prince" }));
     const today = haitiDate.toISOString().split("T")[0];
 
-    // Get student info
     const { data: student } = await supabase
       .from("students")
       .select("*")
@@ -37,7 +35,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Get first block for today
     const { data: firstBlock } = await supabase
       .from("daily_plan")
       .select("*")
@@ -58,38 +55,25 @@ Deno.serve(async (req) => {
     const messageHT = `Bonjou Chris! ☀️ Kòmanse ak ${subject}. Louvri Time4Learning epi fè leson ou. Ou gen yon bèl jounen devan ou!`;
     const fullMessage = `${messageEN}\n\n${messageHT}`;
 
-    // Send via Twilio WhatsApp
-    const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${twilioSID}/Messages.json`;
-    const authHeader = btoa(`${twilioSID}:${twilioSecret}`);
-
-    const body = new URLSearchParams({
-      From: "whatsapp:+14155238886",
-      To: `whatsapp:${student.student_whatsapp}`,
-      Body: fullMessage,
-    });
-
-    const twilioRes = await fetch(twilioUrl, {
+    const url = `https://api.telegram.org/bot${telegramToken}/sendMessage`;
+    const telegramRes = await fetch(url, {
       method: "POST",
-      headers: {
-        Authorization: `Basic ${authHeader}`,
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: body.toString(),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: telegramChatId, text: fullMessage }),
     });
 
-    const twilioData = await twilioRes.json();
+    const telegramData = await telegramRes.json();
 
-    // Log to messages_log
     await supabase.from("messages_log").insert({
-      recipient: student.student_whatsapp || "",
-      channel: "WhatsApp",
+      recipient: telegramChatId,
+      channel: "Telegram",
       type: "MorningReminder",
       content: fullMessage,
-      status: twilioRes.ok ? "Sent" : "Failed",
-      provider_message_id: twilioData.sid || null,
+      status: telegramRes.ok ? "Sent" : "Failed",
+      provider_message_id: telegramData.result?.message_id?.toString() || null,
     });
 
-    return new Response(JSON.stringify({ success: true, sid: twilioData.sid }), {
+    return new Response(JSON.stringify({ success: true, message_id: telegramData.result?.message_id }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {

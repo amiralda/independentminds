@@ -13,16 +13,15 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const twilioSID = Deno.env.get("twilioSID")!;
-    const twilioSecret = Deno.env.get("twilioSecret")!;
+    const telegramToken = Deno.env.get("TELEGRAM_BOT_TOKEN")!;
+    const telegramChatId = Deno.env.get("TELEGRAM_CHAT_ID")!;
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     const body = await req.json().catch(() => ({}));
-    const alertType = body.type; // "badge_earned" | "help_needed" | "weekly_summary"
+    const alertType = body.type;
     const studentId = body.student_id || "CHRIS";
 
-    // Get student info
     const { data: student } = await supabase
       .from("students")
       .select("*")
@@ -36,34 +35,27 @@ Deno.serve(async (req) => {
       });
     }
 
-    const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${twilioSID}/Messages.json`;
-    const authHeader = btoa(`${twilioSID}:${twilioSecret}`);
-
-    const sendWhatsApp = async (message: string) => {
-      const whatsappBody = new URLSearchParams({
-        From: "whatsapp:+14155238886",
-        To: `whatsapp:${student.parent_whatsapp}`,
-        Body: message,
-      });
-
-      const res = await fetch(twilioUrl, {
+    const sendTelegram = async (message: string) => {
+      const url = `https://api.telegram.org/bot${telegramToken}/sendMessage`;
+      const res = await fetch(url, {
         method: "POST",
-        headers: {
-          Authorization: `Basic ${authHeader}`,
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: whatsappBody.toString(),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: telegramChatId,
+          text: message,
+          parse_mode: "HTML",
+        }),
       });
 
       const data = await res.json();
 
       await supabase.from("messages_log").insert({
-        recipient: student.parent_whatsapp || student.parent_email || "",
-        channel: "WhatsApp",
+        recipient: telegramChatId,
+        channel: "Telegram",
         type: alertType || "Alert",
         content: message,
         status: res.ok ? "Sent" : "Failed",
-        provider_message_id: data.sid || null,
+        provider_message_id: data.result?.message_id?.toString() || null,
       });
 
       return { ok: res.ok, data };
@@ -74,18 +66,20 @@ Deno.serve(async (req) => {
     // === BADGE EARNED ALERT ===
     if (alertType === "badge_earned") {
       const badgeName = body.badge_name || "20-Lesson Legend";
-      const message = `🚀 Christian Hit Today's Goal!
+      const dateStr = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
 
-🏆 Badge Earned: ${badgeName}
-📅 Date: ${new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
+      const message = `🚀 <b>Christian Hit Today's Goal!</b>
 
-${badgeName === "20-Lesson Legend" 
+🏆 Badge Earned: <b>${badgeName}</b>
+📅 Date: ${dateStr}
+
+${badgeName === "20-Lesson Legend"
   ? "Christian completed 20+ lessons today! He's on track for his July graduation. 🎓"
-  : `Christian just earned the "${badgeName}" badge! Keep up the momentum! 💪`}
+  : `Christian just earned the "<b>${badgeName}</b>" badge! Keep up the momentum! 💪`}
 
-— Independent Minds v1.0`;
+— <i>Independent Minds v1.0</i>`;
 
-      result = await sendWhatsApp(message);
+      result = await sendTelegram(message);
     }
 
     // === HELP NEEDED ALERT ===
@@ -94,18 +88,18 @@ ${badgeName === "20-Lesson Legend"
       const subject = body.focus || "Unknown";
       const mood = body.mood || "Unknown";
 
-      const message = `🚨 URGENT INTERVENTION NEEDED
+      const message = `🚨 <b>URGENT INTERVENTION NEEDED</b>
 
-Student: Christian
-📚 Current Focus: ${subject}
-😟 Mood: ${mood}
-💬 Comment: "${comment}"
+👤 Student: Christian
+📚 Current Focus: <b>${subject}</b>
+😟 Mood: <b>${mood}</b>
+💬 Comment: "<i>${comment}</i>"
 
 Christian has requested help. Please check in with him as soon as possible.
 
-— Independent Minds Alert System`;
+— <i>Independent Minds Alert System</i>`;
 
-      result = await sendWhatsApp(message);
+      result = await sendTelegram(message);
     }
 
     // === WEEKLY SUMMARY ===
@@ -117,7 +111,6 @@ Christian has requested help. Please check in with him as soon as possible.
       const monStr = monday.toISOString().split("T")[0];
       const todayStr = now.toISOString().split("T")[0];
 
-      // Get week's blocks
       const { data: weekBlocks } = await supabase
         .from("daily_plan")
         .select("*")
@@ -132,7 +125,6 @@ Christian has requested help. Please check in with him as soon as possible.
       const ratings = done.filter(b => b.self_rating != null).map(b => b.self_rating!);
       const avgFocus = ratings.length > 0 ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1) : "N/A";
 
-      // Get new badges this week
       const { data: badges } = await supabase
         .from("achievements")
         .select("name, criteria_met_at")
@@ -141,30 +133,28 @@ Christian has requested help. Please check in with him as soon as possible.
 
       const badgeList = badges?.map(b => `🏆 ${b.name}`).join("\n") || "No new badges this week";
 
-      // Burndown tracking
-      const totalRemaining = 2039 - done.length; // Simplified
       const daysLeft = Math.ceil((new Date("2026-07-03").getTime() - now.getTime()) / 86400000);
 
-      const message = `📊 WEEKLY PROGRESS REPORT
+      const message = `📊 <b>WEEKLY PROGRESS REPORT</b>
 ${monStr} to ${todayStr}
 
-📈 Activities Completed: ${done.length} / ${total}
-📊 Completion Rate: ${total > 0 ? Math.round((done.length / total) * 100) : 0}%
-🎯 Average Score: ${avgScore}%
-🧠 Average Focus: ${avgFocus}/5
+📈 Activities Completed: <b>${done.length} / ${total}</b>
+📊 Completion Rate: <b>${total > 0 ? Math.round((done.length / total) * 100) : 0}%</b>
+🎯 Average Score: <b>${avgScore}%</b>
+🧠 Average Focus: <b>${avgFocus}/5</b>
 
-🏅 New Badges:
+🏅 <b>New Badges:</b>
 ${badgeList}
 
-📉 Graduation Burndown:
+📉 <b>Graduation Burndown:</b>
 ${daysLeft} days remaining
 Target pace: 20 lessons/day
 
 Keep pushing, Christian! 💪🎓
 
-— Independent Minds v1.0`;
+— <i>Independent Minds v1.0</i>`;
 
-      result = await sendWhatsApp(message);
+      result = await sendTelegram(message);
     }
 
     else {
