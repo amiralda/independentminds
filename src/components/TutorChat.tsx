@@ -41,11 +41,19 @@ export function TutorChat() {
     let assistantSoFar = "";
 
     try {
+      // Get the user's session JWT for authenticated requests
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        toast.error("Please log in to use the tutor");
+        setIsLoading(false);
+        return;
+      }
+
       const resp = await fetch(TUTOR_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({ messages: allMessages }),
       });
