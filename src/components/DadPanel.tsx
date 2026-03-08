@@ -10,11 +10,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertTriangle, BarChart3, Calendar, Plus, BookOpen, Trash2, Pencil, Upload, Award } from "lucide-react";
+import { AlertTriangle, BarChart3, Calendar, Plus, BookOpen, Trash2, Pencil, Upload, Award, LineChart } from "lucide-react";
 import { toast } from "sonner";
 import { useRef } from "react";
 import { SubjectIcon } from "@/components/SubjectIcon";
 import { CertificatesPanel } from "@/components/CertificatesPanel";
+import { ReportsPanel } from "@/components/ReportsPanel";
 
 const SUBJECTS = [
   "English",
@@ -67,21 +68,24 @@ export function DadPanel() {
     <div className="space-y-4">
       <h2 className="font-display text-2xl font-bold">{t("nav.dadPanel")}</h2>
       <Tabs defaultValue="alerts">
-        <TabsList className="w-full grid grid-cols-5">
-          <TabsTrigger value="alerts" className="font-display text-xs">
-            <AlertTriangle size={14} className="mr-1" /> Alerts
+        <TabsList className="w-full grid grid-cols-6">
+          <TabsTrigger value="alerts" className="font-display text-[10px] px-1">
+            <AlertTriangle size={12} className="mr-0.5" /> Alerts
           </TabsTrigger>
-          <TabsTrigger value="progress" className="font-display text-xs">
-            <BarChart3 size={14} className="mr-1" /> Today
+          <TabsTrigger value="progress" className="font-display text-[10px] px-1">
+            <BarChart3 size={12} className="mr-0.5" /> Today
           </TabsTrigger>
-          <TabsTrigger value="schedule" className="font-display text-xs">
-            <Calendar size={14} className="mr-1" /> Schedule
+          <TabsTrigger value="schedule" className="font-display text-[10px] px-1">
+            <Calendar size={12} className="mr-0.5" /> Schedule
           </TabsTrigger>
-          <TabsTrigger value="curriculum" className="font-display text-xs">
-            <BookOpen size={14} className="mr-1" /> Curriculum
+          <TabsTrigger value="curriculum" className="font-display text-[10px] px-1">
+            <BookOpen size={12} className="mr-0.5" /> Curric.
           </TabsTrigger>
-          <TabsTrigger value="certificates" className="font-display text-xs">
-            <Award size={14} className="mr-1" /> Certs
+          <TabsTrigger value="certificates" className="font-display text-[10px] px-1">
+            <Award size={12} className="mr-0.5" /> Certs
+          </TabsTrigger>
+          <TabsTrigger value="reports" className="font-display text-[10px] px-1">
+            <LineChart size={12} className="mr-0.5" /> Reports
           </TabsTrigger>
         </TabsList>
 
@@ -99,6 +103,9 @@ export function DadPanel() {
         </TabsContent>
         <TabsContent value="certificates" className="mt-4">
           <CertificatesPanel studentId={studentId} />
+        </TabsContent>
+        <TabsContent value="reports" className="mt-4">
+          <ReportsPanel studentId={studentId} />
         </TabsContent>
       </Tabs>
 
