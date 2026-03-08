@@ -10,7 +10,8 @@ import { LibraryPanel } from "@/components/LibraryPanel";
 import { DadPanel } from "@/components/DadPanel";
 import { useDailyBlocks, useRefreshBlocks } from "@/hooks/useDailyBlocks";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BookOpen, CheckSquare, Trophy, Library, GraduationCap, LogOut } from "lucide-react";
+import { BookOpen, CheckSquare, Trophy, Library, LogOut } from "lucide-react";
+import logo from "@/assets/logo.svg";
 import { useState } from "react";
 
 type StudentTab = "today" | "checkin" | "badges" | "library";
@@ -49,7 +50,7 @@ const Index = () => {
       <header className="sticky top-0 z-50 bg-primary shadow-md">
         <div className="container py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <GraduationCap size={28} className="text-primary-foreground" />
+            <img src={logo} alt="Independent Minds" className="w-8 h-8" />
             <div>
               <h1 className="font-display text-xl font-bold text-primary-foreground leading-tight">
                 Independent Minds
