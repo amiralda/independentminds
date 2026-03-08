@@ -9,6 +9,7 @@ import { BadgesPanel } from "@/components/BadgesPanel";
 import { TrophyRoom } from "@/components/TrophyRoom";
 import { LibraryPanel } from "@/components/LibraryPanel";
 import { DadPanel } from "@/components/DadPanel";
+import { StudentStatsBar } from "@/components/StudentStatsBar";
 import { useDailyBlocks, useRefreshBlocks } from "@/hooks/useDailyBlocks";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BookOpen, CheckSquare, Trophy, Library, LogOut, Award } from "lucide-react";
@@ -77,15 +78,18 @@ const Index = () => {
       <main className="container pb-24">
         {role === "student" ? (
           <>
-            {/* Greeting */}
+            {/* Greeting + Stats */}
             <div className="py-4">
               <h2 className="font-display text-2xl font-bold">{getGreeting()}</h2>
-              <p className="text-muted-foreground text-sm mt-1">
-                {isLoading
-                  ? "Loading..."
-                  : `${blocks.filter(b => b.status === "Done").length}/${blocks.length} blocks done today`}
-              </p>
             </div>
+
+            {studentId && (
+              <StudentStatsBar
+                studentId={studentId}
+                todayDone={blocks.filter(b => b.status === "Done").length}
+                todayTotal={blocks.length}
+              />
+            )}
 
             {/* Tab content */}
             {tab === "today" && (
