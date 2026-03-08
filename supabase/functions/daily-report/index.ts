@@ -69,7 +69,7 @@ Deno.serve(async (req) => {
       ? Math.round((doneBlocks.length / blocks.length) * 100)
       : 0;
 
-    const reportEN = `📊 <b>LEKÒL FASIL DAILY REPORT</b> (${today})
+    const reportEN = `📊 <b>INDEPENDENT MINDS DAILY REPORT</b> (${today})
 
 ✅ Done: ${doneList}
 ❌ Missed: ${missedList}
@@ -77,7 +77,7 @@ Deno.serve(async (req) => {
 😊 Mood: ${mood} | 🎯 Focus: ${focus}
 💡 Recommendation: ${recommendation}`;
 
-    const reportHT = `📊 <b>RAPÒ LEKÒL FASIL</b> (${today})
+    const reportHT = `📊 <b>RAPÒ INDEPENDENT MINDS</b> (${today})
 
 ✅ Fini: ${doneList}
 ❌ Pa fini: ${missedList}
