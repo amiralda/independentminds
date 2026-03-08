@@ -13,8 +13,8 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const twilioSID = Deno.env.get("twilioSID")!;
-    const twilioSecret = Deno.env.get("twilioSecret")!;
+    const telegramToken = Deno.env.get("TELEGRAM_BOT_TOKEN")!;
+    const telegramChatId = Deno.env.get("TELEGRAM_CHAT_ID")!;
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -40,103 +40,82 @@ Deno.serve(async (req) => {
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
 
+    const monStr = monday.toISOString().split("T")[0];
+    const sunStr = sunday.toISOString().split("T")[0];
+
     const { data: blocks } = await supabase
       .from("daily_plan")
       .select("status, subject")
       .eq("student_id", "CHRIS")
-      .gte("plan_date", monday.toISOString().split("T")[0])
-      .lte("plan_date", sunday.toISOString().split("T")[0]);
+      .gte("plan_date", monStr)
+      .lte("plan_date", sunStr);
 
     const total = blocks?.length || 0;
     const done = blocks?.filter(b => b.status === "Done").length || 0;
     const rate = total > 0 ? Math.round((done / total) * 100) : 0;
 
     let badgeEN = "";
-    let badgeHT = "";
     let emoji = "";
 
     if (rate >= 90) {
       emoji = "🏆";
       badgeEN = "Champion of the Week!";
-      badgeHT = "Chanpyon Semèn nan!";
     } else if (rate >= 75) {
       emoji = "⭐";
       badgeEN = "Gold Star!";
-      badgeHT = "Zetwal Lò!";
     } else if (rate >= 50) {
       emoji = "💪";
       badgeEN = "Keep Going!";
-      badgeHT = "Kontinye!";
     } else {
       emoji = "🔄";
-      badgeEN = "New Week, New Start! You can do it!";
-      badgeHT = "Nouvo Semèn, Nouvo Kòmansman! Ou kapab!";
+      badgeEN = "New Week, New Start!";
     }
 
-    // Message to Chris
-    const chrisMessage = `${emoji} WEEKLY BADGE ${emoji}
+    const subjectBreakdown = ["English", "ESL", "Math", "Science", "Social Studies", "Public Speaking", "Media Education"]
+      .map(s => {
+        const subBlocks = blocks?.filter(b => b.subject === s) || [];
+        const subDone = subBlocks.filter(b => b.status === "Done").length;
+        return subBlocks.length > 0 ? `  • ${s}: ${subDone}/${subBlocks.length}` : null;
+      })
+      .filter(Boolean)
+      .join("\n");
 
-EN: Congratulations Chris! You completed ${done}/${total} blocks this week (${rate}%). ${badgeEN}
+    const message = `${emoji} <b>WEEKLY BADGE — ${badgeEN}</b>
 
-HT: Felisitasyon Chris! Ou fè ${done}/${total} blòk semèn sa a (${rate}%). ${badgeHT}`;
+📊 <b>Weekly Summary for Christian</b>
+${monStr} to ${sunStr}
 
-    // Summary to Dad
-    const dadMessage = `📊 WEEKLY SUMMARY FOR CHRIS
+📈 Blocks Completed: <b>${done} / ${total}</b> (${rate}%)
+🏅 Badge: ${emoji} ${badgeEN}
 
-Blocks: ${done}/${total} completed (${rate}%)
-Badge: ${emoji} ${badgeEN}
+📚 <b>Subject Breakdown:</b>
+${subjectBreakdown || "No data"}
 
-Subject breakdown:
-${["Language Arts", "Math", "Science", "Social Studies", "English Support"]
-  .map(s => {
-    const subBlocks = blocks?.filter(b => b.subject === s) || [];
-    const subDone = subBlocks.filter(b => b.status === "Done").length;
-    return `  • ${s}: ${subDone}/${subBlocks.length}`;
-  }).join("\n")}`;
+Keep pushing, Christian! 💪🎓
 
-    // Send to Chris via WhatsApp
-    const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${twilioSID}/Messages.json`;
-    const authHeader = btoa(`${twilioSID}:${twilioSecret}`);
+— <i>Independent Minds v1.0</i>`;
 
-    const sendWhatsApp = async (to: string, message: string) => {
-      const body = new URLSearchParams({
-        From: "whatsapp:+14155238886",
-        To: `whatsapp:${to}`,
-        Body: message,
-      });
-      const res = await fetch(twilioUrl, {
-        method: "POST",
-        headers: {
-          Authorization: `Basic ${authHeader}`,
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: body.toString(),
-      });
-      return res.json();
-    };
+    const url = `https://api.telegram.org/bot${telegramToken}/sendMessage`;
+    const telegramRes = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: telegramChatId,
+        text: message,
+        parse_mode: "HTML",
+      }),
+    });
 
-    const chrisRes = await sendWhatsApp(student.student_whatsapp!, chrisMessage);
-    const dadRes = await sendWhatsApp(student.parent_whatsapp!, dadMessage);
+    const telegramData = await telegramRes.json();
 
-    // Log messages
-    await supabase.from("messages_log").insert([
-      {
-        recipient: student.student_whatsapp || "",
-        channel: "WhatsApp",
-        type: "WeeklyBadge",
-        content: chrisMessage,
-        status: "Sent",
-        provider_message_id: chrisRes.sid || null,
-      },
-      {
-        recipient: student.parent_whatsapp || "",
-        channel: "WhatsApp",
-        type: "WeeklyBadge",
-        content: dadMessage,
-        status: "Sent",
-        provider_message_id: dadRes.sid || null,
-      },
-    ]);
+    await supabase.from("messages_log").insert({
+      recipient: telegramChatId,
+      channel: "Telegram",
+      type: "WeeklyBadge",
+      content: message,
+      status: telegramRes.ok ? "Sent" : "Failed",
+      provider_message_id: telegramData.result?.message_id?.toString() || null,
+    });
 
     return new Response(JSON.stringify({ success: true, rate, badge: badgeEN }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
