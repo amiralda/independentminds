@@ -17,10 +17,10 @@ import { AddStudentForm } from "@/components/AddStudentForm";
 import { WelcomeModal } from "@/components/WelcomeModal";
 import { useDailyBlocks, useRefreshBlocks } from "@/hooks/useDailyBlocks";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BookOpen, CheckSquare, Trophy, LogOut, Award, Target } from "lucide-react";
+import { BookOpen, CheckSquare, Trophy, LogOut, Award, Target, Library } from "lucide-react";
 import logo from "@/assets/logo.svg";
 
-type StudentTab = "today" | "tracks" | "checkin" | "badges" | "trophies";
+type StudentTab = "today" | "tracks" | "checkin" | "badges" | "trophies" | "library";
 
 const Index = () => {
   const { t } = useI18n();
@@ -53,6 +53,7 @@ const Index = () => {
     { key: "checkin", icon: CheckSquare, label: t("nav.checkin") },
     { key: "badges", icon: Trophy, label: t("nav.badges") },
     { key: "trophies", icon: Award, label: t("nav.trophies") },
+    { key: "library", icon: Library, label: t("nav.library") },
   ];
 
   return (
@@ -112,6 +113,7 @@ const Index = () => {
             {tab === "checkin" && <CheckInForm studentId={studentId} onDone={refreshBlocks} />}
             {tab === "badges" && <BadgesPanel />}
             {tab === "trophies" && <TrophyRoom />}
+            {tab === "library" && <LibraryPanel />}
           </>
         ) : (
           <div className="py-4">
