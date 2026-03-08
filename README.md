@@ -33,16 +33,41 @@ To provide a flexible framework for academic success. The platform calculates an
 - **Consistency Streak:** A habit-building tool that gamifies daily engagement to build long-term study habits.
 - **'Mark Done' Synchronization:** One-click logging of activities with instant cloud updates and parent notification.
 
+### 🎯 Multi-Track Learning System *(NEW)*
+
+- **Subject Tracks:** Define multiple independent learning tracks (e.g., Time4Learning, Rosetta Stone Spanish, Coding) each with its own daily target, unit type, and color-coded category.
+- **Category Cards:** Per-track progress visualization with individual progress bars, Mark Done buttons, and daily goals — replacing the single-progress-bar model.
+- **Admin Track Management:** Full CRUD control for parents to add, edit, enable/disable, and delete learning tracks from the Settings panel.
+- **Activity Logging:** Every completed session is timestamped and linked to its specific track for granular analytics.
+
 ### 🔔 Parent Command Center
 
 - **Automated Cloud Alerts:** Instant Telegram notifications for every milestone reached or lesson completed, replacing traditional SMS systems.
+- **Dynamic Track Notifications:** When a student marks a track complete, the Telegram bot identifies the specific track and reports: *"Christian just completed a [Track Name] session! Total today: [X/Target]."*
 - **Urgent Support System:** A *'Need Help'* trigger that allows students to request immediate intervention with contextual comments.
+- **Activity Feed:** A real-time admin view showing exactly what time each subject was started and finished, with manual **Undo** and **Override** capabilities.
 - **Analytics Dashboard:** A comprehensive view of student velocity, historical trends, and activity logs.
 
 ### 🏆 Achievement & Recognition
 
 - **The Trophy Room:** A digital reward system for hitting daily and weekly performance benchmarks (e.g., *'20-Lesson Legend'*, *'Weekly Warrior'*).
 - **Automated Certification:** System-generated achievement certificates upon the completion of specific academic blocks or chapters.
+
+---
+
+## 🗄️ Database Schema
+
+| Table | Purpose |
+|---|---|
+| `students` | Student profiles, language preferences, contact info |
+| `profiles` | Auth-linked user profiles with roles (student/parent) |
+| `daily_plan` | Scheduled time-block activities per day |
+| `subject_tracks` | Multi-track learning configuration (name, target, unit type, color, enabled) |
+| `activity_logs` | Per-track activity entries with timestamps, scores, and status |
+| `check_ins` | Student mood, focus, and help-request entries |
+| `achievements` | Earned badges and certificates |
+| `curriculum_map` | Lesson-level curriculum reference data |
+| `messages_log` | Telegram notification delivery log |
 
 ---
 
