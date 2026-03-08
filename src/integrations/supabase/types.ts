@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          created_at: string
+          criteria_met_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          name: string
+          student_id: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          criteria_met_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name: string
+          student_id: string
+          type?: string
+        }
+        Update: {
+          created_at?: string
+          criteria_met_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name?: string
+          student_id?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "achievements_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["student_id"]
+          },
+        ]
+      }
       check_ins: {
         Row: {
           blocks_done: number
