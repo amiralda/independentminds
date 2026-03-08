@@ -283,6 +283,7 @@ export type Database = {
           status: string | null
           timestamp: string
           type: string
+          user_id: string | null
         }
         Insert: {
           channel: string
@@ -293,6 +294,7 @@ export type Database = {
           status?: string | null
           timestamp?: string
           type: string
+          user_id?: string | null
         }
         Update: {
           channel?: string
@@ -303,6 +305,7 @@ export type Database = {
           status?: string | null
           timestamp?: string
           type?: string
+          user_id?: string | null
         }
         Relationships: []
       }
