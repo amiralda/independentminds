@@ -166,6 +166,7 @@ export type Database = {
           time4learning_path_hint: string | null
           unit_or_chapter: string | null
           updated_at: string
+          user_id: string
         }
         Insert: {
           created_at?: string
@@ -182,6 +183,7 @@ export type Database = {
           time4learning_path_hint?: string | null
           unit_or_chapter?: string | null
           updated_at?: string
+          user_id: string
         }
         Update: {
           created_at?: string
@@ -198,6 +200,7 @@ export type Database = {
           time4learning_path_hint?: string | null
           unit_or_chapter?: string | null
           updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
