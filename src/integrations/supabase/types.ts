@@ -55,6 +55,60 @@ export type Database = {
           },
         ]
       }
+      activity_logs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          id: string
+          log_date: string
+          notes: string | null
+          score: number | null
+          started_at: string | null
+          status: string
+          student_id: string
+          track_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          log_date?: string
+          notes?: string | null
+          score?: number | null
+          started_at?: string | null
+          status?: string
+          student_id: string
+          track_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          log_date?: string
+          notes?: string | null
+          score?: number | null
+          started_at?: string | null
+          status?: string
+          student_id?: string
+          track_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_logs_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "activity_logs_track_id_fkey"
+            columns: ["track_id"]
+            isOneToOne: false
+            referencedRelation: "subject_tracks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       check_ins: {
         Row: {
           blocks_done: number
@@ -325,6 +379,56 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      subject_tracks: {
+        Row: {
+          category: string
+          color: string
+          created_at: string
+          daily_target: number
+          enabled: boolean
+          icon: string
+          id: string
+          name: string
+          student_id: string
+          unit_type: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          color?: string
+          created_at?: string
+          daily_target?: number
+          enabled?: boolean
+          icon?: string
+          id?: string
+          name: string
+          student_id: string
+          unit_type?: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          color?: string
+          created_at?: string
+          daily_target?: number
+          enabled?: boolean
+          icon?: string
+          id?: string
+          name?: string
+          student_id?: string
+          unit_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subject_tracks_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["student_id"]
+          },
+        ]
       }
     }
     Views: {

@@ -171,8 +171,31 @@ This is a self-destructing test message.
       result = await sendTelegram(message);
     }
 
+    // === TRACK COMPLETED ===
+    else if (alertType === "track_completed") {
+      const trackName = body.track_name || "Unknown Track";
+      const doneToday = body.done_today || 1;
+      const target = body.target || 1;
+      const unitType = body.unit_type || "lessons";
+      const isGoalMet = doneToday >= target;
+
+      const message = `${isGoalMet ? "🎯" : "📝"} <b>Activity Update</b>
+
+👤 Student: Christian
+📚 Track: <b>${trackName}</b>
+✅ Completed: <b>${doneToday}/${target} ${unitType}</b>
+
+${isGoalMet
+  ? `🏆 <b>Daily goal reached!</b> Christian hit the target for ${trackName} today! 🎉`
+  : `Progress update: ${doneToday} of ${target} ${unitType} completed so far.`}
+
+— <i>Independent Minds v2.0</i>`;
+
+      result = await sendTelegram(message);
+    }
+
     else {
-      return new Response(JSON.stringify({ error: "Unknown alert type. Use: badge_earned, help_needed, weekly_summary, or test_connection" }), {
+      return new Response(JSON.stringify({ error: "Unknown alert type. Use: badge_earned, help_needed, weekly_summary, track_completed, or test_connection" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
