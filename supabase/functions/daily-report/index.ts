@@ -13,15 +13,14 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const twilioSID = Deno.env.get("twilioSID")!;
-    const twilioSecret = Deno.env.get("twilioSecret")!;
+    const telegramToken = Deno.env.get("TELEGRAM_BOT_TOKEN")!;
+    const telegramChatId = Deno.env.get("TELEGRAM_CHAT_ID")!;
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     const now = new Date();
     const today = new Date(now.toLocaleString("en-US", { timeZone: "America/Port-au-Prince" })).toISOString().split("T")[0];
 
-    // Get student info
     const { data: student } = await supabase
       .from("students")
       .select("*")
@@ -35,7 +34,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Get today's blocks
     const { data: blocks } = await supabase
       .from("daily_plan")
       .select("*")
@@ -43,7 +41,6 @@ Deno.serve(async (req) => {
       .eq("plan_date", today)
       .order("block_order");
 
-    // Get latest check-in
     const { data: checkIns } = await supabase
       .from("check_ins")
       .select("*")
@@ -60,7 +57,6 @@ Deno.serve(async (req) => {
     const focus = latestCheckIn?.focus || "N/A";
     const mood = latestCheckIn?.mood || "N/A";
 
-    // Generate recommendation
     let recommendation = "Keep up the great work!";
     const langArts = blocks?.filter(b => b.subject === "Language Arts" && b.status !== "Done");
     if (langArts && langArts.length > 0) {
@@ -73,56 +69,43 @@ Deno.serve(async (req) => {
       ? Math.round((doneBlocks.length / blocks.length) * 100)
       : 0;
 
-    const reportEN = `📊 LEKÒL FASIL DAILY REPORT (${today})
+    const reportEN = `📊 <b>LEKÒL FASIL DAILY REPORT</b> (${today})
 
 ✅ Done: ${doneList}
 ❌ Missed: ${missedList}
-📈 Completion: ${completionRate}%
+📈 Completion: <b>${completionRate}%</b>
 😊 Mood: ${mood} | 🎯 Focus: ${focus}
 💡 Recommendation: ${recommendation}`;
 
-    const reportHT = `📊 RAPÒ LEKÒL FASIL (${today})
+    const reportHT = `📊 <b>RAPÒ LEKÒL FASIL</b> (${today})
 
 ✅ Fini: ${doneList}
 ❌ Pa fini: ${missedList}
-📈 Konplete: ${completionRate}%
+📈 Konplete: <b>${completionRate}%</b>
 😊 Imè: ${mood} | 🎯 Konsantrasyon: ${focus}
 💡 Rekòmandasyon: ${recommendation}`;
 
-    const fullReport = `${reportEN}\n\n${reportHT}`;
+    const fullReport = `${reportEN}\n\n${reportHT}\n\n— <i>Independent Minds v1.0</i>`;
 
-    // Send WhatsApp to Dad
-    const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${twilioSID}/Messages.json`;
-    const authHeader = btoa(`${twilioSID}:${twilioSecret}`);
-
-    const whatsappBody = new URLSearchParams({
-      From: "whatsapp:+14155238886",
-      To: `whatsapp:${student.parent_whatsapp}`,
-      Body: fullReport,
-    });
-
-    const twilioRes = await fetch(twilioUrl, {
+    const url = `https://api.telegram.org/bot${telegramToken}/sendMessage`;
+    const telegramRes = await fetch(url, {
       method: "POST",
-      headers: {
-        Authorization: `Basic ${authHeader}`,
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: whatsappBody.toString(),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: telegramChatId, text: fullReport, parse_mode: "HTML" }),
     });
 
-    const twilioData = await twilioRes.json();
+    const telegramData = await telegramRes.json();
 
-    // Log WhatsApp message
     await supabase.from("messages_log").insert({
-      recipient: student.parent_whatsapp || "",
-      channel: "WhatsApp",
+      recipient: telegramChatId,
+      channel: "Telegram",
       type: "DailyReport",
       content: fullReport,
-      status: twilioRes.ok ? "Sent" : "Failed",
-      provider_message_id: twilioData.sid || null,
+      status: telegramRes.ok ? "Sent" : "Failed",
+      provider_message_id: telegramData.result?.message_id?.toString() || null,
     });
 
-    // Also mark remaining planned blocks as "Missed" at end of day
+    // Mark remaining planned blocks as "Missed"
     if (blocks) {
       const plannedIds = blocks.filter(b => b.status === "Planned" || b.status === "In Progress").map(b => b.id);
       if (plannedIds.length > 0) {
