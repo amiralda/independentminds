@@ -10,8 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertTriangle, BarChart3, Calendar, Plus, BookOpen, Trash2, Pencil } from "lucide-react";
+import { AlertTriangle, BarChart3, Calendar, Plus, BookOpen, Trash2, Pencil, Upload } from "lucide-react";
 import { toast } from "sonner";
+import { useRef } from "react";
 import { SubjectIcon } from "@/components/SubjectIcon";
 
 const SUBJECTS = [
@@ -94,9 +95,8 @@ export function DadPanel() {
         </TabsContent>
       </Tabs>
 
-      {/* Production footer */}
       <p className="text-center text-xs text-muted-foreground pt-6 border-t mt-8">
-        Independent Minds v1.0 — Production Ready
+        Independent Minds v1.0 — Built with Love @2026
       </p>
     </div>
   );
@@ -233,6 +233,38 @@ function ScheduleBuilderTab({ studentId }: { studentId: string }) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ ...EMPTY_FORM });
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleCsvUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const text = await file.text();
+    const lines = text.trim().split("\n");
+    const headers = lines[0].split(",").map(h => h.trim().toLowerCase());
+    const rows = lines.slice(1).map(line => {
+      const vals = line.split(",").map(v => v.trim());
+      const row: Record<string, string> = {};
+      headers.forEach((h, i) => { row[h] = vals[i] || ""; });
+      return {
+        student_id: studentId,
+        plan_date: row.plan_date,
+        block_order: parseInt(row.block_order) || 1,
+        start_time: row.start_time,
+        end_time: row.end_time,
+        subject: row.subject,
+        status: row.status || "Planned",
+        notes: row.notes || null,
+      };
+    }).filter(r => r.plan_date && r.subject && r.start_time && r.end_time);
+
+    if (rows.length === 0) { toast.error("No valid rows found in CSV"); return; }
+
+    const { error } = await supabase.from("daily_plan").insert(rows);
+    if (error) { toast.error("Upload failed: " + error.message); return; }
+    toast.success(`${rows.length} blocks imported!`);
+    invalidateAll();
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
 
   const startDate = new Date().toISOString().split("T")[0];
   const endDate = new Date(Date.now() + 7 * 86400000).toISOString().split("T")[0];
@@ -332,11 +364,17 @@ function ScheduleBuilderTab({ studentId }: { studentId: string }) {
   return (
     <div className="space-y-4">
       <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) closeDialog(); else setDialogOpen(true); }}>
-        <DialogTrigger asChild>
-          <Button className="w-full font-display" onClick={() => { setEditingId(null); setForm({ ...EMPTY_FORM }); }}>
-            <Plus size={16} className="mr-2" /> Add Block
+        <div className="flex gap-2">
+          <DialogTrigger asChild>
+            <Button className="flex-1 font-display" onClick={() => { setEditingId(null); setForm({ ...EMPTY_FORM }); }}>
+              <Plus size={16} className="mr-2" /> Add Block
+            </Button>
+          </DialogTrigger>
+          <Button variant="outline" className="font-display" onClick={() => fileInputRef.current?.click()}>
+            <Upload size={16} className="mr-2" /> Bulk Upload
           </Button>
-        </DialogTrigger>
+          <input ref={fileInputRef} type="file" accept=".csv" className="hidden" onChange={handleCsvUpload} />
+        </div>
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="font-display">{editingId ? "Edit Block" : "Add Schedule Block"}</DialogTitle>

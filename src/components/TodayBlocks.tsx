@@ -115,6 +115,11 @@ export function TodayBlocks({ blocks, onRefresh }: Props) {
               <p className="text-sm text-muted-foreground mt-0.5">
                 {block.start_time.slice(0, 5)} – {block.end_time.slice(0, 5)} | Block {block.block_order}
               </p>
+              {block.notes && (
+                <p className="text-xs mt-1 bg-background/60 rounded px-2 py-1 text-foreground/80">
+                  📍 {block.notes}
+                </p>
+              )}
             </div>
             <div className="flex flex-col gap-1.5 flex-shrink-0">
               {block.status === "Planned" && (
