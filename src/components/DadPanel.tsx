@@ -10,10 +10,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertTriangle, BarChart3, Calendar, Plus, BookOpen, Trash2, Pencil, Upload } from "lucide-react";
+import { AlertTriangle, BarChart3, Calendar, Plus, BookOpen, Trash2, Pencil, Upload, Award } from "lucide-react";
 import { toast } from "sonner";
 import { useRef } from "react";
 import { SubjectIcon } from "@/components/SubjectIcon";
+import { CertificatesPanel } from "@/components/CertificatesPanel";
 
 const SUBJECTS = [
   "English",
@@ -66,7 +67,7 @@ export function DadPanel() {
     <div className="space-y-4">
       <h2 className="font-display text-2xl font-bold">{t("nav.dadPanel")}</h2>
       <Tabs defaultValue="alerts">
-        <TabsList className="w-full grid grid-cols-4">
+        <TabsList className="w-full grid grid-cols-5">
           <TabsTrigger value="alerts" className="font-display text-xs">
             <AlertTriangle size={14} className="mr-1" /> Alerts
           </TabsTrigger>
@@ -78,6 +79,9 @@ export function DadPanel() {
           </TabsTrigger>
           <TabsTrigger value="curriculum" className="font-display text-xs">
             <BookOpen size={14} className="mr-1" /> Curriculum
+          </TabsTrigger>
+          <TabsTrigger value="certificates" className="font-display text-xs">
+            <Award size={14} className="mr-1" /> Certs
           </TabsTrigger>
         </TabsList>
 
@@ -92,6 +96,9 @@ export function DadPanel() {
         </TabsContent>
         <TabsContent value="curriculum" className="mt-4">
           <CurriculumTab />
+        </TabsContent>
+        <TabsContent value="certificates" className="mt-4">
+          <CertificatesPanel studentId={studentId} />
         </TabsContent>
       </Tabs>
 

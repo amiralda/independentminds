@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { CheckCircle2, Play, Clock, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { useCheckAndAwardBadges } from "@/hooks/useAchievements";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Block {
   id: string;
@@ -40,6 +42,8 @@ const statusIcon = (status: string) => {
 
 export function TodayBlocks({ blocks, onRefresh }: Props) {
   const { t } = useI18n();
+  const { profile } = useAuth();
+  const checkBadges = useCheckAndAwardBadges(profile?.studentId || "CHRIS");
   const [completingBlock, setCompletingBlock] = useState<Block | null>(null);
   const [rating, setRating] = useState(3);
   const [score, setScore] = useState("");
@@ -73,6 +77,7 @@ export function TodayBlocks({ blocks, onRefresh }: Props) {
     toast.success(t("status.done") + " 🎉");
     setCompletingBlock(null);
     onRefresh();
+    checkBadges.mutate();
   };
 
   const doneCount = blocks.filter(b => b.status === "Done").length;
