@@ -157,8 +157,22 @@ Keep pushing, Christian! 💪🎓
       result = await sendTelegram(message);
     }
 
+    // === TEST CONNECTION ===
+    else if (alertType === "test_connection") {
+      const message = `🛠️ <b>Independent Minds: System Test</b>
+
+Hello Amiral! The connection is successful. ✅
+This is a self-destructing test message.
+
+<b>Status:</b> Ready for March 9 launch. 🚀
+
+— <i>Independent Minds v1.0</i>`;
+
+      result = await sendTelegram(message);
+    }
+
     else {
-      return new Response(JSON.stringify({ error: "Unknown alert type. Use: badge_earned, help_needed, or weekly_summary" }), {
+      return new Response(JSON.stringify({ error: "Unknown alert type. Use: badge_earned, help_needed, weekly_summary, or test_connection" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
