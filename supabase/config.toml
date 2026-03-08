@@ -1,22 +1,19 @@
 project_id = "wkvattbvybvgaeobtidl"
 
-[functions.morning-reminder]
-verify_jwt = false
-
-[functions.checkin-reminder]
-verify_jwt = false
-
-[functions.daily-report]
-verify_jwt = false
-
-[functions.weekly-badge]
-verify_jwt = false
-
-[functions.seed-users]
-verify_jwt = false
-
-[functions.ai-tutor]
-verify_jwt = false
-
-[functions.parent-alerts]
-verify_jwt = false
+[functions]
+  [functions.ai-tutor]
+    verify_jwt = false
+  [functions.auth-email-hook]
+    verify_jwt = false
+  [functions.checkin-reminder]
+    verify_jwt = false
+  [functions.daily-report]
+    verify_jwt = false
+  [functions.morning-reminder]
+    verify_jwt = false
+  [functions.parent-alerts]
+    verify_jwt = false
+  [functions.seed-users]
+    verify_jwt = false
+  [functions.weekly-badge]
+    verify_jwt = false
