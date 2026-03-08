@@ -13,14 +13,37 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const telegramToken = Deno.env.get("TELEGRAM_BOT_TOKEN")!;
-    const telegramChatId = Deno.env.get("TELEGRAM_CHAT_ID")!;
-
     const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Get the calling user from the auth header
+    const authHeader = req.headers.get("authorization");
+    let callingUserId: string | null = null;
+    if (authHeader) {
+      const token = authHeader.replace("Bearer ", "");
+      const { data: { user } } = await supabase.auth.getUser(token);
+      callingUserId = user?.id || null;
+    }
 
     const body = await req.json().catch(() => ({}));
     const alertType = body.type;
     const studentId = body.student_id || "CHRIS";
+
+    // Resolve Telegram credentials: per-parent first, then fallback to env
+    let telegramToken = Deno.env.get("TELEGRAM_BOT_TOKEN")!;
+    let telegramChatId = Deno.env.get("TELEGRAM_CHAT_ID")!;
+
+    if (callingUserId) {
+      const { data: parentSettings } = await supabase
+        .from("parent_settings")
+        .select("telegram_bot_token, telegram_chat_id")
+        .eq("user_id", callingUserId)
+        .single();
+
+      if (parentSettings?.telegram_bot_token && parentSettings?.telegram_chat_id) {
+        telegramToken = parentSettings.telegram_bot_token;
+        telegramChatId = parentSettings.telegram_chat_id;
+      }
+    }
 
     const { data: student } = await supabase
       .from("students")
@@ -28,25 +51,15 @@ Deno.serve(async (req) => {
       .eq("student_id", studentId)
       .single();
 
-    if (!student) {
-      return new Response(JSON.stringify({ error: "Student not found" }), {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const studentName = student?.display_name || studentId;
 
     const sendTelegram = async (message: string) => {
       const url = `https://api.telegram.org/bot${telegramToken}/sendMessage`;
       const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          chat_id: telegramChatId,
-          text: message,
-          parse_mode: "HTML",
-        }),
+        body: JSON.stringify({ chat_id: telegramChatId, text: message, parse_mode: "HTML" }),
       });
-
       const data = await res.json();
 
       await supabase.from("messages_log").insert({
@@ -63,46 +76,17 @@ Deno.serve(async (req) => {
 
     let result;
 
-    // === BADGE EARNED ALERT ===
     if (alertType === "badge_earned") {
       const badgeName = body.badge_name || "20-Lesson Legend";
       const dateStr = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
-
-      const message = `🚀 <b>Christian Hit Today's Goal!</b>
-
-🏆 Badge Earned: <b>${badgeName}</b>
-📅 Date: ${dateStr}
-
-${badgeName === "20-Lesson Legend"
-  ? "Christian completed 20+ lessons today! He's on track for his July graduation. 🎓"
-  : `Christian just earned the "<b>${badgeName}</b>" badge! Keep up the momentum! 💪`}
-
-— <i>Independent Minds v1.0</i>`;
-
-      result = await sendTelegram(message);
+      result = await sendTelegram(`🚀 <b>${studentName} Hit Today's Goal!</b>\n\n🏆 Badge Earned: <b>${badgeName}</b>\n📅 Date: ${dateStr}\n\n💪 Keep up the momentum!\n\n— <i>Independent Minds EDU v2.0</i>`);
     }
-
-    // === HELP NEEDED ALERT ===
     else if (alertType === "help_needed") {
       const comment = body.comment || "No comment provided";
       const subject = body.focus || "Unknown";
       const mood = body.mood || "Unknown";
-
-      const message = `🚨 <b>URGENT INTERVENTION NEEDED</b>
-
-👤 Student: Christian
-📚 Current Focus: <b>${subject}</b>
-😟 Mood: <b>${mood}</b>
-💬 Comment: "<i>${comment}</i>"
-
-Christian has requested help. Please check in with him as soon as possible.
-
-— <i>Independent Minds Alert System</i>`;
-
-      result = await sendTelegram(message);
+      result = await sendTelegram(`🚨 <b>URGENT INTERVENTION NEEDED</b>\n\n👤 Student: ${studentName}\n📚 Current Focus: <b>${subject}</b>\n😟 Mood: <b>${mood}</b>\n💬 Comment: "<i>${comment}</i>"\n\n${studentName} has requested help.\n\n— <i>Independent Minds EDU Alert System</i>`);
     }
-
-    // === WEEKLY SUMMARY ===
     else if (alertType === "weekly_summary") {
       const now = new Date();
       const dayOfWeek = now.getDay();
@@ -111,103 +95,32 @@ Christian has requested help. Please check in with him as soon as possible.
       const monStr = monday.toISOString().split("T")[0];
       const todayStr = now.toISOString().split("T")[0];
 
-      const { data: weekBlocks } = await supabase
-        .from("daily_plan")
-        .select("*")
-        .eq("student_id", studentId)
-        .gte("plan_date", monStr)
-        .lte("plan_date", todayStr);
-
+      const { data: weekBlocks } = await supabase.from("daily_plan").select("*").eq("student_id", studentId).gte("plan_date", monStr).lte("plan_date", todayStr);
       const done = weekBlocks?.filter(b => b.status === "Done") || [];
       const total = weekBlocks?.length || 0;
-      const scores = done.filter(b => b.time4learning_score != null).map(b => b.time4learning_score!);
-      const avgScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
-      const ratings = done.filter(b => b.self_rating != null).map(b => b.self_rating!);
-      const avgFocus = ratings.length > 0 ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1) : "N/A";
 
-      const { data: badges } = await supabase
-        .from("achievements")
-        .select("name, criteria_met_at")
-        .eq("student_id", studentId)
-        .gte("criteria_met_at", monStr);
-
+      const { data: badges } = await supabase.from("achievements").select("name, criteria_met_at").eq("student_id", studentId).gte("criteria_met_at", monStr);
       const badgeList = badges?.map(b => `🏆 ${b.name}`).join("\n") || "No new badges this week";
 
-      const daysLeft = Math.ceil((new Date("2026-07-03").getTime() - now.getTime()) / 86400000);
-
-      const message = `📊 <b>WEEKLY PROGRESS REPORT</b>
-${monStr} to ${todayStr}
-
-📈 Activities Completed: <b>${done.length} / ${total}</b>
-📊 Completion Rate: <b>${total > 0 ? Math.round((done.length / total) * 100) : 0}%</b>
-🎯 Average Score: <b>${avgScore}%</b>
-🧠 Average Focus: <b>${avgFocus}/5</b>
-
-🏅 <b>New Badges:</b>
-${badgeList}
-
-📉 <b>Graduation Burndown:</b>
-${daysLeft} days remaining
-Target pace: 20 lessons/day
-
-Keep pushing, Christian! 💪🎓
-
-— <i>Independent Minds v1.0</i>`;
-
-      result = await sendTelegram(message);
+      result = await sendTelegram(`📊 <b>WEEKLY PROGRESS REPORT</b>\n👤 ${studentName} | ${monStr} to ${todayStr}\n\n📈 Completed: <b>${done.length} / ${total}</b>\n📊 Rate: <b>${total > 0 ? Math.round((done.length / total) * 100) : 0}%</b>\n\n🏅 <b>New Badges:</b>\n${badgeList}\n\n— <i>Independent Minds EDU v2.0</i>`);
     }
-
-    // === TEST CONNECTION ===
     else if (alertType === "test_connection") {
-      const message = `🛠️ <b>Independent Minds: System Test</b>
-
-Hello Amiral! The connection is successful. ✅
-This is a self-destructing test message.
-
-<b>Status:</b> Ready for March 9 launch. 🚀
-
-— <i>Independent Minds v1.0</i>`;
-
-      result = await sendTelegram(message);
+      result = await sendTelegram(`🛠️ <b>Independent Minds EDU: System Test</b>\n\nConnection successful. ✅\n<b>Status:</b> Ready 🚀\n\n— <i>Independent Minds EDU v2.0</i>`);
     }
-
-    // === TRACK COMPLETED ===
     else if (alertType === "track_completed") {
       const trackName = body.track_name || "Unknown Track";
       const doneToday = body.done_today || 1;
       const target = body.target || 1;
       const unitType = body.unit_type || "lessons";
       const isGoalMet = doneToday >= target;
-
-      const message = `${isGoalMet ? "🎯" : "📝"} <b>Activity Update</b>
-
-👤 Student: Christian
-📚 Track: <b>${trackName}</b>
-✅ Completed: <b>${doneToday}/${target} ${unitType}</b>
-
-${isGoalMet
-  ? `🏆 <b>Daily goal reached!</b> Christian hit the target for ${trackName} today! 🎉`
-  : `Progress update: ${doneToday} of ${target} ${unitType} completed so far.`}
-
-— <i>Independent Minds v2.0</i>`;
-
-      result = await sendTelegram(message);
+      result = await sendTelegram(`${isGoalMet ? "🎯" : "📝"} <b>Activity Update</b>\n\n👤 Student: ${studentName}\n📚 Track: <b>${trackName}</b>\n✅ Completed: <b>${doneToday}/${target} ${unitType}</b>\n\n${isGoalMet ? `🏆 <b>Daily goal reached!</b> 🎉` : `Progress update: ${doneToday} of ${target} ${unitType} completed.`}\n\n— <i>Independent Minds EDU v2.0</i>`);
     }
-
     else {
-      return new Response(JSON.stringify({ error: "Unknown alert type. Use: badge_earned, help_needed, weekly_summary, track_completed, or test_connection" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(JSON.stringify({ error: "Unknown alert type" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    return new Response(JSON.stringify({ success: true, result }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(JSON.stringify({ success: true, result }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });

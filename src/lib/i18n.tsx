@@ -1,56 +1,181 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 
-type Lang = "EN" | "HT" | "FR";
+type Lang = "EN" | "HT";
 
 const translations: Record<string, Record<Lang, string>> = {
-  "app.title": { EN: "Independent Minds", HT: "Independent Minds", FR: "Independent Minds" },
-  "app.subtitle": { EN: "Learn Smart. Grow Every Day.", HT: "Aprann Enpòtan. Grandi Chak Jou.", FR: "Apprendre intelligemment. Grandir chaque jour." },
-  "nav.today": { EN: "Today", HT: "Jodi a", FR: "Aujourd'hui" },
-  "nav.checkin": { EN: "Check-In", HT: "Tcheke", FR: "Bilan" },
-  "nav.badges": { EN: "Badges", HT: "Badj", FR: "Badges" },
-  "nav.library": { EN: "Library", HT: "Bibliyotèk", FR: "Bibliothèque" },
-  "nav.dadPanel": { EN: "Dad Panel", HT: "Panel Papa", FR: "Panel Papa" },
-  "status.planned": { EN: "Planned", HT: "Planifye", FR: "Planifié" },
-  "status.inProgress": { EN: "In Progress", HT: "Ap fèt", FR: "En cours" },
-  "status.done": { EN: "Done", HT: "Fini", FR: "Terminé" },
-  "status.missed": { EN: "Missed", HT: "Manke", FR: "Manqué" },
-  "action.start": { EN: "Start Block", HT: "Kòmanse Blòk", FR: "Commencer" },
-  "action.markDone": { EN: "Mark Done", HT: "Make Fini", FR: "Marquer terminé" },
-  "mood.good": { EN: "Good 😊", HT: "Bon 😊", FR: "Bien 😊" },
-  "mood.okay": { EN: "Okay 😐", HT: "Okay 😐", FR: "Correct 😐" },
-  "mood.tired": { EN: "Tired 😴", HT: "Fatige 😴", FR: "Fatigué 😴" },
-  "focus.high": { EN: "High 🔥", HT: "Wo 🔥", FR: "Élevé 🔥" },
-  "focus.medium": { EN: "Medium ⚡", HT: "Mwayen ⚡", FR: "Moyen ⚡" },
-  "focus.low": { EN: "Low 🐢", HT: "Ba 🐢", FR: "Bas 🐢" },
-  "checkin.mood": { EN: "How are you feeling?", HT: "Kijan ou santi ou?", FR: "Comment te sens-tu?" },
-  "checkin.focus": { EN: "How is your focus?", HT: "Kijan konsantrasyon ou ye?", FR: "Comment est ta concentration?" },
-  "checkin.needHelp": { EN: "Do you need help?", HT: "Èske ou bezwen èd?", FR: "As-tu besoin d'aide?" },
-  "checkin.comment": { EN: "Any comments?", HT: "Kòmantè?", FR: "Des commentaires?" },
-  "checkin.submit": { EN: "Submit Check-In", HT: "Soumèt Tcheke", FR: "Soumettre le bilan" },
-  "checkin.success": { EN: "Check-in submitted!", HT: "Tcheke soumèt!", FR: "Bilan soumis!" },
-  "badge.champion": { EN: "🏆 Champion of the Week!", HT: "🏆 Chanpyon Semèn nan!", FR: "🏆 Champion de la semaine!" },
-  "badge.goldStar": { EN: "⭐ Gold Star!", HT: "⭐ Zetwal Lò!", FR: "⭐ Étoile d'or!" },
-  "badge.keepGoing": { EN: "💪 Keep Going!", HT: "💪 Kontinye!", FR: "💪 Continue!" },
-  "badge.newWeek": { EN: "🔄 New Week, New Start!", HT: "🔄 Nouvo Semèn, Nouvo Kòmansman!", FR: "🔄 Nouvelle semaine, nouveau départ!" },
-  "greeting.morning": { EN: "Good morning!", HT: "Bonjou!", FR: "Bonjour!" },
-  "greeting.afternoon": { EN: "Good afternoon!", HT: "Bonswa!", FR: "Bon après-midi!" },
-  "greeting.evening": { EN: "Good evening!", HT: "Bonswa!", FR: "Bonsoir!" },
-  "role.student": { EN: "Student", HT: "Elèv", FR: "Élève" },
-  "role.parent": { EN: "Parent/Admin", HT: "Paran/Admin", FR: "Parent/Admin" },
-  "dad.schedule": { EN: "Weekly Schedule", HT: "Orè Semèn", FR: "Emploi du temps" },
-  "dad.progress": { EN: "Progress", HT: "Pwogrè", FR: "Progrès" },
-  "dad.alerts": { EN: "Alerts", HT: "Alèt", FR: "Alertes" },
-  "dad.curriculum": { EN: "Curriculum", HT: "Pwogram", FR: "Programme" },
-  "yes": { EN: "Yes", HT: "Wi", FR: "Oui" },
-  "no": { EN: "No", HT: "Non", FR: "Non" },
-  "blocks.done": { EN: "Blocks Done", HT: "Blòk Fini", FR: "Blocs terminés" },
-  "rating": { EN: "How did it go? (1-5)", HT: "Kijan sa te ale? (1-5)", FR: "Comment ça s'est passé? (1-5)" },
-  "score": { EN: "T4L Score (optional)", HT: "Nòt T4L (opsyonèl)", FR: "Note T4L (optionnel)" },
-  "notes": { EN: "Notes (optional)", HT: "Nòt (opsyonèl)", FR: "Notes (optionnel)" },
-  "save": { EN: "Save", HT: "Sove", FR: "Sauvegarder" },
-  "cancel": { EN: "Cancel", HT: "Anile", FR: "Annuler" },
-  "library.title": { EN: "Learning Resources", HT: "Resous Aprantisaj", FR: "Ressources" },
-  "library.t4l": { EN: "Open Time4Learning", HT: "Louvri Time4Learning", FR: "Ouvrir Time4Learning" },
+  // App
+  "app.title": { EN: "Independent Minds", HT: "Independent Minds" },
+  "app.subtitle": { EN: "Learn Smart. Grow Every Day.", HT: "Aprann Enpòtan. Grandi Chak Jou." },
+  "app.version": { EN: "Independent Minds EDU v2.0", HT: "Independent Minds EDU v2.0" },
+
+  // Nav
+  "nav.today": { EN: "Today", HT: "Jodi a" },
+  "nav.checkin": { EN: "Check-In", HT: "Tcheke" },
+  "nav.badges": { EN: "Badges", HT: "Badj" },
+  "nav.library": { EN: "Library", HT: "Bibliyotèk" },
+  "nav.dadPanel": { EN: "Parent Dashboard", HT: "Tablo Paran" },
+  "nav.tracks": { EN: "Tracks", HT: "Pis" },
+  "nav.trophies": { EN: "Trophies", HT: "Twofe" },
+  "nav.settings": { EN: "Settings", HT: "Paramèt" },
+  "nav.alerts": { EN: "Alerts", HT: "Alèt" },
+  "nav.progress": { EN: "Today", HT: "Jodi a" },
+  "nav.schedule": { EN: "Schedule", HT: "Orè" },
+  "nav.feed": { EN: "Feed", HT: "Aktivite" },
+  "nav.curriculum": { EN: "Curriculum", HT: "Pwogram" },
+  "nav.certificates": { EN: "Certificates", HT: "Sètifika" },
+  "nav.reports": { EN: "Reports", HT: "Rapò" },
+  "nav.telegram": { EN: "Telegram", HT: "Telegram" },
+
+  // Status
+  "status.planned": { EN: "Planned", HT: "Planifye" },
+  "status.inProgress": { EN: "In Progress", HT: "Ap fèt" },
+  "status.done": { EN: "Done", HT: "Fini" },
+  "status.missed": { EN: "Missed", HT: "Manke" },
+
+  // Actions
+  "action.start": { EN: "Start Block", HT: "Kòmanse Blòk" },
+  "action.markDone": { EN: "Mark Done", HT: "Make Fini" },
+  "action.save": { EN: "Save", HT: "Sove" },
+  "action.cancel": { EN: "Cancel", HT: "Anile" },
+  "action.add": { EN: "Add", HT: "Ajoute" },
+  "action.edit": { EN: "Edit", HT: "Modifye" },
+  "action.delete": { EN: "Delete", HT: "Efase" },
+  "action.undo": { EN: "Undo", HT: "Defèt" },
+  "action.override": { EN: "Override", HT: "Remèt" },
+  "action.signOut": { EN: "Sign Out", HT: "Dekonekte" },
+  "action.signIn": { EN: "Sign In", HT: "Konekte" },
+  "action.signUp": { EN: "Sign Up", HT: "Enskri" },
+  "action.continueWith": { EN: "Continue with", HT: "Kontinye ak" },
+  "action.addStudent": { EN: "Add Student", HT: "Ajoute Elèv" },
+  "action.selectStudent": { EN: "Select Student", HT: "Chwazi Elèv" },
+
+  // Mood & Focus
+  "mood.good": { EN: "Good 😊", HT: "Bon 😊" },
+  "mood.okay": { EN: "Okay 😐", HT: "Okay 😐" },
+  "mood.tired": { EN: "Tired 😴", HT: "Fatige 😴" },
+  "focus.high": { EN: "High 🔥", HT: "Wo 🔥" },
+  "focus.medium": { EN: "Medium ⚡", HT: "Mwayen ⚡" },
+  "focus.low": { EN: "Low 🐢", HT: "Ba 🐢" },
+
+  // Check-in
+  "checkin.mood": { EN: "How are you feeling?", HT: "Kijan ou santi ou?" },
+  "checkin.focus": { EN: "How is your focus?", HT: "Kijan konsantrasyon ou ye?" },
+  "checkin.needHelp": { EN: "Do you need help?", HT: "Èske ou bezwen èd?" },
+  "checkin.comment": { EN: "Any comments?", HT: "Kòmantè?" },
+  "checkin.submit": { EN: "Submit Check-In", HT: "Soumèt Tcheke" },
+  "checkin.success": { EN: "Check-in submitted!", HT: "Tcheke soumèt!" },
+
+  // Badges
+  "badge.champion": { EN: "🏆 Champion of the Week!", HT: "🏆 Chanpyon Semèn nan!" },
+  "badge.goldStar": { EN: "⭐ Gold Star!", HT: "⭐ Zetwal Lò!" },
+  "badge.keepGoing": { EN: "💪 Keep Going!", HT: "💪 Kontinye!" },
+  "badge.newWeek": { EN: "🔄 New Week, New Start!", HT: "🔄 Nouvo Semèn, Nouvo Kòmansman!" },
+
+  // Greetings
+  "greeting.morning": { EN: "Good morning", HT: "Bonjou" },
+  "greeting.afternoon": { EN: "Good afternoon", HT: "Bonswa" },
+  "greeting.evening": { EN: "Good evening", HT: "Bonswa" },
+
+  // Roles
+  "role.student": { EN: "Student", HT: "Elèv" },
+  "role.parent": { EN: "Parent/Admin", HT: "Paran/Admin" },
+
+  // Yes/No
+  "yes": { EN: "Yes", HT: "Wi" },
+  "no": { EN: "No", HT: "Non" },
+
+  // Blocks & Scores
+  "blocks.done": { EN: "Blocks Done", HT: "Blòk Fini" },
+  "rating": { EN: "How did it go? (1-5)", HT: "Kijan sa te ale? (1-5)" },
+  "score": { EN: "T4L Score (optional)", HT: "Nòt T4L (opsyonèl)" },
+  "notes": { EN: "Notes (optional)", HT: "Nòt (opsyonèl)" },
+
+  // Library
+  "library.title": { EN: "Learning Resources", HT: "Resous Aprantisaj" },
+  "library.t4l": { EN: "Open Time4Learning", HT: "Louvri Time4Learning" },
+
+  // Auth
+  "auth.email": { EN: "Email", HT: "Imèl" },
+  "auth.password": { EN: "Password", HT: "Modpas" },
+  "auth.displayName": { EN: "Display Name", HT: "Non Afichaj" },
+  "auth.signingIn": { EN: "Signing in...", HT: "Ap konekte..." },
+  "auth.creatingAccount": { EN: "Creating account...", HT: "Ap kreye kont..." },
+  "auth.noAccount": { EN: "Don't have an account?", HT: "Ou pa gen kont?" },
+  "auth.hasAccount": { EN: "Already have an account?", HT: "Ou gen kont deja?" },
+  "auth.orContinueWith": { EN: "Or continue with", HT: "Oubyen kontinye ak" },
+  "auth.checkEmail": { EN: "Check your email to confirm your account!", HT: "Tcheke imèl ou pou konfime kont ou!" },
+
+  // Welcome Modal
+  "welcome.title": { EN: "Welcome to Independent Minds! 🎓", HT: "Byenvini nan Independent Minds! 🎓" },
+  "welcome.subtitle": { EN: "Let's set up your learning environment.", HT: "Ann konfigire anviwònman aprantisaj ou." },
+  "welcome.addFirst": { EN: "Start by adding your first student", HT: "Kòmanse pa ajoute premye elèv ou" },
+  "welcome.getStarted": { EN: "Get Started", HT: "Kòmanse" },
+
+  // Student management
+  "student.name": { EN: "Student Name", HT: "Non Elèv" },
+  "student.id": { EN: "Student ID", HT: "ID Elèv" },
+  "student.grade": { EN: "Grade Level", HT: "Nivo Klas" },
+  "student.noStudents": { EN: "No students yet", HT: "Pa gen elèv ankò" },
+  "student.addDescription": { EN: "Add your first student to get started!", HT: "Ajoute premye elèv ou pou kòmanse!" },
+  "student.created": { EN: "Student added with default tracks!", HT: "Elèv ajoute ak pis pa defo!" },
+
+  // Tracks
+  "tracks.title": { EN: "Learning Tracks", HT: "Pis Aprantisaj" },
+  "tracks.addTrack": { EN: "Add Track", HT: "Ajoute Pis" },
+  "tracks.editTrack": { EN: "Edit Track", HT: "Modifye Pis" },
+  "tracks.newTrack": { EN: "New Learning Track", HT: "Nouvo Pis Aprantisaj" },
+  "tracks.name": { EN: "Track Name", HT: "Non Pis" },
+  "tracks.category": { EN: "Category", HT: "Kategori" },
+  "tracks.dailyTarget": { EN: "Daily Target", HT: "Objektif Chak Jou" },
+  "tracks.unitType": { EN: "Unit Type", HT: "Tip Inite" },
+  "tracks.icon": { EN: "Icon", HT: "Ikòn" },
+  "tracks.color": { EN: "Color", HT: "Koulè" },
+  "tracks.noTracks": { EN: "No learning tracks set up yet", HT: "Pa gen pis aprantisaj ankò" },
+  "tracks.askParent": { EN: "Ask your parent to configure your learning tracks!", HT: "Mande paran ou pou konfigire pis aprantisaj ou!" },
+  "tracks.today": { EN: "today", HT: "jodi a" },
+
+  // Activity Feed
+  "feed.title": { EN: "Today's Activity Feed", HT: "Aktivite Jodi a" },
+  "feed.noActivity": { EN: "No activities logged today", HT: "Pa gen aktivite jodi a" },
+  "feed.overrideTitle": { EN: "Override Activity", HT: "Korije Aktivite" },
+
+  // Telegram
+  "telegram.title": { EN: "Telegram Notifications", HT: "Notifikasyon Telegram" },
+  "telegram.active": { EN: "Active", HT: "Aktif" },
+  "telegram.configure": { EN: "Configure Telegram", HT: "Konfigire Telegram" },
+  "telegram.botToken": { EN: "Bot Token", HT: "Token Bot" },
+  "telegram.chatId": { EN: "Chat ID", HT: "ID Chat" },
+  "telegram.saved": { EN: "Telegram settings saved!", HT: "Paramèt Telegram sove!" },
+  "telegram.test": { EN: "Test Connection", HT: "Teste Koneksyon" },
+  "telegram.testSuccess": { EN: "Test message sent!", HT: "Mesaj tès voye!" },
+
+  // Onboarding categories
+  "cat.coreAcademics": { EN: "Core Academics", HT: "Akademik Prensipal" },
+  "cat.languageLab": { EN: "Language Lab", HT: "Lab Lang" },
+  "cat.techSkills": { EN: "Tech Skills", HT: "Konpetans Teknik" },
+  "cat.creativeArts": { EN: "Creative Arts", HT: "A Kreyatif" },
+  "cat.physicalEd": { EN: "Physical Ed", HT: "Edikasyon Fizik" },
+
+  // Schedule
+  "schedule.addBlock": { EN: "Add Block", HT: "Ajoute Blòk" },
+  "schedule.editBlock": { EN: "Edit Block", HT: "Modifye Blòk" },
+  "schedule.bulkUpload": { EN: "Bulk Upload", HT: "Chaje an Mas" },
+  "schedule.noBlocks": { EN: "No blocks scheduled for today", HT: "Pa gen blòk pou jodi a" },
+  "schedule.date": { EN: "Date", HT: "Dat" },
+  "schedule.start": { EN: "Start", HT: "Kòmansman" },
+  "schedule.end": { EN: "End", HT: "Fen" },
+  "schedule.subject": { EN: "Subject", HT: "Matyè" },
+  "schedule.blockOrder": { EN: "Block Order", HT: "Lòd Blòk" },
+
+  // Misc
+  "loading": { EN: "Loading...", HT: "Ap chaje..." },
+  "noAlerts": { EN: "No alerts", HT: "Pa gen alèt" },
+  "helpNeeded": { EN: "Help Needed", HT: "Bezwen Èd" },
+  "done": { EN: "Done", HT: "Fini" },
+  "remaining": { EN: "Remaining", HT: "Rete" },
+  "complete": { EN: "Complete", HT: "Konplè" },
+  "thisWeek": { EN: "This Week", HT: "Semèn sa a" },
+  "streak": { EN: "Streak", HT: "Seri" },
 };
 
 interface I18nContextType {
@@ -66,8 +191,18 @@ const I18nContext = createContext<I18nContextType>({
 });
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
-  const [lang, setLang] = useState<Lang>("EN");
-  const t = (key: string) => translations[key]?.[lang] || translations[key]?.["EN"] || key;
+  const [lang, setLangState] = useState<Lang>(() => {
+    const saved = localStorage.getItem("im_lang");
+    return (saved === "HT" ? "HT" : "EN") as Lang;
+  });
+
+  const setLang = useCallback((l: Lang) => {
+    setLangState(l);
+    localStorage.setItem("im_lang", l);
+  }, []);
+
+  const t = useCallback((key: string) => translations[key]?.[lang] || translations[key]?.["EN"] || key, [lang]);
+
   return (
     <I18nContext.Provider value={{ lang, setLang, t }}>
       {children}

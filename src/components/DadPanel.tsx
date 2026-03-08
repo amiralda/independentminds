@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertTriangle, BarChart3, Calendar, Plus, BookOpen, Trash2, Pencil, Upload, Award, LineChart, Settings, Activity } from "lucide-react";
+import { AlertTriangle, BarChart3, Calendar, Plus, BookOpen, Trash2, Pencil, Upload, Award, LineChart, Settings, Activity, Bell } from "lucide-react";
 import { toast } from "sonner";
 import { useRef } from "react";
 import { SubjectIcon } from "@/components/SubjectIcon";
@@ -18,179 +18,105 @@ import { CertificatesPanel } from "@/components/CertificatesPanel";
 import { ReportsPanel } from "@/components/ReportsPanel";
 import { TrackManagement } from "@/components/TrackManagement";
 import { ActivityFeed } from "@/components/ActivityFeed";
+import { StudentSelector } from "@/components/StudentSelector";
+import { TelegramSettings } from "@/components/TelegramSettings";
 
-const SUBJECTS = [
-  "English",
-  "ESL",
-  "Math",
-  "Science",
-  "Social Studies",
-  "Public Speaking",
-  "Media Education",
-];
+const SUBJECTS = ["English", "ESL", "Math", "Science", "Social Studies", "Public Speaking", "Media Education"];
 
 interface DailyPlanRow {
-  id: string;
-  plan_date: string;
-  block_order: number;
-  start_time: string;
-  end_time: string;
-  subject: string;
-  status: string;
-  self_rating: number | null;
-  time4learning_score: number | null;
-  notes: string | null;
+  id: string; plan_date: string; block_order: number; start_time: string; end_time: string;
+  subject: string; status: string; self_rating: number | null; time4learning_score: number | null; notes: string | null;
 }
 
 interface CheckInRow {
-  id: string;
-  timestamp: string;
-  mood: string;
-  focus: string;
-  blocks_done: number;
-  need_help: boolean;
-  comment: string | null;
+  id: string; timestamp: string; mood: string; focus: string; blocks_done: number; need_help: boolean; comment: string | null;
 }
 
 const EMPTY_FORM = {
   plan_date: new Date().toISOString().split("T")[0],
-  start_time: "08:00",
-  end_time: "08:50",
-  subject: "English",
-  block_order: 1,
-  notes: "",
+  start_time: "08:00", end_time: "08:50", subject: "English", block_order: 1, notes: "",
 };
 
-export function DadPanel() {
+interface Props {
+  onAddStudent: () => void;
+}
+
+export function DadPanel({ onAddStudent }: Props) {
   const { t } = useI18n();
-  const { profile } = useAuth();
-  const studentId = profile?.studentId || "CHRIS";
+  const { selectedStudentId } = useAuth();
+  const studentId = selectedStudentId || "";
 
   return (
     <div className="space-y-4">
-      <h2 className="font-display text-2xl font-bold">{t("nav.dadPanel")}</h2>
-      <Tabs defaultValue="alerts">
-        <TabsList className="w-full grid grid-cols-4 mb-1">
-          <TabsTrigger value="alerts" className="font-display text-[10px] px-1">
-            <AlertTriangle size={12} className="mr-0.5" /> Alerts
-          </TabsTrigger>
-          <TabsTrigger value="progress" className="font-display text-[10px] px-1">
-            <BarChart3 size={12} className="mr-0.5" /> Today
-          </TabsTrigger>
-          <TabsTrigger value="schedule" className="font-display text-[10px] px-1">
-            <Calendar size={12} className="mr-0.5" /> Schedule
-          </TabsTrigger>
-          <TabsTrigger value="tracks" className="font-display text-[10px] px-1">
-            <Settings size={12} className="mr-0.5" /> Tracks
-          </TabsTrigger>
-        </TabsList>
-        <TabsList className="w-full grid grid-cols-4">
-          <TabsTrigger value="activity" className="font-display text-[10px] px-1">
-            <Activity size={12} className="mr-0.5" /> Feed
-          </TabsTrigger>
-          <TabsTrigger value="curriculum" className="font-display text-[10px] px-1">
-            <BookOpen size={12} className="mr-0.5" /> Curric.
-          </TabsTrigger>
-          <TabsTrigger value="certificates" className="font-display text-[10px] px-1">
-            <Award size={12} className="mr-0.5" /> Certs
-          </TabsTrigger>
-          <TabsTrigger value="reports" className="font-display text-[10px] px-1">
-            <LineChart size={12} className="mr-0.5" /> Reports
-          </TabsTrigger>
-        </TabsList>
+      <div className="flex items-center justify-between">
+        <h2 className="font-display text-2xl font-bold">{t("nav.dadPanel")}</h2>
+        <StudentSelector onAddStudent={onAddStudent} />
+      </div>
 
-        <TabsContent value="alerts" className="mt-4 space-y-4">
-          <TelegramSetupInfo />
-          <AlertsTab studentId={studentId} />
-        </TabsContent>
-        <TabsContent value="progress" className="mt-4">
-          <TodayProgressTab studentId={studentId} />
-        </TabsContent>
-        <TabsContent value="schedule" className="mt-4">
-          <ScheduleBuilderTab studentId={studentId} />
-        </TabsContent>
-        <TabsContent value="tracks" className="mt-4">
-          <TrackManagement studentId={studentId} />
-        </TabsContent>
-        <TabsContent value="activity" className="mt-4">
-          <ActivityFeed studentId={studentId} />
-        </TabsContent>
-        <TabsContent value="curriculum" className="mt-4">
-          <CurriculumTab />
-        </TabsContent>
-        <TabsContent value="certificates" className="mt-4">
-          <CertificatesPanel studentId={studentId} />
-        </TabsContent>
-        <TabsContent value="reports" className="mt-4">
-          <ReportsPanel studentId={studentId} />
-        </TabsContent>
-      </Tabs>
+      {!studentId ? (
+        <div className="text-center py-12 text-muted-foreground">
+          <p className="font-display text-lg">{t("action.selectStudent")}</p>
+        </div>
+      ) : (
+        <Tabs defaultValue="alerts">
+          <TabsList className="w-full grid grid-cols-4 mb-1">
+            <TabsTrigger value="alerts" className="font-display text-[10px] px-1">
+              <AlertTriangle size={12} className="mr-0.5" /> {t("nav.alerts")}
+            </TabsTrigger>
+            <TabsTrigger value="progress" className="font-display text-[10px] px-1">
+              <BarChart3 size={12} className="mr-0.5" /> {t("nav.progress")}
+            </TabsTrigger>
+            <TabsTrigger value="schedule" className="font-display text-[10px] px-1">
+              <Calendar size={12} className="mr-0.5" /> {t("nav.schedule")}
+            </TabsTrigger>
+            <TabsTrigger value="tracks" className="font-display text-[10px] px-1">
+              <Settings size={12} className="mr-0.5" /> {t("nav.tracks")}
+            </TabsTrigger>
+          </TabsList>
+          <TabsList className="w-full grid grid-cols-4">
+            <TabsTrigger value="activity" className="font-display text-[10px] px-1">
+              <Activity size={12} className="mr-0.5" /> {t("nav.feed")}
+            </TabsTrigger>
+            <TabsTrigger value="curriculum" className="font-display text-[10px] px-1">
+              <BookOpen size={12} className="mr-0.5" /> {t("nav.curriculum")}
+            </TabsTrigger>
+            <TabsTrigger value="certificates" className="font-display text-[10px] px-1">
+              <Award size={12} className="mr-0.5" /> {t("nav.certificates")}
+            </TabsTrigger>
+            <TabsTrigger value="telegram" className="font-display text-[10px] px-1">
+              <Bell size={12} className="mr-0.5" /> {t("nav.telegram")}
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="alerts" className="mt-4 space-y-4">
+            <AlertsTab studentId={studentId} />
+          </TabsContent>
+          <TabsContent value="progress" className="mt-4">
+            <TodayProgressTab studentId={studentId} />
+          </TabsContent>
+          <TabsContent value="schedule" className="mt-4">
+            <ScheduleBuilderTab studentId={studentId} />
+          </TabsContent>
+          <TabsContent value="tracks" className="mt-4">
+            <TrackManagement studentId={studentId} />
+          </TabsContent>
+          <TabsContent value="activity" className="mt-4">
+            <ActivityFeed studentId={studentId} />
+          </TabsContent>
+          <TabsContent value="curriculum" className="mt-4">
+            <CurriculumTab />
+          </TabsContent>
+          <TabsContent value="certificates" className="mt-4">
+            <CertificatesPanel studentId={studentId} />
+          </TabsContent>
+          <TabsContent value="telegram" className="mt-4">
+            <TelegramSettings />
+          </TabsContent>
+        </Tabs>
+      )}
 
       <p className="text-center text-xs text-muted-foreground pt-6 border-t mt-8">
-        Independent Minds v1.0 — Built with Love @2026
-      </p>
-    </div>
-  );
-}
-
-/* ── Telegram Setup Info ── */
-// TODO: Remove TestTelegramButton after 2026-04-07 expiration (self-destructing test UI)
-const TELEGRAM_TEST_EXPIRATION_DATE = '2026-04-07';
-
-function TelegramSetupInfo() {
-  const [isTesting, setIsTesting] = useState(false);
-  const showTestButton = new Date() < new Date(TELEGRAM_TEST_EXPIRATION_DATE);
-
-  const handleTestConnection = async () => {
-    setIsTesting(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("parent-alerts", {
-        body: { type: "test_connection" },
-      });
-      if (error) throw error;
-      toast.success("✅ Telegram test message sent successfully!");
-    } catch (err: any) {
-      toast.error("❌ Failed to send test message: " + (err.message || "Unknown error"));
-    } finally {
-      setIsTesting(false);
-    }
-  };
-
-  return (
-    <div className="rounded-xl bg-muted/50 border p-4 space-y-3">
-      <div className="flex items-center justify-between">
-        <h4 className="font-display font-semibold text-sm flex items-center gap-2">
-          📱 Telegram Notifications
-        </h4>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 text-green-700 px-2.5 py-0.5 text-[11px] font-semibold">
-          <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
-          Active — AmiralDaBot
-        </span>
-      </div>
-      <div className="text-xs text-muted-foreground space-y-1">
-        <p>✅ Badge earned alerts</p>
-        <p>🚨 Urgent help intervention</p>
-        <p>📊 Daily reports &amp; weekly summaries</p>
-        <p>☀️ Morning reminders &amp; check-in nudges</p>
-      </div>
-      {showTestButton && (
-        <div className="pt-2 border-t border-border/50 space-y-1.5">
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full font-display text-xs"
-            onClick={handleTestConnection}
-            disabled={isTesting}
-          >
-            {isTesting ? "Sending…" : "🛠️ Test Telegram Connection"}
-          </Button>
-          <p className="text-[10px] text-muted-foreground/70 italic text-center">
-            Note: This test button will automatically expire on April 7, 2026.
-          </p>
-        </div>
-      )}
-      <p className="text-[10px] text-muted-foreground/70 italic">
-        All notifications are delivered via Telegram to your linked account.
+        {t("app.version")} — Built with 💡 by Dany Augustin
       </p>
     </div>
   );
@@ -198,16 +124,13 @@ function TelegramSetupInfo() {
 
 /* ── Alerts Tab ── */
 function AlertsTab({ studentId }: { studentId: string }) {
+  const { t } = useI18n();
   const { data: alerts = [], isLoading } = useQuery({
     queryKey: ["dad_alerts", studentId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("check_ins")
-        .select("*")
-        .eq("student_id", studentId)
-        .eq("need_help", true)
-        .order("timestamp", { ascending: false })
-        .limit(20);
+        .from("check_ins").select("*").eq("student_id", studentId)
+        .eq("need_help", true).order("timestamp", { ascending: false }).limit(20);
       if (error) throw error;
       return data as CheckInRow[];
     },
@@ -219,8 +142,7 @@ function AlertsTab({ studentId }: { studentId: string }) {
     return (
       <div className="text-center py-12 text-muted-foreground">
         <AlertTriangle size={36} className="mx-auto mb-3 text-success" />
-        <p className="font-display text-lg">No alerts 🎉</p>
-        <p className="text-sm">Christian hasn't asked for help recently.</p>
+        <p className="font-display text-lg">{t("noAlerts")} 🎉</p>
       </div>
     );
   }
@@ -230,13 +152,11 @@ function AlertsTab({ studentId }: { studentId: string }) {
       {alerts.map(c => (
         <div key={c.id} className="rounded-xl bg-destructive/5 border border-destructive/20 p-4">
           <div className="flex justify-between text-sm">
-            <span className="font-medium text-destructive">⚠️ Help Needed</span>
-            <span className="text-muted-foreground text-xs">
-              {new Date(c.timestamp).toLocaleString()}
-            </span>
+            <span className="font-medium text-destructive">⚠️ {t("helpNeeded")}</span>
+            <span className="text-muted-foreground text-xs">{new Date(c.timestamp).toLocaleString()}</span>
           </div>
           <p className="text-sm mt-1">
-            Mood: <strong>{c.mood}</strong> · Focus: <strong>{c.focus}</strong> · Blocks done: <strong>{c.blocks_done}</strong>
+            Mood: <strong>{c.mood}</strong> · Focus: <strong>{c.focus}</strong> · {t("blocks.done")}: <strong>{c.blocks_done}</strong>
           </p>
           {c.comment && <p className="text-sm text-muted-foreground mt-1 italic">"{c.comment}"</p>}
         </div>
@@ -247,17 +167,14 @@ function AlertsTab({ studentId }: { studentId: string }) {
 
 /* ── Today's Progress Tab ── */
 function TodayProgressTab({ studentId }: { studentId: string }) {
+  const { t } = useI18n();
   const today = new Date().toISOString().split("T")[0];
-
   const { data: blocks = [], isLoading } = useQuery({
     queryKey: ["dad_today", studentId, today],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("daily_plan")
-        .select("*")
-        .eq("student_id", studentId)
-        .eq("plan_date", today)
-        .order("block_order");
+        .from("daily_plan").select("*").eq("student_id", studentId)
+        .eq("plan_date", today).order("block_order");
       if (error) throw error;
       return data as DailyPlanRow[];
     },
@@ -273,22 +190,22 @@ function TodayProgressTab({ studentId }: { studentId: string }) {
       <div className="grid grid-cols-3 gap-3">
         <div className="rounded-xl bg-card border p-3 text-center">
           <p className="font-display text-2xl font-bold text-primary">{done}</p>
-          <p className="text-[10px] text-muted-foreground">Done</p>
+          <p className="text-[10px] text-muted-foreground">{t("done")}</p>
         </div>
         <div className="rounded-xl bg-card border p-3 text-center">
           <p className="font-display text-2xl font-bold text-warning">{total - done}</p>
-          <p className="text-[10px] text-muted-foreground">Remaining</p>
+          <p className="text-[10px] text-muted-foreground">{t("remaining")}</p>
         </div>
         <div className="rounded-xl bg-card border p-3 text-center">
           <p className="font-display text-2xl font-bold text-secondary">
             {total > 0 ? Math.round((done / total) * 100) : 0}%
           </p>
-          <p className="text-[10px] text-muted-foreground">Complete</p>
+          <p className="text-[10px] text-muted-foreground">{t("complete")}</p>
         </div>
       </div>
 
       {blocks.length === 0 ? (
-        <p className="text-center text-muted-foreground py-8">No blocks scheduled for today.</p>
+        <p className="text-center text-muted-foreground py-8">{t("schedule.noBlocks")}</p>
       ) : (
         <div className="space-y-2">
           {blocks.map(b => (
@@ -296,15 +213,11 @@ function TodayProgressTab({ studentId }: { studentId: string }) {
               <SubjectIcon subject={b.subject} size={20} />
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-sm truncate">{b.subject}</p>
-                <p className="text-xs text-muted-foreground">
-                  {b.start_time.slice(0, 5)} – {b.end_time.slice(0, 5)}
-                </p>
+                <p className="text-xs text-muted-foreground">{b.start_time.slice(0, 5)} – {b.end_time.slice(0, 5)}</p>
               </div>
               <div className="flex items-center gap-2">
                 {b.time4learning_score != null && (
-                  <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
-                    {b.time4learning_score}%
-                  </span>
+                  <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">{b.time4learning_score}%</span>
                 )}
                 <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                   b.status === "Done" ? "bg-success/20 text-success" :
@@ -323,6 +236,7 @@ function TodayProgressTab({ studentId }: { studentId: string }) {
 
 /* ── Schedule Builder Tab ── */
 function ScheduleBuilderTab({ studentId }: { studentId: string }) {
+  const { t } = useI18n();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -340,19 +254,13 @@ function ScheduleBuilderTab({ studentId }: { studentId: string }) {
       const row: Record<string, string> = {};
       headers.forEach((h, i) => { row[h] = vals[i] || ""; });
       return {
-        student_id: studentId,
-        plan_date: row.plan_date,
-        block_order: parseInt(row.block_order) || 1,
-        start_time: row.start_time,
-        end_time: row.end_time,
-        subject: row.subject,
-        status: row.status || "Planned",
-        notes: row.notes || null,
+        student_id: studentId, plan_date: row.plan_date,
+        block_order: parseInt(row.block_order) || 1, start_time: row.start_time,
+        end_time: row.end_time, subject: row.subject,
+        status: row.status || "Planned", notes: row.notes || null,
       };
     }).filter(r => r.plan_date && r.subject && r.start_time && r.end_time);
-
     if (rows.length === 0) { toast.error("No valid rows found in CSV"); return; }
-
     const { error } = await supabase.from("daily_plan").insert(rows);
     if (error) { toast.error("Upload failed: " + error.message); return; }
     toast.success(`${rows.length} blocks imported!`);
@@ -367,13 +275,9 @@ function ScheduleBuilderTab({ studentId }: { studentId: string }) {
     queryKey: ["dad_schedule", studentId, startDate],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("daily_plan")
-        .select("*")
-        .eq("student_id", studentId)
-        .gte("plan_date", startDate)
-        .lte("plan_date", endDate)
-        .order("plan_date")
-        .order("block_order");
+        .from("daily_plan").select("*").eq("student_id", studentId)
+        .gte("plan_date", startDate).lte("plan_date", endDate)
+        .order("plan_date").order("block_order");
       if (error) throw error;
       return data as DailyPlanRow[];
     },
@@ -389,33 +293,20 @@ function ScheduleBuilderTab({ studentId }: { studentId: string }) {
     mutationFn: async () => {
       if (editingId) {
         const { error } = await supabase.from("daily_plan").update({
-          plan_date: form.plan_date,
-          start_time: form.start_time,
-          end_time: form.end_time,
-          subject: form.subject,
-          block_order: form.block_order,
-          notes: form.notes || null,
+          plan_date: form.plan_date, start_time: form.start_time, end_time: form.end_time,
+          subject: form.subject, block_order: form.block_order, notes: form.notes || null,
         }).eq("id", editingId);
         if (error) throw error;
       } else {
         const { error } = await supabase.from("daily_plan").insert({
-          student_id: studentId,
-          plan_date: form.plan_date,
-          start_time: form.start_time,
-          end_time: form.end_time,
-          subject: form.subject,
-          block_order: form.block_order,
-          notes: form.notes || null,
-          status: "Planned",
+          student_id: studentId, plan_date: form.plan_date, start_time: form.start_time,
+          end_time: form.end_time, subject: form.subject, block_order: form.block_order,
+          notes: form.notes || null, status: "Planned",
         });
         if (error) throw error;
       }
     },
-    onSuccess: () => {
-      toast.success(editingId ? "Block updated!" : "Block added!");
-      closeDialog();
-      invalidateAll();
-    },
+    onSuccess: () => { toast.success(editingId ? "Block updated!" : "Block added!"); closeDialog(); invalidateAll(); },
     onError: () => toast.error("Failed to save block"),
   });
 
@@ -424,36 +315,18 @@ function ScheduleBuilderTab({ studentId }: { studentId: string }) {
       const { error } = await supabase.from("daily_plan").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
-      toast.success("Block deleted!");
-      invalidateAll();
-    },
+    onSuccess: () => { toast.success("Block deleted!"); invalidateAll(); },
     onError: () => toast.error("Failed to delete block"),
   });
 
-  const closeDialog = () => {
-    setDialogOpen(false);
-    setEditingId(null);
-    setForm({ ...EMPTY_FORM });
-  };
-
+  const closeDialog = () => { setDialogOpen(false); setEditingId(null); setForm({ ...EMPTY_FORM }); };
   const openEdit = (p: DailyPlanRow) => {
     setEditingId(p.id);
-    setForm({
-      plan_date: p.plan_date,
-      start_time: p.start_time.slice(0, 5),
-      end_time: p.end_time.slice(0, 5),
-      subject: p.subject,
-      block_order: p.block_order,
-      notes: p.notes || "",
-    });
+    setForm({ plan_date: p.plan_date, start_time: p.start_time.slice(0, 5), end_time: p.end_time.slice(0, 5), subject: p.subject, block_order: p.block_order, notes: p.notes || "" });
     setDialogOpen(true);
   };
 
-  const byDate = upcoming.reduce<Record<string, DailyPlanRow[]>>((acc, p) => {
-    (acc[p.plan_date] ||= []).push(p);
-    return acc;
-  }, {});
+  const byDate = upcoming.reduce<Record<string, DailyPlanRow[]>>((acc, p) => { (acc[p.plan_date] ||= []).push(p); return acc; }, {});
 
   return (
     <div className="space-y-4">
@@ -461,61 +334,50 @@ function ScheduleBuilderTab({ studentId }: { studentId: string }) {
         <div className="flex gap-2">
           <DialogTrigger asChild>
             <Button className="flex-1 font-display" onClick={() => { setEditingId(null); setForm({ ...EMPTY_FORM }); }}>
-              <Plus size={16} className="mr-2" /> Add Block
+              <Plus size={16} className="mr-2" /> {t("schedule.addBlock")}
             </Button>
           </DialogTrigger>
           <Button variant="outline" className="font-display" onClick={() => fileInputRef.current?.click()}>
-            <Upload size={16} className="mr-2" /> Bulk Upload
+            <Upload size={16} className="mr-2" /> {t("schedule.bulkUpload")}
           </Button>
           <input ref={fileInputRef} type="file" accept=".csv" className="hidden" onChange={handleCsvUpload} />
         </div>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="font-display">{editingId ? "Edit Block" : "Add Schedule Block"}</DialogTitle>
+            <DialogTitle className="font-display">{editingId ? t("schedule.editBlock") : t("schedule.addBlock")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <div>
-              <label className="text-sm font-medium">Date</label>
-              <Input type="date" value={form.plan_date}
-                onChange={e => setForm(f => ({ ...f, plan_date: e.target.value }))} />
+              <label className="text-sm font-medium">{t("schedule.date")}</label>
+              <Input type="date" value={form.plan_date} onChange={e => setForm(f => ({ ...f, plan_date: e.target.value }))} />
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="text-sm font-medium">Start</label>
-                <Input type="time" value={form.start_time}
-                  onChange={e => setForm(f => ({ ...f, start_time: e.target.value }))} />
+                <label className="text-sm font-medium">{t("schedule.start")}</label>
+                <Input type="time" value={form.start_time} onChange={e => setForm(f => ({ ...f, start_time: e.target.value }))} />
               </div>
               <div>
-                <label className="text-sm font-medium">End</label>
-                <Input type="time" value={form.end_time}
-                  onChange={e => setForm(f => ({ ...f, end_time: e.target.value }))} />
+                <label className="text-sm font-medium">{t("schedule.end")}</label>
+                <Input type="time" value={form.end_time} onChange={e => setForm(f => ({ ...f, end_time: e.target.value }))} />
               </div>
             </div>
             <div>
-              <label className="text-sm font-medium">Subject</label>
+              <label className="text-sm font-medium">{t("schedule.subject")}</label>
               <Select value={form.subject} onValueChange={v => setForm(f => ({ ...f, subject: v }))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {SUBJECTS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                </SelectContent>
+                <SelectContent>{SUBJECTS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div>
-              <label className="text-sm font-medium">Block Order</label>
-              <Input type="number" min={1} max={10} value={form.block_order}
-                onChange={e => setForm(f => ({ ...f, block_order: parseInt(e.target.value) || 1 }))} />
+              <label className="text-sm font-medium">{t("schedule.blockOrder")}</label>
+              <Input type="number" min={1} max={10} value={form.block_order} onChange={e => setForm(f => ({ ...f, block_order: parseInt(e.target.value) || 1 }))} />
             </div>
             <div>
-              <label className="text-sm font-medium">Notes / Lesson Path</label>
-              <Textarea
-                placeholder="Paste the Time4Learning lesson path or add notes..."
-                value={form.notes}
-                onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
-                rows={3}
-              />
+              <label className="text-sm font-medium">{t("notes")}</label>
+              <Textarea placeholder="Lesson path or notes..." value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={3} />
             </div>
             <Button onClick={() => upsertMutation.mutate()} disabled={upsertMutation.isPending} className="w-full font-display">
-              {upsertMutation.isPending ? "Saving..." : editingId ? "Update Block" : "Save Block"}
+              {upsertMutation.isPending ? t("loading") : editingId ? t("action.save") : t("action.save")}
             </Button>
           </div>
         </DialogContent>
@@ -524,7 +386,7 @@ function ScheduleBuilderTab({ studentId }: { studentId: string }) {
       {isLoading ? (
         <Skeleton className="h-40 w-full rounded-xl" />
       ) : Object.keys(byDate).length === 0 ? (
-        <p className="text-center text-muted-foreground py-8">No upcoming blocks. Add one above!</p>
+        <p className="text-center text-muted-foreground py-8">{t("schedule.noBlocks")}</p>
       ) : (
         Object.entries(byDate).map(([date, plans]) => (
           <div key={date} className="rounded-xl bg-card border p-4 shadow-sm">
@@ -542,16 +404,8 @@ function ScheduleBuilderTab({ studentId }: { studentId: string }) {
                     p.status === "In Progress" ? "bg-warning/20 text-warning" :
                     "bg-muted text-muted-foreground"
                   }`}>{p.status}</span>
-                  <button onClick={() => openEdit(p)} className="text-muted-foreground hover:text-primary transition-colors p-1" title="Edit">
-                    <Pencil size={14} />
-                  </button>
-                  <button
-                    onClick={() => { if (confirm("Delete this block?")) deleteMutation.mutate(p.id); }}
-                    className="text-muted-foreground hover:text-destructive transition-colors p-1"
-                    title="Delete"
-                  >
-                    <Trash2 size={14} />
-                  </button>
+                  <button onClick={() => openEdit(p)} className="text-muted-foreground hover:text-primary p-1"><Pencil size={14} /></button>
+                  <button onClick={() => { if (confirm("Delete this block?")) deleteMutation.mutate(p.id); }} className="text-muted-foreground hover:text-destructive p-1"><Trash2 size={14} /></button>
                 </div>
               ))}
             </div>
