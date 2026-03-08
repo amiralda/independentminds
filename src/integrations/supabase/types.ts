@@ -306,11 +306,40 @@ export type Database = {
         }
         Relationships: []
       }
+      parent_settings: {
+        Row: {
+          created_at: string
+          id: string
+          telegram_bot_token: string | null
+          telegram_chat_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          telegram_bot_token?: string | null
+          telegram_chat_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          telegram_bot_token?: string | null
+          telegram_chat_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
           display_name: string
           id: string
+          language_pref: string
+          onboarding_complete: boolean
           role: string
           student_id: string | null
         }
@@ -318,6 +347,8 @@ export type Database = {
           created_at?: string
           display_name: string
           id: string
+          language_pref?: string
+          onboarding_complete?: boolean
           role?: string
           student_id?: string | null
         }
@@ -325,6 +356,8 @@ export type Database = {
           created_at?: string
           display_name?: string
           id?: string
+          language_pref?: string
+          onboarding_complete?: boolean
           role?: string
           student_id?: string | null
         }
@@ -345,6 +378,7 @@ export type Database = {
           grade_level: number
           language_pref: string
           parent_email: string | null
+          parent_id: string | null
           parent_name: string | null
           parent_whatsapp: string | null
           student_id: string
@@ -358,6 +392,7 @@ export type Database = {
           grade_level?: number
           language_pref?: string
           parent_email?: string | null
+          parent_id?: string | null
           parent_name?: string | null
           parent_whatsapp?: string | null
           student_id: string
@@ -371,6 +406,7 @@ export type Database = {
           grade_level?: number
           language_pref?: string
           parent_email?: string | null
+          parent_id?: string | null
           parent_name?: string | null
           parent_whatsapp?: string | null
           student_id?: string
@@ -437,6 +473,7 @@ export type Database = {
     Functions: {
       get_my_role: { Args: never; Returns: string }
       get_my_student_id: { Args: never; Returns: string }
+      is_my_student: { Args: { _student_id: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
