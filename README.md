@@ -1,73 +1,93 @@
-# Welcome to your Lovable project
+# 🚀 Independent Minds EDU
 
-## Project info
+**A Dynamic Academic Management & Milestone Tracking System.**
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+Independent Minds EDU is a professional-grade educational ecosystem designed to empower students with autonomy through data-driven goal setting. The platform allows educators and parents to establish custom academic timeframes, providing a clear roadmap for students to master their curriculum at a sustainable yet high-performing pace.
 
-## How can I edit this code?
+---
 
-There are several ways of editing your application.
+## 🎯 The Mission
 
-**Use Lovable**
+To provide a flexible framework for academic success. The platform calculates and monitors the necessary **Velocity** required to reach user-defined milestones, fostering discipline and accountability through real-time feedback loops.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+---
 
-Changes made via Lovable will be committed automatically to this repo.
+## 🛠️ Technical Architecture
 
-**Use your preferred IDE**
+| Layer | Technology |
+|---|---|
+| **Frontend** | React (Vite) & TypeScript with Tailwind CSS |
+| **Backend** | Supabase for real-time data persistence & secure authentication |
+| **Business Logic** | Supabase Edge Functions (Deno) for automated notification triggers |
+| **Notification Engine** | Telegram Bot API (AmiralDaBot) for instant mobile alerts |
+| **Domain** | [independentmindsedu.com](https://independentmindsedu.com) |
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+---
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## ✨ Core Features
 
-Follow these steps:
+### 📊 Dynamic Mission Control
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+- **Customizable Timeframes:** Define start and end dates for academic cycles. The system automatically adjusts daily targets based on the remaining curriculum.
+- **Real-Time Pace Indicator:** A visual status engine (*On Track / Off Track*) that adapts dynamically to the student's historical performance.
+- **Consistency Streak:** A habit-building tool that gamifies daily engagement to build long-term study habits.
+- **'Mark Done' Synchronization:** One-click logging of activities with instant cloud updates and parent notification.
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### 🔔 Parent Command Center
 
-# Step 3: Install the necessary dependencies.
-npm i
+- **Automated Cloud Alerts:** Instant Telegram notifications for every milestone reached or lesson completed, replacing traditional SMS systems.
+- **Urgent Support System:** A *'Need Help'* trigger that allows students to request immediate intervention with contextual comments.
+- **Analytics Dashboard:** A comprehensive view of student velocity, historical trends, and activity logs.
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+### 🏆 Achievement & Recognition
 
-**Edit a file directly in GitHub**
+- **The Trophy Room:** A digital reward system for hitting daily and weekly performance benchmarks (e.g., *'20-Lesson Legend'*, *'Weekly Warrior'*).
+- **Automated Certification:** System-generated achievement certificates upon the completion of specific academic blocks or chapters.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+---
 
-**Use GitHub Codespaces**
+## 🗺️ Future Roadmap & Vision
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### Communication & Collaboration
 
-## What technologies are used for this project?
+- **Integrated Academic Chat:** A secure, in-platform messaging system for real-time discussion between parents and students.
+- **Evidence Upload System:** Capability for students to upload photos, PDFs, or audio recordings of offline assignments and physical projects.
+- **Interactive Whiteboard:** A shared digital space for remote tutoring sessions and visual brainstorming.
 
-This project is built with:
+### AI-Powered Learning Assistance
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- **AI Concept Tutor:** Integration of an LLM to provide instant explanations for complex subjects and homework help.
+- **Smart Study Summaries:** Automated daily AI-generated briefings for parents, summarizing the student's focus areas and challenges.
+- **Predictive Graduation Forecasting:** Machine learning algorithms to predict completion dates based on historical velocity and subject difficulty.
 
-## How can I deploy this project?
+### Advanced Analytics & Reporting
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+- **Automated Monthly Performance Reports:** System-generated PDF summaries for deep-dive reviews of academic trends.
+- **Subject-Specific Heatmaps:** Visual data representation showing which subjects the student masters quickly versus those requiring more time.
+- **Focus-Time Tracking:** Analytics to monitor active study sessions versus idle time on the platform.
 
-## Can I connect a custom domain to my Lovable project?
+### Enhanced Gamification & Engagement
 
-Yes, you can!
+- **Point-Based Reward Marketplace:** A system where students earn *'Digital Credits'* for consistency, redeemable for rewards defined by parents.
+- **Customizable Avatars & Themes:** Unlockable UI skins and profile customization to enhance student ownership of the platform.
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### Connectivity & Infrastructure
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+- **Offline-First Synchronization:** Enhanced local storage to allow progress logging during internet outages, syncing automatically once reconnected.
+- **Multi-Student Support:** Architecture expansion to manage multiple student profiles under a single administrative account.
+- **Google Calendar Integration:** Automatic syncing of academic deadlines, scheduled breaks, and exam dates.
+
+---
+
+## ⚙️ Environment Configuration
+
+To enable the notification engine, the following backend secrets are required:
+
+| Secret | Description |
+|---|---|
+| `TELEGRAM_BOT_TOKEN` | API Token for the custom bot |
+| `TELEGRAM_CHAT_ID` | Destination ID for parent notifications |
+
+---
+
+> Developed with 💡 by **Dany Augustin** — Technology Strategist, Visionary & Social Entrepreneur
