@@ -18,6 +18,23 @@ export function useSubmitCheckIn(onSuccess?: () => void) {
     mutationFn: async (data: CheckInData) => {
       const { error } = await supabase.from("check_ins").insert(data);
       if (error) throw error;
+
+      // If help is needed, trigger urgent parent alert
+      if (data.need_help) {
+        try {
+          await supabase.functions.invoke("parent-alerts", {
+            body: {
+              type: "help_needed",
+              student_id: data.student_id,
+              comment: data.comment || "No comment provided",
+              focus: data.focus,
+              mood: data.mood,
+            },
+          });
+        } catch (e) {
+          console.error("Failed to send help alert:", e);
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["daily_blocks"] });

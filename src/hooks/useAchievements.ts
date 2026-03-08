@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export interface Achievement {
   id: string;
@@ -61,6 +62,16 @@ export function useCheckAndAwardBadges(studentId: string) {
             name: "20-Lesson Legend",
             description: "Completed 20+ lessons in a single day!",
           });
+
+          // Trigger parent notification
+          try {
+            await supabase.functions.invoke("parent-alerts", {
+              body: { type: "badge_earned", student_id: studentId, badge_name: "20-Lesson Legend" },
+            });
+          } catch (e) {
+            console.error("Failed to send badge alert:", e);
+          }
+          toast.success("🏆 Badge Earned: 20-Lesson Legend!");
         }
       }
 

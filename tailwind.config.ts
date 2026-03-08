@@ -96,6 +96,16 @@ export default {
           from: { transform: "translateY(10px)", opacity: "0" },
           to: { transform: "translateY(0)", opacity: "1" },
         },
+        "badgePop": {
+          "0%": { transform: "scale(0.3) rotate(-10deg)", opacity: "0" },
+          "50%": { transform: "scale(1.15) rotate(3deg)", opacity: "1" },
+          "70%": { transform: "scale(0.95) rotate(-1deg)" },
+          "100%": { transform: "scale(1) rotate(0deg)" },
+        },
+        "sparkle": {
+          "0%, 100%": { filter: "brightness(1) drop-shadow(0 0 0px transparent)" },
+          "50%": { filter: "brightness(1.3) drop-shadow(0 0 8px hsl(43, 89%, 61%))" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",

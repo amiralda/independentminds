@@ -6,7 +6,9 @@ import {
   ResponsiveContainer, BarChart, Bar, Cell
 } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
-import { TrendingUp, TrendingDown, Clock, Target, Zap, Calendar } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { TrendingUp, TrendingDown, Clock, Target, Zap, Calendar, Send } from "lucide-react";
+import { toast } from "sonner";
 
 const TOTAL_ACTIVITIES = 2039;
 const GRADUATION_DATE = new Date("2026-07-03T00:00:00");
@@ -28,6 +30,22 @@ function useCountdown() {
 
 export function ReportsPanel({ studentId }: { studentId: string }) {
   const countdown = useCountdown();
+  const [sendingReport, setSendingReport] = useState(false);
+
+  const handleSendWeeklySummary = async () => {
+    setSendingReport(true);
+    try {
+      const { error } = await supabase.functions.invoke("parent-alerts", {
+        body: { type: "weekly_summary", student_id: studentId },
+      });
+      if (error) throw error;
+      toast.success("Weekly summary sent to parent! 📧");
+    } catch (e) {
+      toast.error("Failed to send weekly summary");
+    } finally {
+      setSendingReport(false);
+    }
+  };
 
   // Fetch all done blocks grouped by date
   const { data: allDone = [], isLoading } = useQuery({
@@ -326,6 +344,22 @@ export function ReportsPanel({ studentId }: { studentId: string }) {
             </tbody>
           </table>
         )}
+      </div>
+
+      {/* Send Weekly Summary Button */}
+      <div className="rounded-2xl bg-gradient-to-r from-primary/10 to-secondary/10 border-2 border-dashed border-primary/30 p-5 text-center">
+        <h3 className="font-display font-semibold mb-2">📬 Send Weekly Report</h3>
+        <p className="text-xs text-muted-foreground mb-3">
+          Send the full weekly progress report to the parent via WhatsApp.
+        </p>
+        <Button
+          onClick={handleSendWeeklySummary}
+          disabled={sendingReport}
+          className="font-display"
+        >
+          <Send size={16} className="mr-2" />
+          {sendingReport ? "Sending..." : "Send Weekly Summary"}
+        </Button>
       </div>
     </div>
   );
