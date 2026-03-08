@@ -89,7 +89,8 @@ export function DadPanel() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="alerts" className="mt-4">
+        <TabsContent value="alerts" className="mt-4 space-y-4">
+          <TelegramSetupInfo />
           <AlertsTab studentId={studentId} />
         </TabsContent>
         <TabsContent value="progress" className="mt-4">
@@ -111,6 +112,28 @@ export function DadPanel() {
 
       <p className="text-center text-xs text-muted-foreground pt-6 border-t mt-8">
         Independent Minds v1.0 — Built with Love @2026
+      </p>
+    </div>
+  );
+}
+
+/* ── Telegram Setup Info ── */
+function TelegramSetupInfo() {
+  return (
+    <div className="rounded-xl bg-muted/50 border p-4 space-y-2">
+      <h4 className="font-display font-semibold text-sm flex items-center gap-2">
+        📱 Telegram Notifications Setup
+      </h4>
+      <ol className="text-xs text-muted-foreground space-y-1.5 list-decimal list-inside">
+        <li>Open Telegram and search for <strong>@BotFather</strong></li>
+        <li>Send <code>/newbot</code> and follow prompts to create your bot</li>
+        <li>Copy the <strong>Bot Token</strong> provided by BotFather</li>
+        <li>Search for <strong>@userinfobot</strong> (or <strong>@RawDataBot</strong>) and start it</li>
+        <li>It will reply with your <strong>Chat ID</strong> number</li>
+        <li>Add both values as secrets in the backend settings</li>
+      </ol>
+      <p className="text-[10px] text-muted-foreground/70 italic">
+        All alerts (badge earned, help needed, daily reports, weekly summaries) will be sent to your Telegram.
       </p>
     </div>
   );
