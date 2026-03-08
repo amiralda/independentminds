@@ -1,57 +1,82 @@
-# 🚀 Independent Minds EDU
+# 🎓 Independent Minds EDU
 
-**A Dynamic Academic Management & Milestone Tracking System.**
+**A Multi-Tenant Academic Management & Milestone Tracking SaaS Platform**
 
-Independent Minds EDU is a professional-grade educational ecosystem designed to empower students with autonomy through data-driven goal setting. The platform allows educators and parents to establish custom academic timeframes, providing a clear roadmap for students to master their curriculum at a sustainable yet high-performing pace.
-
----
-
-## 🎯 The Mission
-
-To provide a flexible framework for academic success. The platform calculates and monitors the necessary **Velocity** required to reach user-defined milestones, fostering discipline and accountability through real-time feedback loops.
+> *Learn Smart. Grow Every Day.* — independentmindsedu.com
 
 ---
 
-## 🛠️ Technical Architecture
+## 🏗️ Architecture
 
 | Layer | Technology |
 |---|---|
-| **Frontend** | React (Vite) & TypeScript with Tailwind CSS |
-| **Backend** | Supabase for real-time data persistence & secure authentication |
-| **Business Logic** | Supabase Edge Functions (Deno) for automated notification triggers |
-| **Notification Engine** | Telegram Bot API (AmiralDaBot) for instant mobile alerts |
-| **Domain** | [independentmindsedu.com](https://independentmindsedu.com) |
+| **Frontend** | React 18 (Vite) · TypeScript · Tailwind CSS · shadcn/ui |
+| **Backend** | Lovable Cloud (Supabase) — Postgres, Auth, Edge Functions |
+| **Notifications** | Telegram Bot API (per-parent routing) |
+| **Auth** | Email/Password + Google OAuth |
+| **i18n** | English 🇺🇸 + Haitian Creole 🇭🇹 |
+
+---
+
+## 🔐 Multi-Tenant Security Model
+
+```
+Parent (auth.users) ──► profiles (role: parent)
+    │
+    └──► students (parent_id → auth.users.id)
+            │
+            ├──► subject_tracks
+            ├──► activity_logs
+            ├──► daily_plan
+            ├──► check_ins
+            └──► achievements
+```
+
+- **RLS Isolation**: `is_my_student()` security-definer function ensures parents only access their own students' data
+- **Zero Cross-Tenant Leakage**: Every table enforces `is_my_student(student_id)` in all policies
+- **Per-Parent Telegram**: `parent_settings` table stores individual bot tokens and chat IDs
 
 ---
 
 ## ✨ Core Features
 
-### 📊 Dynamic Mission Control
+### 📊 Parent Command Center
+- **Student Selector**: Manage multiple students from a single dashboard
+- **Welcome Onboarding**: First-login modal with guided setup and default track templates
+- **Track Management**: Add/edit/disable learning tracks with custom targets and categories
+- **Activity Feed**: Timestamped logs with undo/override controls
+- **Schedule Builder**: Weekly planning with CSV bulk upload
+- **Telegram Settings**: Per-parent bot configuration for real-time notifications
 
-- **Customizable Timeframes:** Define start and end dates for academic cycles. The system automatically adjusts daily targets based on the remaining curriculum.
-- **Real-Time Pace Indicator:** A visual status engine (*On Track / Off Track*) that adapts dynamically to the student's historical performance.
-- **Consistency Streak:** A habit-building tool that gamifies daily engagement to build long-term study habits.
-- **'Mark Done' Synchronization:** One-click logging of activities with instant cloud updates and parent notification.
+### 🎯 Student Dashboard
+- **Category Cards**: Color-coded progress per learning track
+- **Mark Done**: One-click completion with optional score and notes
+- **Daily Blocks**: Time-slotted schedule with start/complete workflow
+- **Check-In System**: Mood, focus, and help-request tracking
+- **Trophy Room**: Achievement badges and certificates
 
-### 🎯 Multi-Track Learning System *(NEW)*
+### 🌍 Internationalization
+- Full English 🇺🇸 and Haitian Creole 🇭🇹 support
+- Language preference persisted to localStorage and database
+- Toggle accessible from every view
 
-- **Subject Tracks:** Define multiple independent learning tracks (e.g., Time4Learning, Rosetta Stone Spanish, Coding) each with its own daily target, unit type, and color-coded category.
-- **Category Cards:** Per-track progress visualization with individual progress bars, Mark Done buttons, and daily goals — replacing the single-progress-bar model.
-- **Admin Track Management:** Full CRUD control for parents to add, edit, enable/disable, and delete learning tracks from the Settings panel.
-- **Activity Logging:** Every completed session is timestamped and linked to its specific track for granular analytics.
+### 🔔 Smart Notifications
+- Badge earned alerts with student name
+- Urgent help intervention requests
+- Track completion updates
+- Weekly progress summaries
+- Per-parent Telegram routing
 
-### 🔔 Parent Command Center
+---
 
-- **Automated Cloud Alerts:** Instant Telegram notifications for every milestone reached or lesson completed, replacing traditional SMS systems.
-- **Dynamic Track Notifications:** When a student marks a track complete, the Telegram bot identifies the specific track and reports: *"Christian just completed a [Track Name] session! Total today: [X/Target]."*
-- **Urgent Support System:** A *'Need Help'* trigger that allows students to request immediate intervention with contextual comments.
-- **Activity Feed:** A real-time admin view showing exactly what time each subject was started and finished, with manual **Undo** and **Override** capabilities.
-- **Analytics Dashboard:** A comprehensive view of student velocity, historical trends, and activity logs.
+## 📋 Default Track Templates
 
-### 🏆 Achievement & Recognition
-
-- **The Trophy Room:** A digital reward system for hitting daily and weekly performance benchmarks (e.g., *'20-Lesson Legend'*, *'Weekly Warrior'*).
-- **Automated Certification:** System-generated achievement certificates upon the completion of specific academic blocks or chapters.
+| Track | Target | Unit | Color |
+|---|---|---|---|
+| Core Academics | 10/day | Lessons | Gold |
+| Reading & Literacy | 20/day | Minutes | Green |
+| Language Lab | 1/day | Sessions | Blue |
+| Special Projects | 1/day | Sessions | Purple |
 
 ---
 
@@ -59,60 +84,34 @@ To provide a flexible framework for academic success. The platform calculates an
 
 | Table | Purpose |
 |---|---|
-| `students` | Student profiles, language preferences, contact info |
-| `profiles` | Auth-linked user profiles with roles (student/parent) |
-| `daily_plan` | Scheduled time-block activities per day |
-| `subject_tracks` | Multi-track learning configuration (name, target, unit type, color, enabled) |
-| `activity_logs` | Per-track activity entries with timestamps, scores, and status |
-| `check_ins` | Student mood, focus, and help-request entries |
-| `achievements` | Earned badges and certificates |
-| `curriculum_map` | Lesson-level curriculum reference data |
-| `messages_log` | Telegram notification delivery log |
+| `profiles` | Auth-linked user profiles with role, language pref |
+| `students` | Student records with `parent_id` FK |
+| `subject_tracks` | Learning categories with targets and colors |
+| `activity_logs` | Timestamped progress entries per track |
+| `daily_plan` | Time-blocked daily schedule |
+| `check_ins` | Student mood/focus self-reports |
+| `achievements` | Earned badges and milestones |
+| `parent_settings` | Per-parent Telegram bot configuration |
 
 ---
 
-## 🗺️ Future Roadmap & Vision
+## ⚙️ Environment Secrets
 
-### Communication & Collaboration
-
-- **Integrated Academic Chat:** A secure, in-platform messaging system for real-time discussion between parents and students.
-- **Evidence Upload System:** Capability for students to upload photos, PDFs, or audio recordings of offline assignments and physical projects.
-- **Interactive Whiteboard:** A shared digital space for remote tutoring sessions and visual brainstorming.
-
-### AI-Powered Learning Assistance
-
-- **AI Concept Tutor:** Integration of an LLM to provide instant explanations for complex subjects and homework help.
-- **Smart Study Summaries:** Automated daily AI-generated briefings for parents, summarizing the student's focus areas and challenges.
-- **Predictive Graduation Forecasting:** Machine learning algorithms to predict completion dates based on historical velocity and subject difficulty.
-
-### Advanced Analytics & Reporting
-
-- **Automated Monthly Performance Reports:** System-generated PDF summaries for deep-dive reviews of academic trends.
-- **Subject-Specific Heatmaps:** Visual data representation showing which subjects the student masters quickly versus those requiring more time.
-- **Focus-Time Tracking:** Analytics to monitor active study sessions versus idle time on the platform.
-
-### Enhanced Gamification & Engagement
-
-- **Point-Based Reward Marketplace:** A system where students earn *'Digital Credits'* for consistency, redeemable for rewards defined by parents.
-- **Customizable Avatars & Themes:** Unlockable UI skins and profile customization to enhance student ownership of the platform.
-
-### Connectivity & Infrastructure
-
-- **Offline-First Synchronization:** Enhanced local storage to allow progress logging during internet outages, syncing automatically once reconnected.
-- **Multi-Student Support:** Architecture expansion to manage multiple student profiles under a single administrative account.
-- **Google Calendar Integration:** Automatic syncing of academic deadlines, scheduled breaks, and exam dates.
-
----
-
-## ⚙️ Environment Configuration
-
-To enable the notification engine, the following backend secrets are required:
-
-| Secret | Description |
+| Secret | Purpose |
 |---|---|
-| `TELEGRAM_BOT_TOKEN` | API Token for the custom bot |
-| `TELEGRAM_CHAT_ID` | Destination ID for parent notifications |
+| `TELEGRAM_BOT_TOKEN` | Default Telegram bot API token |
+| `TELEGRAM_CHAT_ID` | Default notification destination |
 
 ---
 
-> Developed with 💡 by **Dany Augustin** — Technology Strategist, Visionary & Social Entrepreneur
+## 🗺️ Roadmap
+
+- [ ] AI Concept Tutor (Lovable AI / Gemini)
+- [ ] Evidence Upload System
+- [ ] Predictive Graduation Forecasting
+- [ ] Offline-First Synchronization
+- [ ] Point-Based Reward Marketplace
+
+---
+
+*Developed with 💡 by Dany Augustin — Technology Strategist & Social Entrepreneur*
