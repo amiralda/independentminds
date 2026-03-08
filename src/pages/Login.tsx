@@ -40,7 +40,6 @@ export default function Login() {
       options: {
         data: {
           display_name: displayName || email.split("@")[0],
-          role: "parent",
         },
         emailRedirectTo: window.location.origin,
       },
