@@ -3,7 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { GraduationCap, LogIn } from "lucide-react";
+import { LogIn } from "lucide-react";
+import logo from "@/assets/logo.svg";
 import { toast } from "sonner";
 
 export default function Login() {
@@ -28,7 +29,7 @@ export default function Login() {
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center">
-          <GraduationCap size={48} className="mx-auto text-primary mb-3" />
+          <img src={logo} alt="Independent Minds" className="mx-auto mb-3 w-16 h-16" />
           <h1 className="font-display text-3xl font-bold">Independent Minds</h1>
           <p className="text-muted-foreground text-sm mt-1">Learn Smart. Grow Every Day.</p>
         </div>
