@@ -118,7 +118,28 @@ export function DadPanel() {
 }
 
 /* ── Telegram Setup Info ── */
+// TODO: Remove TestTelegramButton after 2026-04-07 expiration (self-destructing test UI)
+const TELEGRAM_TEST_EXPIRATION_DATE = '2026-04-07';
+
 function TelegramSetupInfo() {
+  const [isTesting, setIsTesting] = useState(false);
+  const showTestButton = new Date() < new Date(TELEGRAM_TEST_EXPIRATION_DATE);
+
+  const handleTestConnection = async () => {
+    setIsTesting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("parent-alerts", {
+        body: { type: "test_connection" },
+      });
+      if (error) throw error;
+      toast.success("✅ Telegram test message sent successfully!");
+    } catch (err: any) {
+      toast.error("❌ Failed to send test message: " + (err.message || "Unknown error"));
+    } finally {
+      setIsTesting(false);
+    }
+  };
+
   return (
     <div className="rounded-xl bg-muted/50 border p-4 space-y-3">
       <div className="flex items-center justify-between">
@@ -136,6 +157,22 @@ function TelegramSetupInfo() {
         <p>📊 Daily reports &amp; weekly summaries</p>
         <p>☀️ Morning reminders &amp; check-in nudges</p>
       </div>
+      {showTestButton && (
+        <div className="pt-2 border-t border-border/50 space-y-1.5">
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full font-display text-xs"
+            onClick={handleTestConnection}
+            disabled={isTesting}
+          >
+            {isTesting ? "Sending…" : "🛠️ Test Telegram Connection"}
+          </Button>
+          <p className="text-[10px] text-muted-foreground/70 italic text-center">
+            Note: This test button will automatically expire on April 7, 2026.
+          </p>
+        </div>
+      )}
       <p className="text-[10px] text-muted-foreground/70 italic">
         All notifications are delivered via Telegram to your linked account.
       </p>
