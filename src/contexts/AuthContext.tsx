@@ -89,13 +89,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           onboardingComplete: (data as any).onboarding_complete || false,
         });
       } else {
-        setProfile({
-          displayName: session.user.user_metadata?.display_name || session.user.email?.split("@")[0] || "User",
-          role: (session.user.user_metadata?.role as Role) || "parent",
-          studentId: session.user.user_metadata?.student_id || null,
-          languagePref: "EN",
-          onboardingComplete: false,
-        });
+        // Profile not ready yet (trigger may be delayed) — sign out to prevent
+        // untrusted user_metadata from being used for role/studentId.
+        await supabase.auth.signOut();
+        setSession(null);
+        setProfile(null);
+        setLoading(false);
+        return;
       }
       setLoading(false);
     };
