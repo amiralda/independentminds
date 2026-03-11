@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertTriangle, BarChart3, Calendar, Plus, BookOpen, Trash2, Pencil, Upload, Award, LineChart, Settings, Activity, Bell } from "lucide-react";
+import { AlertTriangle, BarChart3, Calendar, Plus, BookOpen, Trash2, Pencil, Upload, Award, LineChart, Settings, Activity, Bell, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { useRef } from "react";
 import { SubjectIcon } from "@/components/SubjectIcon";
@@ -20,6 +20,7 @@ import { TrackManagement } from "@/components/TrackManagement";
 import { ActivityFeed } from "@/components/ActivityFeed";
 import { StudentSelector } from "@/components/StudentSelector";
 import { TelegramSettings } from "@/components/TelegramSettings";
+import { StudentRecords } from "@/components/StudentRecords";
 
 const SUBJECTS = ["English", "ESL", "Math", "Science", "Social Studies", "Public Speaking", "Media Education"];
 
@@ -73,7 +74,7 @@ export function DadPanel({ onAddStudent }: Props) {
               <Settings size={12} className="mr-0.5" /> {t("nav.tracks")}
             </TabsTrigger>
           </TabsList>
-          <TabsList className="w-full grid grid-cols-4">
+          <TabsList className="w-full grid grid-cols-5">
             <TabsTrigger value="activity" className="font-display text-[10px] px-1">
               <Activity size={12} className="mr-0.5" /> {t("nav.feed")}
             </TabsTrigger>
@@ -82,6 +83,9 @@ export function DadPanel({ onAddStudent }: Props) {
             </TabsTrigger>
             <TabsTrigger value="certificates" className="font-display text-[10px] px-1">
               <Award size={12} className="mr-0.5" /> {t("nav.certificates")}
+            </TabsTrigger>
+            <TabsTrigger value="records" className="font-display text-[10px] px-1">
+              <FileText size={12} className="mr-0.5" /> {t("nav.records")}
             </TabsTrigger>
             <TabsTrigger value="telegram" className="font-display text-[10px] px-1">
               <Bell size={12} className="mr-0.5" /> {t("nav.telegram")}
@@ -108,6 +112,9 @@ export function DadPanel({ onAddStudent }: Props) {
           </TabsContent>
           <TabsContent value="certificates" className="mt-4">
             <CertificatesPanel studentId={studentId} />
+          </TabsContent>
+          <TabsContent value="records" className="mt-4">
+            <StudentRecords studentId={studentId} />
           </TabsContent>
           <TabsContent value="telegram" className="mt-4">
             <TelegramSettings />

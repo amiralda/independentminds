@@ -25,6 +25,7 @@ const translations: Record<string, Record<Lang, string>> = {
   "nav.certificates": { EN: "Certificates", HT: "Sètifika" },
   "nav.reports": { EN: "Reports", HT: "Rapò" },
   "nav.telegram": { EN: "Telegram", HT: "Telegram" },
+  "nav.records": { EN: "Records", HT: "Dosye" },
 
   // Status
   "status.planned": { EN: "Planned", HT: "Planifye" },
