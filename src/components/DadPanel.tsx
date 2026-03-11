@@ -59,67 +59,66 @@ export function DadPanel({ onAddStudent }: Props) {
           <p className="font-display text-lg">{t("action.selectStudent")}</p>
         </div>
       ) : (
-        <Tabs defaultValue="alerts">
-          <TabsList className="w-full grid grid-cols-4 mb-1">
-            <TabsTrigger value="alerts" className="font-display text-[10px] px-1">
-              <AlertTriangle size={12} className="mr-0.5" /> {t("nav.alerts")}
-            </TabsTrigger>
-            <TabsTrigger value="progress" className="font-display text-[10px] px-1">
-              <BarChart3 size={12} className="mr-0.5" /> {t("nav.progress")}
-            </TabsTrigger>
-            <TabsTrigger value="schedule" className="font-display text-[10px] px-1">
-              <Calendar size={12} className="mr-0.5" /> {t("nav.schedule")}
-            </TabsTrigger>
-            <TabsTrigger value="tracks" className="font-display text-[10px] px-1">
-              <Settings size={12} className="mr-0.5" /> {t("nav.tracks")}
-            </TabsTrigger>
-          </TabsList>
-          <TabsList className="w-full grid grid-cols-5">
-            <TabsTrigger value="activity" className="font-display text-[10px] px-1">
-              <Activity size={12} className="mr-0.5" /> {t("nav.feed")}
-            </TabsTrigger>
-            <TabsTrigger value="curriculum" className="font-display text-[10px] px-1">
-              <BookOpen size={12} className="mr-0.5" /> {t("nav.curriculum")}
-            </TabsTrigger>
-            <TabsTrigger value="certificates" className="font-display text-[10px] px-1">
-              <Award size={12} className="mr-0.5" /> {t("nav.certificates")}
-            </TabsTrigger>
-            <TabsTrigger value="records" className="font-display text-[10px] px-1">
-              <FileText size={12} className="mr-0.5" /> {t("nav.records")}
-            </TabsTrigger>
-            <TabsTrigger value="telegram" className="font-display text-[10px] px-1">
-              <Bell size={12} className="mr-0.5" /> {t("nav.telegram")}
-            </TabsTrigger>
-          </TabsList>
+        <>
+          {/* Alert Banner */}
+          <AlertBanner studentId={studentId} />
 
-          <TabsContent value="alerts" className="mt-4 space-y-4">
-            <AlertsTab studentId={studentId} />
-          </TabsContent>
-          <TabsContent value="progress" className="mt-4">
-            <TodayProgressTab studentId={studentId} />
-          </TabsContent>
-          <TabsContent value="schedule" className="mt-4">
-            <ScheduleBuilderTab studentId={studentId} />
-          </TabsContent>
-          <TabsContent value="tracks" className="mt-4">
-            <TrackManagement studentId={studentId} />
-          </TabsContent>
-          <TabsContent value="activity" className="mt-4">
-            <ActivityFeed studentId={studentId} />
-          </TabsContent>
-          <TabsContent value="curriculum" className="mt-4">
-            <CurriculumTab />
-          </TabsContent>
-          <TabsContent value="certificates" className="mt-4">
-            <CertificatesPanel studentId={studentId} />
-          </TabsContent>
-          <TabsContent value="records" className="mt-4">
-            <StudentRecords studentId={studentId} />
-          </TabsContent>
-          <TabsContent value="telegram" className="mt-4">
-            <TelegramSettings />
-          </TabsContent>
-        </Tabs>
+          <Tabs defaultValue="activity">
+            <TabsList className="w-full grid grid-cols-4 mb-1">
+              <TabsTrigger value="activity" className="font-display text-[10px] px-1">
+                <Activity size={12} className="mr-0.5" /> {t("nav.feed")}
+              </TabsTrigger>
+              <TabsTrigger value="progress" className="font-display text-[10px] px-1">
+                <BarChart3 size={12} className="mr-0.5" /> {t("nav.progress")}
+              </TabsTrigger>
+              <TabsTrigger value="schedule" className="font-display text-[10px] px-1">
+                <Calendar size={12} className="mr-0.5" /> {t("nav.schedule")}
+              </TabsTrigger>
+              <TabsTrigger value="tracks" className="font-display text-[10px] px-1">
+                <Settings size={12} className="mr-0.5" /> {t("nav.tracks")}
+              </TabsTrigger>
+            </TabsList>
+            <TabsList className="w-full grid grid-cols-4">
+              <TabsTrigger value="curriculum" className="font-display text-[10px] px-1">
+                <BookOpen size={12} className="mr-0.5" /> {t("nav.curriculum")}
+              </TabsTrigger>
+              <TabsTrigger value="certificates" className="font-display text-[10px] px-1">
+                <Award size={12} className="mr-0.5" /> {t("nav.certificates")}
+              </TabsTrigger>
+              <TabsTrigger value="records" className="font-display text-[10px] px-1">
+                <FileText size={12} className="mr-0.5" /> {t("nav.records")}
+              </TabsTrigger>
+              <TabsTrigger value="telegram" className="font-display text-[10px] px-1">
+                <Bell size={12} className="mr-0.5" /> {t("nav.telegram")}
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="activity" className="mt-4">
+              <ActivityFeed studentId={studentId} />
+            </TabsContent>
+            <TabsContent value="progress" className="mt-4">
+              <TodayProgressTab studentId={studentId} />
+            </TabsContent>
+            <TabsContent value="schedule" className="mt-4">
+              <ScheduleBuilderTab studentId={studentId} />
+            </TabsContent>
+            <TabsContent value="tracks" className="mt-4">
+              <TrackManagement studentId={studentId} />
+            </TabsContent>
+            <TabsContent value="curriculum" className="mt-4">
+              <CurriculumTab />
+            </TabsContent>
+            <TabsContent value="certificates" className="mt-4">
+              <CertificatesPanel studentId={studentId} />
+            </TabsContent>
+            <TabsContent value="records" className="mt-4">
+              <StudentRecords studentId={studentId} />
+            </TabsContent>
+            <TabsContent value="telegram" className="mt-4">
+              <TelegramSettings />
+            </TabsContent>
+          </Tabs>
+        </>
       )}
 
       <p className="text-center text-xs text-muted-foreground pt-6 border-t mt-8">
