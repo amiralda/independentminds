@@ -44,6 +44,7 @@ const statusIcon = (status: string) => {
 
 export function TodayBlocks({ blocks, onRefresh }: Props) {
   const { t } = useI18n();
+  const queryClient = useQueryClient();
   const { profile } = useAuth();
   const checkBadges = useCheckAndAwardBadges(profile?.studentId || "CHRIS");
   const [completingBlock, setCompletingBlock] = useState<Block | null>(null);
