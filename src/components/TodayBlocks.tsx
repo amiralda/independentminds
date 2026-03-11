@@ -6,10 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { CheckCircle2, Play, Clock, AlertCircle } from "lucide-react";
+import { CheckCircle2, Play, Clock, AlertCircle, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { useCheckAndAwardBadges } from "@/hooks/useAchievements";
 import { useAuth } from "@/contexts/AuthContext";
+import { StudentRecords } from "@/components/StudentRecords";
 
 interface Block {
   id: string;
@@ -45,6 +46,7 @@ export function TodayBlocks({ blocks, onRefresh }: Props) {
   const { profile } = useAuth();
   const checkBadges = useCheckAndAwardBadges(profile?.studentId || "CHRIS");
   const [completingBlock, setCompletingBlock] = useState<Block | null>(null);
+  const [showRecords, setShowRecords] = useState(false);
   const [rating, setRating] = useState(3);
   const [score, setScore] = useState("");
   const [notes, setNotes] = useState("");
@@ -85,7 +87,7 @@ export function TodayBlocks({ blocks, onRefresh }: Props) {
 
   return (
     <div className="space-y-4">
-      {/* Progress bar */}
+      {/* Progress bar + Records button */}
       <div className="rounded-xl bg-card p-4 shadow-sm border">
         <div className="flex justify-between text-sm font-medium mb-2">
           <span>{t("blocks.done")}: {doneCount}/{blocks.length}</span>
@@ -97,6 +99,14 @@ export function TodayBlocks({ blocks, onRefresh }: Props) {
             style={{ width: `${progress}%` }}
           />
         </div>
+        <Button
+          size="sm"
+          variant="outline"
+          className="mt-3 w-full font-display text-xs"
+          onClick={() => setShowRecords(true)}
+        >
+          <FileText size={14} className="mr-1" /> View Records & Print
+        </Button>
       </div>
 
       {/* Blocks */}
@@ -206,6 +216,16 @@ export function TodayBlocks({ blocks, onRefresh }: Props) {
               <Button variant="outline" onClick={() => setCompletingBlock(null)}>{t("cancel")}</Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+      {/* Records dialog */}
+      <Dialog open={showRecords} onOpenChange={setShowRecords}>
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-display">📄 Student Records</DialogTitle>
+          </DialogHeader>
+          {profile?.studentId && <StudentRecords studentId={profile.studentId} />}
+          {!profile?.studentId && <p className="text-muted-foreground text-sm">No student selected.</p>}
         </DialogContent>
       </Dialog>
     </div>
