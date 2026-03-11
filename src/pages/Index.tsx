@@ -17,6 +17,7 @@ import { AddStudentForm } from "@/components/AddStudentForm";
 import { WelcomeModal } from "@/components/WelcomeModal";
 import { useDailyBlocks, useRefreshBlocks } from "@/hooks/useDailyBlocks";
 import { Skeleton } from "@/components/ui/skeleton";
+import { BlockReminderPopup } from "@/components/BlockReminderPopup";
 import { BookOpen, CheckSquare, Trophy, LogOut, Award, Target, Library } from "lucide-react";
 import logo from "@/assets/logo.svg";
 
@@ -87,6 +88,7 @@ const Index = () => {
       <main className="container pb-24">
         {role === "student" ? (
           <>
+            <BlockReminderPopup studentId={studentId} />
             <div className="py-4">
               <h2 className="font-display text-2xl font-bold">{getGreeting()}</h2>
             </div>
