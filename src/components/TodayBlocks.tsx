@@ -52,10 +52,31 @@ export function TodayBlocks({ blocks, onRefresh }: Props) {
   const [notes, setNotes] = useState("");
 
   const handleStart = async (block: Block) => {
+    const now = new Date().toISOString();
     await supabase.from("daily_plan").update({
       status: "In Progress",
-      actual_start: new Date().toISOString(),
+      actual_start: now,
     }).eq("id", block.id);
+
+    // Also log to activity_logs if a matching track exists
+    const studentId = profile?.studentId;
+    if (studentId) {
+      const { data: tracks } = await supabase
+        .from("subject_tracks")
+        .select("id")
+        .eq("student_id", studentId)
+        .ilike("name", block.subject)
+        .limit(1);
+      if (tracks && tracks.length > 0) {
+        await supabase.from("activity_logs").insert({
+          student_id: studentId,
+          track_id: tracks[0].id,
+          status: "In Progress",
+          started_at: now,
+        } as any);
+      }
+    }
+
     toast.success(t("status.inProgress"));
     onRefresh();
   };
