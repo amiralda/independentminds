@@ -13,7 +13,5 @@ project_id = "wkvattbvybvgaeobtidl"
     verify_jwt = false
   [functions.parent-alerts]
     verify_jwt = false
-  [functions.seed-users]
-    verify_jwt = false
   [functions.weekly-badge]
     verify_jwt = false
