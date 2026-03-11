@@ -20,6 +20,7 @@ import { TrackManagement } from "@/components/TrackManagement";
 import { ActivityFeed } from "@/components/ActivityFeed";
 import { StudentSelector } from "@/components/StudentSelector";
 import { TelegramSettings } from "@/components/TelegramSettings";
+import { StudentRecords } from "@/components/StudentRecords";
 
 const SUBJECTS = ["English", "ESL", "Math", "Science", "Social Studies", "Public Speaking", "Media Education"];
 
