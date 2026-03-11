@@ -6,10 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { CheckCircle2, Play, Clock, AlertCircle } from "lucide-react";
+import { CheckCircle2, Play, Clock, AlertCircle, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { useCheckAndAwardBadges } from "@/hooks/useAchievements";
 import { useAuth } from "@/contexts/AuthContext";
+import { StudentRecords } from "@/components/StudentRecords";
 
 interface Block {
   id: string;
