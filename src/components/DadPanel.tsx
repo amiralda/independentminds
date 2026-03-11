@@ -74,12 +74,9 @@ export function DadPanel({ onAddStudent }: Props) {
               <Settings size={12} className="mr-0.5" /> {t("nav.tracks")}
             </TabsTrigger>
           </TabsList>
-          <TabsList className="w-full grid grid-cols-5">
+          <TabsList className="w-full grid grid-cols-4">
             <TabsTrigger value="activity" className="font-display text-[10px] px-1">
               <Activity size={12} className="mr-0.5" /> {t("nav.feed")}
-            </TabsTrigger>
-            <TabsTrigger value="records" className="font-display text-[10px] px-1">
-              <FileText size={12} className="mr-0.5" /> Records
             </TabsTrigger>
             <TabsTrigger value="curriculum" className="font-display text-[10px] px-1">
               <BookOpen size={12} className="mr-0.5" /> {t("nav.curriculum")}
