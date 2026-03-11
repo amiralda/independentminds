@@ -90,13 +90,59 @@ export function TodayBlocks({ blocks, onRefresh }: Props) {
 
   const handleSubmitDone = async () => {
     if (!completingBlock) return;
+    const now = new Date().toISOString();
     await supabase.from("daily_plan").update({
       status: "Done",
-      actual_end: new Date().toISOString(),
+      actual_end: now,
       self_rating: rating,
       time4learning_score: score ? parseInt(score) : null,
       notes: notes || null,
     }).eq("id", completingBlock.id);
+
+    // Also log to activity_logs if a matching track exists
+    const studentId = profile?.studentId;
+    if (studentId) {
+      const { data: tracks } = await supabase
+        .from("subject_tracks")
+        .select("id")
+        .eq("student_id", studentId)
+        .ilike("name", completingBlock.subject)
+        .limit(1);
+      if (tracks && tracks.length > 0) {
+        const today = new Date().toISOString().split("T")[0];
+        // Check if there's an existing "In Progress" log for this track today
+        const { data: existing } = await supabase
+          .from("activity_logs")
+          .select("id")
+          .eq("student_id", studentId)
+          .eq("track_id", tracks[0].id)
+          .eq("log_date", today)
+          .eq("status", "In Progress")
+          .limit(1);
+
+        if (existing && existing.length > 0) {
+          // Update the existing entry
+          await supabase.from("activity_logs").update({
+            status: "Done",
+            completed_at: now,
+            score: score ? parseInt(score) : null,
+            notes: notes || null,
+          } as any).eq("id", existing[0].id);
+        } else {
+          // Insert a new completed entry
+          await supabase.from("activity_logs").insert({
+            student_id: studentId,
+            track_id: tracks[0].id,
+            status: "Done",
+            started_at: completingBlock.actual_start || now,
+            completed_at: now,
+            score: score ? parseInt(score) : null,
+            notes: notes || null,
+          } as any);
+        }
+      }
+    }
+
     toast.success(t("status.done") + " 🎉");
     setCompletingBlock(null);
     onRefresh();
