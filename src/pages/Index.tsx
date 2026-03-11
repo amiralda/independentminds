@@ -88,6 +88,7 @@ const Index = () => {
       <main className="container pb-24">
         {role === "student" ? (
           <>
+            <BlockReminderPopup studentId={studentId} />
             <div className="py-4">
               <h2 className="font-display text-2xl font-bold">{getGreeting()}</h2>
             </div>
