@@ -75,9 +75,15 @@ export function CertificatesPanel({ studentId }: { studentId: string }) {
     },
   });
 
+  const escapeHtml = (str: string) =>
+    str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+
   const generatePDF = (chapter: ChapterProgress) => {
     const w = window.open("", "_blank");
     if (!w) return;
+    const safeChapter = escapeHtml(chapter.chapter);
+    const safeSubject = escapeHtml(chapter.subject);
+    const dateStr = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
     w.document.write(`
       <!DOCTYPE html>
       <html><head><title>Certificate</title>
@@ -97,9 +103,9 @@ export function CertificatesPanel({ studentId }: { studentId: string }) {
           <p class="detail">This certifies that</p>
           <p class="name">Christian</p>
           <p class="detail">has successfully completed all activities in</p>
-          <p class="name">${chapter.chapter}</p>
-          <p class="detail">${chapter.subject}</p>
-          <p class="date">${new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</p>
+          <p class="name">${safeChapter}</p>
+          <p class="detail">${safeSubject}</p>
+          <p class="date">${dateStr}</p>
           <p class="detail" style="margin-top:40px">Independent Minds v1.0 — Built with Love @2026</p>
         </div>
         <script>setTimeout(() => window.print(), 500);</script>

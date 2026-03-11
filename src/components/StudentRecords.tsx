@@ -89,14 +89,18 @@ export function StudentRecords({ studentId }: Props) {
     if (b.status === "Done") subjectStats[b.subject].done++;
   });
 
+  const escapeHtml = (str: string) =>
+    str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+
   const handlePrint = () => {
     const content = printRef.current;
     if (!content) return;
     const printWindow = window.open("", "_blank");
     if (!printWindow) return;
+    const safeName = escapeHtml(student?.display_name || studentId);
     printWindow.document.write(`
       <!DOCTYPE html>
-      <html><head><title>Student Records - ${student?.display_name || studentId}</title>
+      <html><head><title>Student Records - ${safeName}</title>
       <style>
         body { font-family: system-ui, sans-serif; padding: 24px; color: #1a1a1a; }
         h1 { font-size: 20px; margin-bottom: 4px; }
