@@ -218,6 +218,16 @@ export function TodayBlocks({ blocks, onRefresh }: Props) {
           </div>
         </DialogContent>
       </Dialog>
+      {/* Records dialog */}
+      <Dialog open={showRecords} onOpenChange={setShowRecords}>
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-display">📄 Student Records</DialogTitle>
+          </DialogHeader>
+          {profile?.studentId && <StudentRecords studentId={profile.studentId} />}
+          {!profile?.studentId && <p className="text-muted-foreground text-sm">No student selected.</p>}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
