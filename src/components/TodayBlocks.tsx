@@ -87,7 +87,7 @@ export function TodayBlocks({ blocks, onRefresh }: Props) {
 
   return (
     <div className="space-y-4">
-      {/* Progress bar */}
+      {/* Progress bar + Records button */}
       <div className="rounded-xl bg-card p-4 shadow-sm border">
         <div className="flex justify-between text-sm font-medium mb-2">
           <span>{t("blocks.done")}: {doneCount}/{blocks.length}</span>
@@ -99,6 +99,14 @@ export function TodayBlocks({ blocks, onRefresh }: Props) {
             style={{ width: `${progress}%` }}
           />
         </div>
+        <Button
+          size="sm"
+          variant="outline"
+          className="mt-3 w-full font-display text-xs"
+          onClick={() => setShowRecords(true)}
+        >
+          <FileText size={14} className="mr-1" /> View Records & Print
+        </Button>
       </div>
 
       {/* Blocks */}
