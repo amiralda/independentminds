@@ -50,13 +50,6 @@ export type Database = {
             foreignKeyName: "achievements_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: false
-            referencedRelation: "student_safe_view"
-            referencedColumns: ["student_id"]
-          },
-          {
-            foreignKeyName: "achievements_student_id_fkey"
-            columns: ["student_id"]
-            isOneToOne: false
             referencedRelation: "students"
             referencedColumns: ["student_id"]
           },
@@ -100,13 +93,6 @@ export type Database = {
           track_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "activity_logs_student_id_fkey"
-            columns: ["student_id"]
-            isOneToOne: false
-            referencedRelation: "student_safe_view"
-            referencedColumns: ["student_id"]
-          },
           {
             foreignKeyName: "activity_logs_student_id_fkey"
             columns: ["student_id"]
@@ -155,13 +141,6 @@ export type Database = {
           timestamp?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "check_ins_student_id_fkey"
-            columns: ["student_id"]
-            isOneToOne: false
-            referencedRelation: "student_safe_view"
-            referencedColumns: ["student_id"]
-          },
           {
             foreignKeyName: "check_ins_student_id_fkey"
             columns: ["student_id"]
@@ -292,13 +271,6 @@ export type Database = {
             foreignKeyName: "daily_plan_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: false
-            referencedRelation: "student_safe_view"
-            referencedColumns: ["student_id"]
-          },
-          {
-            foreignKeyName: "daily_plan_student_id_fkey"
-            columns: ["student_id"]
-            isOneToOne: false
             referencedRelation: "students"
             referencedColumns: ["student_id"]
           },
@@ -400,13 +372,6 @@ export type Database = {
             foreignKeyName: "profiles_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: false
-            referencedRelation: "student_safe_view"
-            referencedColumns: ["student_id"]
-          },
-          {
-            foreignKeyName: "profiles_student_id_fkey"
-            columns: ["student_id"]
-            isOneToOne: false
             referencedRelation: "students"
             referencedColumns: ["student_id"]
           },
@@ -502,13 +467,6 @@ export type Database = {
             foreignKeyName: "subject_tracks_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: false
-            referencedRelation: "student_safe_view"
-            referencedColumns: ["student_id"]
-          },
-          {
-            foreignKeyName: "subject_tracks_student_id_fkey"
-            columns: ["student_id"]
-            isOneToOne: false
             referencedRelation: "students"
             referencedColumns: ["student_id"]
           },
@@ -516,30 +474,7 @@ export type Database = {
       }
     }
     Views: {
-      student_safe_view: {
-        Row: {
-          display_name: string | null
-          grade_level: number | null
-          language_pref: string | null
-          student_id: string | null
-          timezone: string | null
-        }
-        Insert: {
-          display_name?: string | null
-          grade_level?: number | null
-          language_pref?: string | null
-          student_id?: string | null
-          timezone?: string | null
-        }
-        Update: {
-          display_name?: string | null
-          grade_level?: number | null
-          language_pref?: string | null
-          student_id?: string | null
-          timezone?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       get_my_role: { Args: never; Returns: string }
