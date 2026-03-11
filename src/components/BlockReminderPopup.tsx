@@ -31,17 +31,23 @@ export function BlockReminderPopup({ studentId }: Props) {
 
       if (blocks && blocks.length > 0) {
         localStorage.setItem(STORAGE_KEY, now.toString());
-        toast.info(
-          `📋 You have ${blocks.length} block${blocks.length > 1 ? "s" : ""} still marked as Planned today. Did you finish any? Go to Today and mark them as Done!`,
-          { duration: 10000 }
+        const subjects = blocks.slice(0, 3).map(b => b.subject).join(", ");
+        const more = blocks.length > 3 ? ` and ${blocks.length - 3} more` : "";
+        toast(
+          "⏰ Hey! Did you finish any blocks?",
+          {
+            description: `You have ${blocks.length} block${blocks.length > 1 ? "s" : ""} still marked as Planned (${subjects}${more}). If you already completed them, tap each one and mark it as Done so your progress counts! 💪`,
+            duration: 15000,
+            action: {
+              label: "Got it!",
+              onClick: () => {},
+            },
+          }
         );
       }
     };
 
-    // Check shortly after mount (5s delay to not block initial load)
     const initialTimeout = setTimeout(checkAndRemind, 5000);
-
-    // Then check every 30 min (will only show if 4h passed since last reminder)
     timerRef.current = setInterval(checkAndRemind, 30 * 60 * 1000);
 
     return () => {
