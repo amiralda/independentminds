@@ -149,6 +149,7 @@ export function TodayBlocks({ blocks, onRefresh }: Props) {
     toast.success(t("status.done") + " 🎉");
     setCompletingBlock(null);
     onRefresh();
+    queryClient.invalidateQueries({ queryKey: ["activity_logs_all"] });
     checkBadges.mutate();
   };
 
