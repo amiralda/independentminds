@@ -81,6 +81,7 @@ export function TodayBlocks({ blocks, onRefresh }: Props) {
 
     toast.success(t("status.inProgress"));
     onRefresh();
+    queryClient.invalidateQueries({ queryKey: ["activity_logs_all"] });
   };
 
   const handleMarkDone = (block: Block) => {
