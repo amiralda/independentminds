@@ -71,20 +71,31 @@ export function DadPanel({ onAddStudent }: Props) {
               <TabsTrigger value="activity" className="font-display text-[10px] px-1">
                 <Activity size={12} className="mr-0.5" /> {t("nav.feed")}
               </TabsTrigger>
+              <TabsTrigger value="profile" className="font-display text-[10px] px-1">
+                <UserCircle size={12} className="mr-0.5" /> Profile
+              </TabsTrigger>
               <TabsTrigger value="progress" className="font-display text-[10px] px-1">
                 <BarChart3 size={12} className="mr-0.5" /> {t("nav.progress")}
               </TabsTrigger>
               <TabsTrigger value="schedule" className="font-display text-[10px] px-1">
                 <Calendar size={12} className="mr-0.5" /> {t("nav.schedule")}
               </TabsTrigger>
+            </TabsList>
+            <TabsList className="w-full grid grid-cols-4 mb-1">
               <TabsTrigger value="tracks" className="font-display text-[10px] px-1">
                 <Settings size={12} className="mr-0.5" /> {t("nav.tracks")}
               </TabsTrigger>
-            </TabsList>
-            <TabsList className="w-full grid grid-cols-4">
+              <TabsTrigger value="tools" className="font-display text-[10px] px-1">
+                <Wrench size={12} className="mr-0.5" /> Tools
+              </TabsTrigger>
+              <TabsTrigger value="tutor" className="font-display text-[10px] px-1">
+                <Bot size={12} className="mr-0.5" /> Mr A
+              </TabsTrigger>
               <TabsTrigger value="curriculum" className="font-display text-[10px] px-1">
                 <BookOpen size={12} className="mr-0.5" /> {t("nav.curriculum")}
               </TabsTrigger>
+            </TabsList>
+            <TabsList className="w-full grid grid-cols-4">
               <TabsTrigger value="certificates" className="font-display text-[10px] px-1">
                 <Award size={12} className="mr-0.5" /> {t("nav.certificates")}
               </TabsTrigger>
@@ -94,10 +105,14 @@ export function DadPanel({ onAddStudent }: Props) {
               <TabsTrigger value="telegram" className="font-display text-[10px] px-1">
                 <Bell size={12} className="mr-0.5" /> {t("nav.telegram")}
               </TabsTrigger>
+              <TabsTrigger value="_" className="invisible" disabled />
             </TabsList>
 
             <TabsContent value="activity" className="mt-4">
               <ActivityFeed studentId={studentId} />
+            </TabsContent>
+            <TabsContent value="profile" className="mt-4">
+              <StudentProfileCard studentId={studentId} />
             </TabsContent>
             <TabsContent value="progress" className="mt-4">
               <TodayProgressTab studentId={studentId} />
@@ -107,6 +122,12 @@ export function DadPanel({ onAddStudent }: Props) {
             </TabsContent>
             <TabsContent value="tracks" className="mt-4">
               <TrackManagement studentId={studentId} />
+            </TabsContent>
+            <TabsContent value="tools" className="mt-4">
+              <LearningToolsHub studentId={studentId} />
+            </TabsContent>
+            <TabsContent value="tutor" className="mt-4">
+              <TutorChat />
             </TabsContent>
             <TabsContent value="curriculum" className="mt-4">
               <CurriculumTab />
