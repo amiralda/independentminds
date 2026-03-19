@@ -103,10 +103,12 @@ export function DadPanel({ onAddStudent }: Props) {
               <TabsTrigger value="records" className="font-display text-[10px] px-1">
                 <FileText size={12} className="mr-0.5" /> {t("nav.records")}
               </TabsTrigger>
+              <TabsTrigger value="rewards" className="font-display text-[10px] px-1">
+                <Coins size={12} className="mr-0.5" /> Rewards
+              </TabsTrigger>
               <TabsTrigger value="telegram" className="font-display text-[10px] px-1">
                 <Bell size={12} className="mr-0.5" /> {t("nav.telegram")}
               </TabsTrigger>
-              <TabsTrigger value="_" className="invisible" disabled />
             </TabsList>
 
             <TabsContent value="activity" className="mt-4">
