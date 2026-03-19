@@ -139,6 +139,9 @@ export function DadPanel({ onAddStudent }: Props) {
             <TabsContent value="curriculum" className="mt-4">
               <CurriculumTab />
             </TabsContent>
+            <TabsContent value="weekly" className="mt-4">
+              <WeeklyProgressReport studentId={studentId} />
+            </TabsContent>
             <TabsContent value="certificates" className="mt-4">
               <CertificatesPanel studentId={studentId} />
             </TabsContent>
