@@ -97,7 +97,10 @@ export function DadPanel({ onAddStudent }: Props) {
                 <BookOpen size={12} className="mr-0.5" /> {t("nav.curriculum")}
               </TabsTrigger>
             </TabsList>
-            <TabsList className="w-full grid grid-cols-4">
+            <TabsList className="w-full grid grid-cols-5">
+              <TabsTrigger value="weekly" className="font-display text-[10px] px-1">
+                <ClipboardList size={12} className="mr-0.5" /> Weekly
+              </TabsTrigger>
               <TabsTrigger value="certificates" className="font-display text-[10px] px-1">
                 <Award size={12} className="mr-0.5" /> {t("nav.certificates")}
               </TabsTrigger>
