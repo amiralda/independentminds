@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertTriangle, BarChart3, Calendar, Plus, BookOpen, Trash2, Pencil, Upload, Award, LineChart, Settings, Activity, Bell, FileText, UserCircle, Wrench, Bot } from "lucide-react";
+import { AlertTriangle, BarChart3, Calendar, Plus, BookOpen, Trash2, Pencil, Upload, Award, LineChart, Settings, Activity, Bell, FileText, UserCircle, Wrench, Bot, Coins } from "lucide-react";
 import { toast } from "sonner";
 import { useRef } from "react";
 import { SubjectIcon } from "@/components/SubjectIcon";
