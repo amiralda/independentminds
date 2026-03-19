@@ -153,6 +153,37 @@ export function TodayBlocks({ blocks, onRefresh }: Props) {
     onRefresh();
     queryClient.invalidateQueries({ queryKey: ["activity_logs_all"] });
     checkBadges.mutate();
+
+    // Award points for completing a block
+    const studentId = profile?.studentId;
+    if (studentId) {
+      awardPoints.mutate({
+        student_id: studentId,
+        points: POINT_VALUES.BLOCK_COMPLETED,
+        reason: `Completed: ${completingBlock.subject}`,
+        source: "block_complete",
+        reference_id: completingBlock.id,
+      });
+      // Bonus for high self-rating
+      if (rating === 5) {
+        awardPoints.mutate({
+          student_id: studentId,
+          points: POINT_VALUES.HIGH_RATING,
+          reason: "Perfect self-rating ⭐",
+          source: "high_rating",
+        });
+      }
+      // Check if all blocks are now done (perfect day)
+      const doneAfter = blocks.filter(b => b.status === "Done").length + 1;
+      if (doneAfter === blocks.length && blocks.length > 0) {
+        awardPoints.mutate({
+          student_id: studentId,
+          points: POINT_VALUES.PERFECT_DAY,
+          reason: "Perfect Day — all blocks done! 🌟",
+          source: "perfect_day",
+        });
+      }
+    }
   };
 
   const doneCount = blocks.filter(b => b.status === "Done").length;
