@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertTriangle, BarChart3, Calendar, Plus, BookOpen, Trash2, Pencil, Upload, Award, LineChart, Settings, Activity, Bell, FileText, UserCircle, Wrench, Bot, Coins } from "lucide-react";
+import { AlertTriangle, BarChart3, Calendar, Plus, BookOpen, Trash2, Pencil, Upload, Award, LineChart, Settings, Activity, Bell, FileText, UserCircle, Wrench, Bot, Coins, ClipboardList } from "lucide-react";
 import { toast } from "sonner";
 import { useRef } from "react";
 import { SubjectIcon } from "@/components/SubjectIcon";
@@ -25,6 +25,7 @@ import { StudentProfileCard } from "@/components/StudentProfileCard";
 import { LearningToolsHub } from "@/components/LearningToolsHub";
 import { RewardsManagement } from "@/components/RewardsManagement";
 import { TutorChat } from "@/components/TutorChat";
+import { WeeklyProgressReport } from "@/components/WeeklyProgressReport";
 
 const SUBJECTS = ["English", "ESL", "Math", "Science", "Social Studies", "Public Speaking", "Media Education"];
 
@@ -96,7 +97,10 @@ export function DadPanel({ onAddStudent }: Props) {
                 <BookOpen size={12} className="mr-0.5" /> {t("nav.curriculum")}
               </TabsTrigger>
             </TabsList>
-            <TabsList className="w-full grid grid-cols-4">
+            <TabsList className="w-full grid grid-cols-5">
+              <TabsTrigger value="weekly" className="font-display text-[10px] px-1">
+                <ClipboardList size={12} className="mr-0.5" /> Weekly
+              </TabsTrigger>
               <TabsTrigger value="certificates" className="font-display text-[10px] px-1">
                 <Award size={12} className="mr-0.5" /> {t("nav.certificates")}
               </TabsTrigger>
@@ -134,6 +138,9 @@ export function DadPanel({ onAddStudent }: Props) {
             </TabsContent>
             <TabsContent value="curriculum" className="mt-4">
               <CurriculumTab />
+            </TabsContent>
+            <TabsContent value="weekly" className="mt-4">
+              <WeeklyProgressReport studentId={studentId} />
             </TabsContent>
             <TabsContent value="certificates" className="mt-4">
               <CertificatesPanel studentId={studentId} />
