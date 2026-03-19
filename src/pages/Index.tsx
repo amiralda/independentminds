@@ -57,6 +57,7 @@ const Index = () => {
     { key: "trophies", icon: Award, label: t("nav.trophies") },
     { key: "library", icon: Library, label: t("nav.library") },
     { key: "tutor", icon: Bot, label: "Mr A" },
+  ];
 
   return (
     <div className="min-h-screen bg-background">
