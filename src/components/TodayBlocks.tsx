@@ -182,6 +182,9 @@ export function TodayBlocks({ blocks, onRefresh }: Props) {
           source: "perfect_day",
         });
       }
+
+      // Check streak bonuses (async, fire-and-forget)
+      checkAndAwardStreak(sid).catch(() => {});
     }
   };
 
