@@ -53,11 +53,10 @@ const Index = () => {
 
   const studentTabs: { key: StudentTab; icon: React.ElementType; label: string }[] = [
     { key: "today", icon: BookOpen, label: t("nav.today") },
-    { key: "tracks", icon: Target, label: t("nav.tracks") },
+    { key: "rewards", icon: Coins, label: lang === "HT" ? "Pwen" : "Rewards" },
     { key: "checkin", icon: CheckSquare, label: t("nav.checkin") },
     { key: "badges", icon: Trophy, label: t("nav.badges") },
     { key: "trophies", icon: Award, label: t("nav.trophies") },
-    { key: "library", icon: Library, label: t("nav.library") },
     { key: "tutor", icon: Bot, label: "Mr A" },
     { key: "profile", icon: UserCircle, label: lang === "HT" ? "Pwofil" : "Profile" },
   ];
