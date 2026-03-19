@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertTriangle, BarChart3, Calendar, Plus, BookOpen, Trash2, Pencil, Upload, Award, LineChart, Settings, Activity, Bell, FileText } from "lucide-react";
+import { AlertTriangle, BarChart3, Calendar, Plus, BookOpen, Trash2, Pencil, Upload, Award, LineChart, Settings, Activity, Bell, FileText, UserCircle, Wrench, Bot } from "lucide-react";
 import { toast } from "sonner";
 import { useRef } from "react";
 import { SubjectIcon } from "@/components/SubjectIcon";
@@ -21,6 +21,9 @@ import { ActivityFeed } from "@/components/ActivityFeed";
 import { StudentSelector } from "@/components/StudentSelector";
 import { TelegramSettings } from "@/components/TelegramSettings";
 import { StudentRecords } from "@/components/StudentRecords";
+import { StudentProfileCard } from "@/components/StudentProfileCard";
+import { LearningToolsHub } from "@/components/LearningToolsHub";
+import { TutorChat } from "@/components/TutorChat";
 
 const SUBJECTS = ["English", "ESL", "Math", "Science", "Social Studies", "Public Speaking", "Media Education"];
 
