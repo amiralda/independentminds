@@ -22,7 +22,7 @@ import { BookOpen, CheckSquare, Trophy, LogOut, Award, Target, Library, Bot } fr
 import logo from "@/assets/logo.svg";
 import { TutorChat } from "@/components/TutorChat";
 
-type StudentTab = "today" | "tracks" | "checkin" | "badges" | "trophies" | "library" | "tutor";
+type StudentTab = "today" | "tracks" | "checkin" | "badges" | "trophies" | "library" | "tutor" | "profile";
 
 const Index = () => {
   const { t } = useI18n();
