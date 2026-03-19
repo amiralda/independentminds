@@ -530,6 +530,7 @@ export type Database = {
           enrollment_date: string | null
           grade_level: number
           language_pref: string
+          monitoring_enabled: boolean
           nationality: string | null
           parent_email: string | null
           parent_id: string | null
@@ -550,6 +551,7 @@ export type Database = {
           enrollment_date?: string | null
           grade_level?: number
           language_pref?: string
+          monitoring_enabled?: boolean
           nationality?: string | null
           parent_email?: string | null
           parent_id?: string | null
@@ -570,6 +572,7 @@ export type Database = {
           enrollment_date?: string | null
           grade_level?: number
           language_pref?: string
+          monitoring_enabled?: boolean
           nationality?: string | null
           parent_email?: string | null
           parent_id?: string | null
