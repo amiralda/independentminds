@@ -155,7 +155,7 @@ export function TodayBlocks({ blocks, onRefresh }: Props) {
     checkBadges.mutate();
 
     // Award points for completing a block
-    const studentId = profile?.studentId;
+    const sid = profile?.studentId;
     if (studentId) {
       awardPoints.mutate({
         student_id: studentId,
