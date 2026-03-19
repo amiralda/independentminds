@@ -13,6 +13,7 @@ import { useCheckAndAwardBadges } from "@/hooks/useAchievements";
 import { useAuth } from "@/contexts/AuthContext";
 import { StudentRecords } from "@/components/StudentRecords";
 import { useAwardPoints, POINT_VALUES } from "@/hooks/useRewards";
+import { checkAndAwardStreak } from "@/hooks/useStreakBonus";
 
 interface Block {
   id: string;
@@ -181,6 +182,9 @@ export function TodayBlocks({ blocks, onRefresh }: Props) {
           source: "perfect_day",
         });
       }
+
+      // Check streak bonuses (async, fire-and-forget)
+      checkAndAwardStreak(sid).catch(() => {});
     }
   };
 
