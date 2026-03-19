@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { useCheckAndAwardBadges } from "@/hooks/useAchievements";
 import { useAuth } from "@/contexts/AuthContext";
 import { StudentRecords } from "@/components/StudentRecords";
+import { useAwardPoints, POINT_VALUES } from "@/hooks/useRewards";
 
 interface Block {
   id: string;
@@ -47,6 +48,7 @@ export function TodayBlocks({ blocks, onRefresh }: Props) {
   const queryClient = useQueryClient();
   const { profile } = useAuth();
   const checkBadges = useCheckAndAwardBadges(profile?.studentId || "CHRIS");
+  const awardPoints = useAwardPoints();
   const [completingBlock, setCompletingBlock] = useState<Block | null>(null);
   const [showRecords, setShowRecords] = useState(false);
   const [rating, setRating] = useState(3);
@@ -151,6 +153,35 @@ export function TodayBlocks({ blocks, onRefresh }: Props) {
     onRefresh();
     queryClient.invalidateQueries({ queryKey: ["activity_logs_all"] });
     checkBadges.mutate();
+
+    // Award points for completing a block
+    const sid = profile?.studentId;
+    if (sid) {
+      awardPoints.mutate({
+        student_id: sid,
+        points: POINT_VALUES.BLOCK_COMPLETED,
+        reason: `Completed: ${completingBlock.subject}`,
+        source: "block_complete",
+        reference_id: completingBlock.id,
+      });
+      if (rating === 5) {
+        awardPoints.mutate({
+          student_id: sid,
+          points: POINT_VALUES.HIGH_RATING,
+          reason: "Perfect self-rating ⭐",
+          source: "high_rating",
+        });
+      }
+      const doneAfter = blocks.filter(b => b.status === "Done").length + 1;
+      if (doneAfter === blocks.length && blocks.length > 0) {
+        awardPoints.mutate({
+          student_id: sid,
+          points: POINT_VALUES.PERFECT_DAY,
+          reason: "Perfect Day — all blocks done! 🌟",
+          source: "perfect_day",
+        });
+      }
+    }
   };
 
   const doneCount = blocks.filter(b => b.status === "Done").length;

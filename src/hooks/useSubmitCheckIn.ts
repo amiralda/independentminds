@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { POINT_VALUES } from "@/hooks/useRewards";
 
 interface CheckInData {
   student_id: string;
@@ -18,6 +19,14 @@ export function useSubmitCheckIn(onSuccess?: () => void) {
     mutationFn: async (data: CheckInData) => {
       const { error } = await supabase.from("check_ins").insert(data);
       if (error) throw error;
+
+      // Award points for check-in
+      await supabase.from("reward_points").insert({
+        student_id: data.student_id,
+        points: POINT_VALUES.CHECK_IN,
+        reason: `Check-in completed (${data.mood})`,
+        source: "check_in",
+      } as any);
 
       // If help is needed, trigger urgent parent alert
       if (data.need_help) {
@@ -38,6 +47,8 @@ export function useSubmitCheckIn(onSuccess?: () => void) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["daily_blocks"] });
+      queryClient.invalidateQueries({ queryKey: ["points_balance"] });
+      queryClient.invalidateQueries({ queryKey: ["points_history"] });
       onSuccess?.();
     },
     onError: () => {
