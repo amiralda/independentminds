@@ -416,6 +416,110 @@ export type Database = {
           },
         ]
       }
+      reward_points: {
+        Row: {
+          created_at: string
+          id: string
+          points: number
+          reason: string
+          reference_id: string | null
+          source: string
+          student_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          points: number
+          reason: string
+          reference_id?: string | null
+          source?: string
+          student_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          points?: number
+          reason?: string
+          reference_id?: string | null
+          source?: string
+          student_id?: string
+        }
+        Relationships: []
+      }
+      reward_redemptions: {
+        Row: {
+          created_at: string
+          fulfilled_at: string | null
+          id: string
+          points_spent: number
+          reward_id: string
+          status: string
+          student_id: string
+        }
+        Insert: {
+          created_at?: string
+          fulfilled_at?: string | null
+          id?: string
+          points_spent: number
+          reward_id: string
+          status?: string
+          student_id: string
+        }
+        Update: {
+          created_at?: string
+          fulfilled_at?: string | null
+          id?: string
+          points_spent?: number
+          reward_id?: string
+          status?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reward_redemptions_reward_id_fkey"
+            columns: ["reward_id"]
+            isOneToOne: false
+            referencedRelation: "rewards_catalog"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rewards_catalog: {
+        Row: {
+          created_at: string
+          description: string | null
+          enabled: boolean
+          icon: string
+          id: string
+          name: string
+          point_cost: number
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          enabled?: boolean
+          icon?: string
+          id?: string
+          name: string
+          point_cost?: number
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          enabled?: boolean
+          icon?: string
+          id?: string
+          name?: string
+          point_cost?: number
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       students: {
         Row: {
           academic_year: string | null
@@ -536,6 +640,7 @@ export type Database = {
     Functions: {
       get_my_role: { Args: never; Returns: string }
       get_my_student_id: { Args: never; Returns: string }
+      get_points_balance: { Args: { _student_id: string }; Returns: number }
       is_my_student: { Args: { _student_id: string }; Returns: boolean }
     }
     Enums: {
