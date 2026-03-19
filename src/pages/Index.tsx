@@ -18,14 +18,15 @@ import { WelcomeModal } from "@/components/WelcomeModal";
 import { useDailyBlocks, useRefreshBlocks } from "@/hooks/useDailyBlocks";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BlockReminderPopup } from "@/components/BlockReminderPopup";
-import { BookOpen, CheckSquare, Trophy, LogOut, Award, Target, Library, Bot } from "lucide-react";
+import { BookOpen, CheckSquare, Trophy, LogOut, Award, Target, Library, Bot, UserCircle } from "lucide-react";
 import logo from "@/assets/logo.svg";
 import { TutorChat } from "@/components/TutorChat";
+import { StudentProfileCard } from "@/components/StudentProfileCard";
 
-type StudentTab = "today" | "tracks" | "checkin" | "badges" | "trophies" | "library" | "tutor";
+type StudentTab = "today" | "tracks" | "checkin" | "badges" | "trophies" | "library" | "tutor" | "profile";
 
 const Index = () => {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const navigate = useNavigate();
   const { profile, selectedStudentId } = useAuth();
   const [tab, setTab] = useState<StudentTab>("today");
@@ -57,6 +58,7 @@ const Index = () => {
     { key: "trophies", icon: Award, label: t("nav.trophies") },
     { key: "library", icon: Library, label: t("nav.library") },
     { key: "tutor", icon: Bot, label: "Mr A" },
+    { key: "profile", icon: UserCircle, label: lang === "HT" ? "Pwofil" : "Profile" },
   ];
 
   return (
@@ -119,6 +121,7 @@ const Index = () => {
             {tab === "trophies" && <TrophyRoom />}
             {tab === "library" && <LibraryPanel />}
             {tab === "tutor" && <TutorChat />}
+            {tab === "profile" && studentId && <StudentProfileCard studentId={studentId} />}
           </>
         ) : (
           <div className="py-4">

@@ -118,6 +118,17 @@ export default function Login() {
               className="mt-1"
             />
           </div>
+          {!isSignUp && (
+            <div className="text-right">
+              <button
+                type="button"
+                onClick={() => navigate("/forgot-password")}
+                className="text-xs text-muted-foreground hover:text-primary hover:underline"
+              >
+                {t("auth.forgotPassword")}
+              </button>
+            </div>
+          )}
           <Button type="submit" className="w-full font-display bg-secondary text-secondary-foreground hover:bg-secondary/90" disabled={loading}>
             {isSignUp ? (
               <><UserPlus size={16} className="mr-2" /> {loading ? t("auth.creatingAccount") : t("action.signUp")}</>
