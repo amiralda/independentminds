@@ -23,6 +23,7 @@ import { TelegramSettings } from "@/components/TelegramSettings";
 import { StudentRecords } from "@/components/StudentRecords";
 import { StudentProfileCard } from "@/components/StudentProfileCard";
 import { LearningToolsHub } from "@/components/LearningToolsHub";
+import { RewardsManagement } from "@/components/RewardsManagement";
 import { TutorChat } from "@/components/TutorChat";
 
 const SUBJECTS = ["English", "ESL", "Math", "Science", "Social Studies", "Public Speaking", "Media Education"];

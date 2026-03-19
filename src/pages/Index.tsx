@@ -119,7 +119,7 @@ const Index = () => {
             {tab === "checkin" && <CheckInForm studentId={studentId} onDone={refreshBlocks} />}
             {tab === "badges" && <BadgesPanel />}
             {tab === "trophies" && <TrophyRoom />}
-            {tab === "library" && <LibraryPanel />}
+            {tab === "rewards" && <RewardsPanel />}
             {tab === "tutor" && <TutorChat />}
             {tab === "profile" && studentId && <StudentProfileCard studentId={studentId} />}
           </>
