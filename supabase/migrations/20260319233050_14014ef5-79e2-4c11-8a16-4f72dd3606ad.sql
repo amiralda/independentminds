@@ -1,0 +1,1 @@
+ALTER TABLE public.students ADD COLUMN monitoring_enabled boolean NOT NULL DEFAULT true;

@@ -4,12 +4,15 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Bell, Save, Send } from "lucide-react";
+import { Bell, Save, Send, Eye } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 export function TelegramSettings() {
   const { t } = useI18n();
-  const { user } = useAuth();
+  const { user, selectedStudentId } = useAuth();
+  const queryClient = useQueryClient();
   const [botToken, setBotToken] = useState("");
   const [chatId, setChatId] = useState("");
   const [saving, setSaving] = useState(false);
@@ -32,6 +35,36 @@ export function TelegramSettings() {
     };
     load();
   }, [user]);
+
+  // Monitoring toggle query
+  const { data: monitoringEnabled, isLoading: monitoringLoading } = useQuery({
+    queryKey: ["student_monitoring", selectedStudentId],
+    enabled: !!selectedStudentId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("students")
+        .select("monitoring_enabled")
+        .eq("student_id", selectedStudentId!)
+        .single();
+      if (error) throw error;
+      return (data as any)?.monitoring_enabled as boolean ?? true;
+    },
+  });
+
+  const toggleMonitoring = useMutation({
+    mutationFn: async (enabled: boolean) => {
+      const { error } = await supabase
+        .from("students")
+        .update({ monitoring_enabled: enabled } as any)
+        .eq("student_id", selectedStudentId!);
+      if (error) throw error;
+    },
+    onSuccess: (_, enabled) => {
+      queryClient.invalidateQueries({ queryKey: ["student_monitoring", selectedStudentId] });
+      toast.success(enabled ? "Hourly monitoring enabled" : "Hourly monitoring disabled");
+    },
+    onError: () => toast.error("Failed to update monitoring setting"),
+  });
 
   const handleSave = async () => {
     if (!user) return;
@@ -79,6 +112,26 @@ export function TelegramSettings() {
         Configure your personal Telegram bot to receive notifications about your students' progress.
       </p>
 
+      {/* Monitoring Toggle */}
+      {selectedStudentId && (
+        <div className="rounded-xl bg-card border p-4 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <Eye size={18} className="text-primary flex-shrink-0" />
+            <div>
+              <p className="text-sm font-medium">Hourly Monitoring Agent</p>
+              <p className="text-xs text-muted-foreground">
+                Automatically track schedule compliance and send lateness alerts every hour
+              </p>
+            </div>
+          </div>
+          <Switch
+            checked={monitoringEnabled ?? true}
+            onCheckedChange={(checked) => toggleMonitoring.mutate(checked)}
+            disabled={monitoringLoading || toggleMonitoring.isPending}
+          />
+        </div>
+      )}
+
       <div className="space-y-3 rounded-xl bg-card border p-4">
         <div>
           <label className="text-sm font-medium">{t("telegram.botToken")}</label>
@@ -113,6 +166,7 @@ export function TelegramSettings() {
         <p>🚨 Urgent help intervention</p>
         <p>📊 Daily reports & weekly summaries</p>
         <p>📝 Track completion updates</p>
+        <p>👁️ Hourly monitoring (lateness & check-ins)</p>
       </div>
     </div>
   );

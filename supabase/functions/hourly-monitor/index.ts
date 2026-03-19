@@ -49,7 +49,8 @@ Deno.serve(async (req) => {
     // Get all students
     const { data: students } = await supabase
       .from("students")
-      .select("student_id, display_name, parent_id, student_whatsapp");
+      .select("student_id, display_name, parent_id, student_whatsapp, monitoring_enabled")
+      .eq("monitoring_enabled", true);
 
     if (!students || students.length === 0) {
       return new Response(JSON.stringify({ message: "No students" }), {
