@@ -276,6 +276,45 @@ export type Database = {
           },
         ]
       }
+      learning_tools: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          icon: string
+          id: string
+          is_suggested: boolean
+          name: string
+          student_id: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          icon?: string
+          id?: string
+          is_suggested?: boolean
+          name: string
+          student_id: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          icon?: string
+          id?: string
+          is_suggested?: boolean
+          name?: string
+          student_id?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
       messages_log: {
         Row: {
           channel: string
@@ -379,42 +418,60 @@ export type Database = {
       }
       students: {
         Row: {
+          academic_year: string | null
+          address: string | null
           created_at: string
+          date_of_birth: string | null
           display_name: string
+          enrollment_date: string | null
           grade_level: number
           language_pref: string
+          nationality: string | null
           parent_email: string | null
           parent_id: string | null
           parent_name: string | null
           parent_whatsapp: string | null
+          profile_photo_url: string | null
           student_id: string
           student_whatsapp: string | null
           timezone: string
           updated_at: string
         }
         Insert: {
+          academic_year?: string | null
+          address?: string | null
           created_at?: string
+          date_of_birth?: string | null
           display_name: string
+          enrollment_date?: string | null
           grade_level?: number
           language_pref?: string
+          nationality?: string | null
           parent_email?: string | null
           parent_id?: string | null
           parent_name?: string | null
           parent_whatsapp?: string | null
+          profile_photo_url?: string | null
           student_id: string
           student_whatsapp?: string | null
           timezone?: string
           updated_at?: string
         }
         Update: {
+          academic_year?: string | null
+          address?: string | null
           created_at?: string
+          date_of_birth?: string | null
           display_name?: string
+          enrollment_date?: string | null
           grade_level?: number
           language_pref?: string
+          nationality?: string | null
           parent_email?: string | null
           parent_id?: string | null
           parent_name?: string | null
           parent_whatsapp?: string | null
+          profile_photo_url?: string | null
           student_id?: string
           student_whatsapp?: string | null
           timezone?: string

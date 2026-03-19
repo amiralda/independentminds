@@ -18,10 +18,11 @@ import { WelcomeModal } from "@/components/WelcomeModal";
 import { useDailyBlocks, useRefreshBlocks } from "@/hooks/useDailyBlocks";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BlockReminderPopup } from "@/components/BlockReminderPopup";
-import { BookOpen, CheckSquare, Trophy, LogOut, Award, Target, Library } from "lucide-react";
+import { BookOpen, CheckSquare, Trophy, LogOut, Award, Target, Library, Bot } from "lucide-react";
 import logo from "@/assets/logo.svg";
+import { TutorChat } from "@/components/TutorChat";
 
-type StudentTab = "today" | "tracks" | "checkin" | "badges" | "trophies" | "library";
+type StudentTab = "today" | "tracks" | "checkin" | "badges" | "trophies" | "library" | "tutor";
 
 const Index = () => {
   const { t } = useI18n();
@@ -55,6 +56,7 @@ const Index = () => {
     { key: "badges", icon: Trophy, label: t("nav.badges") },
     { key: "trophies", icon: Award, label: t("nav.trophies") },
     { key: "library", icon: Library, label: t("nav.library") },
+    { key: "tutor", icon: Bot, label: "Mr A" },
   ];
 
   return (
@@ -116,6 +118,7 @@ const Index = () => {
             {tab === "badges" && <BadgesPanel />}
             {tab === "trophies" && <TrophyRoom />}
             {tab === "library" && <LibraryPanel />}
+            {tab === "tutor" && <TutorChat />}
           </>
         ) : (
           <div className="py-4">
