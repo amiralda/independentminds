@@ -118,6 +118,7 @@ const Index = () => {
             {tab === "badges" && <BadgesPanel />}
             {tab === "trophies" && <TrophyRoom />}
             {tab === "library" && <LibraryPanel />}
+            {tab === "tutor" && <TutorChat />}
           </>
         ) : (
           <div className="py-4">
