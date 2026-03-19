@@ -156,28 +156,26 @@ export function TodayBlocks({ blocks, onRefresh }: Props) {
 
     // Award points for completing a block
     const sid = profile?.studentId;
-    if (studentId) {
+    if (sid) {
       awardPoints.mutate({
-        student_id: studentId,
+        student_id: sid,
         points: POINT_VALUES.BLOCK_COMPLETED,
         reason: `Completed: ${completingBlock.subject}`,
         source: "block_complete",
         reference_id: completingBlock.id,
       });
-      // Bonus for high self-rating
       if (rating === 5) {
         awardPoints.mutate({
-          student_id: studentId,
+          student_id: sid,
           points: POINT_VALUES.HIGH_RATING,
           reason: "Perfect self-rating ⭐",
           source: "high_rating",
         });
       }
-      // Check if all blocks are now done (perfect day)
       const doneAfter = blocks.filter(b => b.status === "Done").length + 1;
       if (doneAfter === blocks.length && blocks.length > 0) {
         awardPoints.mutate({
-          student_id: studentId,
+          student_id: sid,
           points: POINT_VALUES.PERFECT_DAY,
           reason: "Perfect Day — all blocks done! 🌟",
           source: "perfect_day",
