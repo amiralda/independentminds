@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { useCheckAndAwardBadges } from "@/hooks/useAchievements";
 import { useAuth } from "@/contexts/AuthContext";
 import { StudentRecords } from "@/components/StudentRecords";
+import { useAwardPoints, POINT_VALUES } from "@/hooks/useRewards";
 
 interface Block {
   id: string;
