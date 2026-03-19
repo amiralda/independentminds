@@ -27,7 +27,7 @@ import { StudentProfileCard } from "@/components/StudentProfileCard";
 type StudentTab = "today" | "tracks" | "checkin" | "badges" | "trophies" | "library" | "tutor" | "profile";
 
 const Index = () => {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const navigate = useNavigate();
   const { profile, selectedStudentId } = useAuth();
   const [tab, setTab] = useState<StudentTab>("today");
