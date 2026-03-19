@@ -122,6 +122,7 @@ const Index = () => {
             {tab === "trophies" && <TrophyRoom />}
             {tab === "library" && <LibraryPanel />}
             {tab === "tutor" && <TutorChat />}
+            {tab === "profile" && studentId && <StudentProfileCard studentId={studentId} />}
           </>
         ) : (
           <div className="py-4">
