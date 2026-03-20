@@ -94,12 +94,20 @@ export function TutorChat() {
 
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({ error: "Unknown error" }));
-        if (resp.status === 429) toast.error("Too many requests. Wait a moment.");
-        else if (resp.status === 402) toast.error("AI usage limit reached.");
-        else toast.error(err.error || "Failed to get response");
+        if (resp.status === 429) {
+          const resetAt = err.reset_at || "";
+          const msg = lang === "HT" ? (err.message_ht || "Ou rive limit èdtan ou pou Mr A.") : (err.message || "Hourly limit reached for Mr A.");
+          setRateLimitInfo({ resetAt, message: msg });
+        } else if (resp.status === 402) {
+          toast.error("AI usage limit reached.");
+        } else {
+          toast.error(err.error || "Failed to get response");
+        }
         setIsLoading(false);
         return;
       }
+      // Clear rate limit if request succeeded
+      setRateLimitInfo(null);
       if (!resp.body) throw new Error("No response body");
 
       const reader = resp.body.getReader();
