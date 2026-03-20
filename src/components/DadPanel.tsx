@@ -26,6 +26,8 @@ import { RewardsManagement } from "@/components/RewardsManagement";
 import { TutorChat } from "@/components/TutorChat";
 import { WeeklyProgressReport } from "@/components/WeeklyProgressReport";
 import { ScheduleTemplates as ScheduleTemplatesImport } from "@/components/ScheduleTemplates";
+import { MfaSettings } from "@/components/MfaSettings";
+import { DeleteAccountButton } from "@/components/DeleteAccountButton";
 
 const SUBJECTS = ["English", "ESL", "Math", "Science", "Social Studies", "Public Speaking", "Media Education"];
 
@@ -194,7 +196,18 @@ export function DadPanel({ onAddStudent }: Props) {
 
           {/* Tab Content */}
           {activeTab === "activity" && <ActivityFeed studentId={studentId} />}
-          {activeTab === "profile" && <StudentProfileCard studentId={studentId} />}
+          {activeTab === "profile" && (
+            <div className="space-y-6">
+              <StudentProfileCard studentId={studentId} />
+              <div className="space-y-3">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-1">
+                  {lang === "HT" ? "Paramèt Kont" : "Account Settings"}
+                </p>
+                <MfaSettings />
+                <DeleteAccountButton />
+              </div>
+            </div>
+          )}
           {activeTab === "progress" && <TodayProgressTab studentId={studentId} />}
           {activeTab === "schedule" && <ScheduleBuilderTab studentId={studentId} />}
           {activeTab === "tracks" && <TrackManagement studentId={studentId} />}
