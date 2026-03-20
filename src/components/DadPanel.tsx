@@ -68,7 +68,7 @@ const NAV_ITEMS: NavItem[] = [
   { key: "certificates", icon: Award, label: "Certificates", labelHT: "Sètifika" },
   { key: "records", icon: FileText, label: "Records", labelHT: "Dosye" },
   { key: "rewards", icon: Coins, label: "Rewards", labelHT: "Rekonpans" },
-  { key: "telegram", icon: Bell, label: "Telegram", labelHT: "Telegram" },
+  { key: "telegram", icon: Bell, label: "Notifications", labelHT: "Notifikasyon" },
 ];
 
 export function DadPanel({ onAddStudent }: Props) {
