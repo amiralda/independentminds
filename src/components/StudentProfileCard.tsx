@@ -101,21 +101,22 @@ export function StudentProfileCard({ studentId }: Props) {
   };
 
   const saveProfile = async () => {
-    const { error } = await supabase
-      .from("students")
-      .update({
-        display_name: form.display_name,
-        date_of_birth: form.date_of_birth || null,
-        nationality: form.nationality || null,
-        address: form.address || null,
-        parent_name: form.parent_name || null,
-        parent_email: form.parent_email || null,
-        parent_whatsapp: form.parent_whatsapp || null,
-        grade_level: form.grade_level,
-        academic_year: form.academic_year || null,
-      } as any)
-      .eq("student_id", studentId);
-    if (error) { toast.error("Failed to update profile"); return; }
+    try {
+      const { error } = await supabase
+        .from("students")
+        .update({
+          display_name: form.display_name,
+          date_of_birth: form.date_of_birth || null,
+          nationality: form.nationality || null,
+          address: form.address || null,
+          parent_name: form.parent_name || null,
+          parent_email: form.parent_email || null,
+          parent_whatsapp: form.parent_whatsapp || null,
+          grade_level: form.grade_level,
+          academic_year: form.academic_year || null,
+        })
+        .eq("student_id", studentId);
+      if (error) { console.error("Profile update error:", error); toast.error("Failed to update: " + error.message); return; }
     toast.success("Profile updated!");
     setEditing(false);
     queryClient.invalidateQueries({ queryKey: ["student_profile", studentId] });
