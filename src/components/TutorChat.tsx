@@ -66,6 +66,7 @@ export function TutorChat() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [subjectMode, setSubjectMode] = useState<SubjectMode>("general");
+  const [rateLimitInfo, setRateLimitInfo] = useState<{ resetAt: string; message: string } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
