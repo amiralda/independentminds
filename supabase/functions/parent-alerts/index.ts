@@ -146,6 +146,12 @@ Deno.serve(async (req) => {
       const isGoalMet = doneToday >= target;
       result = await sendTelegram(`${isGoalMet ? "🎯" : "📝"} <b>Activity Update</b>\n\n👤 Student: ${studentName}\n📚 Track: <b>${trackName}</b>\n✅ Completed: <b>${doneToday}/${target} ${unitType}</b>\n\n${isGoalMet ? `🏆 <b>Daily goal reached!</b> 🎉` : `Progress update: ${doneToday} of ${target} ${unitType} completed.`}\n\n— <i>Independent Minds EDU v2.0</i>`);
     }
+    else if (alertType === "reward_suggestion") {
+      const rewardName = escapeHtml(body.reward_name || "a reward");
+      const rewardIcon = body.reward_icon || "🎁";
+      const rewardPoints = Number(body.reward_points) || 0;
+      result = await sendTelegram(`💡 <b>Reward Suggestion from ${studentName}!</b>\n\n${rewardIcon} <b>${rewardName}</b>\n💰 Points: <b>${rewardPoints}</b>\n\n${studentName} would love this as a reward! You can add it in the Rewards Management section of your dashboard.\n\n— <i>Independent Minds EDU v2.0</i>`);
+    }
     else {
       return new Response(JSON.stringify({ error: "Unknown alert type" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
