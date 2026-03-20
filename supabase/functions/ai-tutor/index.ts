@@ -52,15 +52,14 @@ serve(async (req) => {
       global: { headers: { Authorization: authHeader } },
     });
 
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims) {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
       return new Response(JSON.stringify({ error: "Unauthorized: invalid session" }), {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const userId = claimsData.claims.sub;
+    const userId = user.id;
     const { data: profile } = await supabase
       .from("profiles").select("role, display_name, student_id").eq("id", userId).single();
 
@@ -129,9 +128,11 @@ serve(async (req) => {
 
     // Save user message to history
     if (lastMsg?.role === "user") {
-      await serviceClient.from("ai_conversations").insert({
+      console.log("Saving user message for student:", effectiveStudentId, "subject:", subject);
+      const { error: insertErr } = await serviceClient.from("ai_conversations").insert({
         student_id: effectiveStudentId, subject, role: "user", content: lastMsg.content,
       });
+      if (insertErr) console.error("Failed to save user message:", insertErr);
     }
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -223,9 +224,11 @@ Student grade: ${grade}. Subject focus: ${subject}. Language: ${language}.`;
       } finally {
         // Save assistant response to history
         if (fullAssistantContent) {
-          await serviceClient.from("ai_conversations").insert({
+          console.log("Saving assistant message, length:", fullAssistantContent.length);
+          const { error: saveErr } = await serviceClient.from("ai_conversations").insert({
             student_id: effectiveStudentId, subject, role: "assistant", content: fullAssistantContent,
           });
+          if (saveErr) console.error("Failed to save assistant message:", saveErr);
 
           // Clean up old messages (keep max 100 per student per subject)
           const { data: countData } = await serviceClient
