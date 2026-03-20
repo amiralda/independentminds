@@ -101,24 +101,29 @@ export function StudentProfileCard({ studentId }: Props) {
   };
 
   const saveProfile = async () => {
-    const { error } = await supabase
-      .from("students")
-      .update({
-        display_name: form.display_name,
-        date_of_birth: form.date_of_birth || null,
-        nationality: form.nationality || null,
-        address: form.address || null,
-        parent_name: form.parent_name || null,
-        parent_email: form.parent_email || null,
-        parent_whatsapp: form.parent_whatsapp || null,
-        grade_level: form.grade_level,
-        academic_year: form.academic_year || null,
-      } as any)
-      .eq("student_id", studentId);
-    if (error) { toast.error("Failed to update profile"); return; }
-    toast.success("Profile updated!");
-    setEditing(false);
-    queryClient.invalidateQueries({ queryKey: ["student_profile", studentId] });
+    try {
+      const { error } = await supabase
+        .from("students")
+        .update({
+          display_name: form.display_name,
+          date_of_birth: form.date_of_birth || null,
+          nationality: form.nationality || null,
+          address: form.address || null,
+          parent_name: form.parent_name || null,
+          parent_email: form.parent_email || null,
+          parent_whatsapp: form.parent_whatsapp || null,
+          grade_level: form.grade_level,
+          academic_year: form.academic_year || null,
+        })
+        .eq("student_id", studentId);
+      if (error) { console.error("Profile update error:", error); toast.error("Failed to update: " + error.message); return; }
+      toast.success("Profile updated!");
+      setEditing(false);
+      queryClient.invalidateQueries({ queryKey: ["student_profile", studentId] });
+    } catch (err: any) {
+      console.error("Profile save exception:", err);
+      toast.error("Failed to save profile");
+    }
   };
 
   const uploadPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -132,7 +137,7 @@ export function StudentProfileCard({ studentId }: Props) {
     if (uploadError) { toast.error("Upload failed"); setUploading(false); return; }
     const { data: urlData } = supabase.storage.from("student-photos").getPublicUrl(path);
     const photoUrl = `${urlData.publicUrl}?t=${Date.now()}`;
-    await supabase.from("students").update({ profile_photo_url: photoUrl } as any).eq("student_id", studentId);
+    await supabase.from("students").update({ profile_photo_url: photoUrl }).eq("student_id", studentId);
     queryClient.invalidateQueries({ queryKey: ["student_profile", studentId] });
     toast.success("Photo updated!");
     setUploading(false);
