@@ -64,7 +64,7 @@ export function StudentStatsBar({ studentId, todayDone, todayTotal }: Props) {
       : "bg-primary text-primary-foreground";
 
   return (
-    <div className="space-y-3 mb-4">
+    <div className="space-y-3 mb-4" role="status" aria-live="polite" aria-label="Student statistics">
       {/* Progress bar with pace badge */}
       <div className="rounded-2xl bg-primary p-4 shadow-lg">
         <div className="flex items-center justify-between mb-2">
