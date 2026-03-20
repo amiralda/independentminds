@@ -123,13 +123,13 @@ export function useAwardPoints() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (params: { student_id: string; points: number; reason: string; source?: string; reference_id?: string }) => {
-      const { error } = await supabase.from("reward_points").insert({
-        student_id: params.student_id,
-        points: params.points,
-        reason: params.reason,
-        source: params.source || "system",
-        reference_id: params.reference_id || null,
-      } as any);
+      const { error } = await supabase.rpc("award_points", {
+        _student_id: params.student_id,
+        _points: params.points,
+        _reason: params.reason,
+        _source: params.source || "system",
+        _reference_id: params.reference_id || null,
+      });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -143,24 +143,12 @@ export function useRedeemReward() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (params: { student_id: string; reward_id: string; points_spent: number; reward_name: string }) => {
-      // Deduct points
-      const { error: pointsError } = await supabase.from("reward_points").insert({
-        student_id: params.student_id,
-        points: -params.points_spent,
-        reason: `Redeemed: ${params.reward_name}`,
-        source: "redemption",
-        reference_id: params.reward_id,
-      } as any);
-      if (pointsError) throw pointsError;
-
-      // Log redemption
-      const { error: redeemError } = await supabase.from("reward_redemptions").insert({
-        student_id: params.student_id,
-        reward_id: params.reward_id,
-        points_spent: params.points_spent,
-        status: "pending",
-      } as any);
-      if (redeemError) throw redeemError;
+      const { error } = await supabase.rpc("redeem_reward", {
+        _student_id: params.student_id,
+        _reward_id: params.reward_id,
+        _points_spent: params.points_spent,
+      });
+      if (error) throw error;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["points_balance"] });
