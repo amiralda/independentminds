@@ -25,6 +25,7 @@ import { LearningToolsHub } from "@/components/LearningToolsHub";
 import { RewardsManagement } from "@/components/RewardsManagement";
 import { TutorChat } from "@/components/TutorChat";
 import { WeeklyProgressReport } from "@/components/WeeklyProgressReport";
+import { ScheduleTemplates as ScheduleTemplatesImport } from "@/components/ScheduleTemplates";
 
 const SUBJECTS = ["English", "ESL", "Math", "Science", "Social Studies", "Public Speaking", "Media Education"];
 
@@ -440,6 +441,7 @@ function ScheduleBuilderTab({ studentId }: { studentId: string }) {
 
   return (
     <div className="space-y-4">
+      <ScheduleTemplatesImport studentId={studentId} />
       <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) closeDialog(); else setDialogOpen(true); }}>
         <div className="flex gap-2">
           <DialogTrigger asChild>
