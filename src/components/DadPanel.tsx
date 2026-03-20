@@ -9,8 +9,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertTriangle, BarChart3, Calendar, Plus, BookOpen, Trash2, Pencil, Upload, Award, LineChart, Settings, Activity, Bell, FileText, UserCircle, Wrench, Bot, Coins, ClipboardList } from "lucide-react";
+import { AlertTriangle, BarChart3, Calendar, Plus, BookOpen, Trash2, Pencil, Upload, Award, LineChart, Settings, Activity, Bell, FileText, UserCircle, Wrench, Bot, Coins, ClipboardList, Menu, UserPlus, GraduationCap, Check } from "lucide-react";
 import { toast } from "sonner";
 import { useRef } from "react";
 import { SubjectIcon } from "@/components/SubjectIcon";
@@ -18,7 +19,6 @@ import { CertificatesPanel } from "@/components/CertificatesPanel";
 import { ReportsPanel } from "@/components/ReportsPanel";
 import { TrackManagement } from "@/components/TrackManagement";
 import { ActivityFeed } from "@/components/ActivityFeed";
-import { StudentSelector } from "@/components/StudentSelector";
 import { TelegramSettings } from "@/components/TelegramSettings";
 import { StudentRecords } from "@/components/StudentRecords";
 import { StudentProfileCard } from "@/components/StudentProfileCard";
@@ -48,20 +48,81 @@ interface Props {
 }
 
 export function DadPanel({ onAddStudent }: Props) {
-  const { t } = useI18n();
-  const { selectedStudentId } = useAuth();
+  const { t, lang } = useI18n();
+  const { students, selectedStudentId, setSelectedStudentId } = useAuth();
   const studentId = selectedStudentId || "";
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const selectedStudent = students.find(s => s.student_id === selectedStudentId);
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="font-display text-2xl font-bold">{t("nav.dadPanel")}</h2>
-        <StudentSelector onAddStudent={onAddStudent} />
+      {/* Header with hamburger menu */}
+      <div className="flex items-center gap-3">
+        <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
+          <SheetTrigger asChild>
+            <button className="p-2 rounded-lg hover:bg-muted transition-colors">
+              <Menu size={24} className="text-foreground" />
+            </button>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-72 p-0">
+            <SheetHeader className="p-4 pb-2 border-b">
+              <SheetTitle className="font-display text-lg">{t("nav.dadPanel")}</SheetTitle>
+            </SheetHeader>
+            <div className="p-3 space-y-1">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-2 py-1.5">
+                {lang === "HT" ? "Elèv yo" : "Students"}
+              </p>
+              {students.map(s => (
+                <button
+                  key={s.student_id}
+                  onClick={() => { setSelectedStudentId(s.student_id); setMenuOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all ${
+                    selectedStudentId === s.student_id
+                      ? "bg-primary/10 text-primary border border-primary/20"
+                      : "hover:bg-muted text-foreground"
+                  }`}
+                >
+                  <div className="w-9 h-9 rounded-full bg-secondary/20 flex items-center justify-center flex-shrink-0">
+                    <GraduationCap size={18} className={selectedStudentId === s.student_id ? "text-primary" : "text-muted-foreground"} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm truncate">{s.display_name}</p>
+                    <p className="text-[10px] text-muted-foreground">Grade {s.grade_level}</p>
+                  </div>
+                  {selectedStudentId === s.student_id && (
+                    <Check size={16} className="text-primary flex-shrink-0" />
+                  )}
+                </button>
+              ))}
+              <button
+                onClick={() => { onAddStudent(); setMenuOpen(false); }}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left hover:bg-muted transition-colors text-muted-foreground mt-2 border border-dashed"
+              >
+                <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                  <UserPlus size={18} />
+                </div>
+                <span className="text-sm font-medium">{t("action.addStudent")}</span>
+              </button>
+            </div>
+          </SheetContent>
+        </Sheet>
+
+        <div className="flex-1 min-w-0">
+          <h2 className="font-display text-xl font-bold leading-tight">{t("nav.dadPanel")}</h2>
+          {selectedStudent && (
+            <p className="text-sm text-muted-foreground truncate">
+              {selectedStudent.display_name} · Grade {selectedStudent.grade_level}
+            </p>
+          )}
+        </div>
       </div>
 
       {!studentId ? (
         <div className="text-center py-12 text-muted-foreground">
+          <GraduationCap size={48} className="mx-auto mb-3 text-muted-foreground/50" />
           <p className="font-display text-lg">{t("action.selectStudent")}</p>
+          <p className="text-sm mt-1">{lang === "HT" ? "Tape ☰ pou chwazi yon elèv" : "Tap ☰ to choose a student"}</p>
         </div>
       ) : (
         <>
