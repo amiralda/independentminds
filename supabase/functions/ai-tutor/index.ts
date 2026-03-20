@@ -128,9 +128,11 @@ serve(async (req) => {
 
     // Save user message to history
     if (lastMsg?.role === "user") {
-      await serviceClient.from("ai_conversations").insert({
+      console.log("Saving user message for student:", effectiveStudentId, "subject:", subject);
+      const { error: insertErr } = await serviceClient.from("ai_conversations").insert({
         student_id: effectiveStudentId, subject, role: "user", content: lastMsg.content,
       });
+      if (insertErr) console.error("Failed to save user message:", insertErr);
     }
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
