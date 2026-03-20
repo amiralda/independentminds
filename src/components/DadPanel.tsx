@@ -440,6 +440,7 @@ function ScheduleBuilderTab({ studentId }: { studentId: string }) {
 
   return (
     <div className="space-y-4">
+      <ScheduleTemplatesImport studentId={studentId} />
       <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) closeDialog(); else setDialogOpen(true); }}>
         <div className="flex gap-2">
           <DialogTrigger asChild>
