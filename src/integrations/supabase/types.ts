@@ -641,10 +641,24 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      award_points: {
+        Args: {
+          _points: number
+          _reason: string
+          _reference_id?: string
+          _source?: string
+          _student_id: string
+        }
+        Returns: undefined
+      }
       get_my_role: { Args: never; Returns: string }
       get_my_student_id: { Args: never; Returns: string }
       get_points_balance: { Args: { _student_id: string }; Returns: number }
       is_my_student: { Args: { _student_id: string }; Returns: boolean }
+      redeem_reward: {
+        Args: { _points_spent: number; _reward_id: string; _student_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
