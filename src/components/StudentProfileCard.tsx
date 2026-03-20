@@ -117,9 +117,13 @@ export function StudentProfileCard({ studentId }: Props) {
         })
         .eq("student_id", studentId);
       if (error) { console.error("Profile update error:", error); toast.error("Failed to update: " + error.message); return; }
-    toast.success("Profile updated!");
-    setEditing(false);
-    queryClient.invalidateQueries({ queryKey: ["student_profile", studentId] });
+      toast.success("Profile updated!");
+      setEditing(false);
+      queryClient.invalidateQueries({ queryKey: ["student_profile", studentId] });
+    } catch (err: any) {
+      console.error("Profile save exception:", err);
+      toast.error("Failed to save profile");
+    }
   };
 
   const uploadPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
