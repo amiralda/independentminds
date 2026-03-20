@@ -8,10 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertTriangle, BarChart3, Calendar, Plus, BookOpen, Trash2, Pencil, Upload, Award, LineChart, Settings, Activity, Bell, FileText, UserCircle, Wrench, Bot, Coins, ClipboardList, Menu, UserPlus, GraduationCap, Check } from "lucide-react";
+import { AlertTriangle, BarChart3, Calendar, Plus, BookOpen, Trash2, Pencil, Upload, Award, Settings, Activity, Bell, FileText, UserCircle, Wrench, Bot, Coins, ClipboardList, Menu, UserPlus, GraduationCap, Check, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { useRef } from "react";
 import { SubjectIcon } from "@/components/SubjectIcon";
@@ -47,13 +46,40 @@ interface Props {
   onAddStudent: () => void;
 }
 
+type DadTab = "activity" | "profile" | "progress" | "schedule" | "tracks" | "tools" | "tutor" | "curriculum" | "weekly" | "certificates" | "records" | "rewards" | "telegram";
+
+interface NavItem {
+  key: DadTab;
+  icon: React.ElementType;
+  label: string;
+  labelHT: string;
+}
+
+const NAV_ITEMS: NavItem[] = [
+  { key: "activity", icon: Activity, label: "Feed", labelHT: "Aktivite" },
+  { key: "profile", icon: UserCircle, label: "Profile", labelHT: "Pwofil" },
+  { key: "progress", icon: BarChart3, label: "Today", labelHT: "Jodi a" },
+  { key: "schedule", icon: Calendar, label: "Schedule", labelHT: "Orè" },
+  { key: "tracks", icon: Settings, label: "Tracks", labelHT: "Matyè" },
+  { key: "tools", icon: Wrench, label: "Tools", labelHT: "Zouti" },
+  { key: "tutor", icon: Bot, label: "Mr A", labelHT: "Mr A" },
+  { key: "curriculum", icon: BookOpen, label: "Curriculum", labelHT: "Pwogram" },
+  { key: "weekly", icon: ClipboardList, label: "Weekly", labelHT: "Semèn" },
+  { key: "certificates", icon: Award, label: "Certificates", labelHT: "Sètifika" },
+  { key: "records", icon: FileText, label: "Records", labelHT: "Dosye" },
+  { key: "rewards", icon: Coins, label: "Rewards", labelHT: "Rekonpans" },
+  { key: "telegram", icon: Bell, label: "Telegram", labelHT: "Telegram" },
+];
+
 export function DadPanel({ onAddStudent }: Props) {
   const { t, lang } = useI18n();
   const { students, selectedStudentId, setSelectedStudentId } = useAuth();
   const studentId = selectedStudentId || "";
   const [menuOpen, setMenuOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<DadTab>("activity");
 
   const selectedStudent = students.find(s => s.student_id === selectedStudentId);
+  const activeNavItem = NAV_ITEMS.find(n => n.key === activeTab);
 
   return (
     <div className="space-y-4">
@@ -65,45 +91,71 @@ export function DadPanel({ onAddStudent }: Props) {
               <Menu size={24} className="text-foreground" />
             </button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-72 p-0">
+          <SheetContent side="left" className="w-72 p-0 flex flex-col">
             <SheetHeader className="p-4 pb-2 border-b">
               <SheetTitle className="font-display text-lg">{t("nav.dadPanel")}</SheetTitle>
             </SheetHeader>
-            <div className="p-3 space-y-1">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-2 py-1.5">
-                {lang === "HT" ? "Elèv yo" : "Students"}
-              </p>
-              {students.map(s => (
+
+            <div className="flex-1 overflow-y-auto">
+              {/* Students section */}
+              <div className="p-3 space-y-1 border-b">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-2 py-1.5">
+                  {lang === "HT" ? "Elèv yo" : "Students"}
+                </p>
+                {students.map(s => (
+                  <button
+                    key={s.student_id}
+                    onClick={() => { setSelectedStudentId(s.student_id); setMenuOpen(false); }}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all ${
+                      selectedStudentId === s.student_id
+                        ? "bg-primary/10 text-primary border border-primary/20"
+                        : "hover:bg-muted text-foreground"
+                    }`}
+                  >
+                    <div className="w-9 h-9 rounded-full bg-secondary/20 flex items-center justify-center flex-shrink-0">
+                      <GraduationCap size={18} className={selectedStudentId === s.student_id ? "text-primary" : "text-muted-foreground"} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">{s.display_name}</p>
+                      <p className="text-[10px] text-muted-foreground">Grade {s.grade_level}</p>
+                    </div>
+                    {selectedStudentId === s.student_id && (
+                      <Check size={16} className="text-primary flex-shrink-0" />
+                    )}
+                  </button>
+                ))}
                 <button
-                  key={s.student_id}
-                  onClick={() => { setSelectedStudentId(s.student_id); setMenuOpen(false); }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all ${
-                    selectedStudentId === s.student_id
-                      ? "bg-primary/10 text-primary border border-primary/20"
-                      : "hover:bg-muted text-foreground"
-                  }`}
+                  onClick={() => { onAddStudent(); setMenuOpen(false); }}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left hover:bg-muted transition-colors text-muted-foreground mt-2 border border-dashed"
                 >
-                  <div className="w-9 h-9 rounded-full bg-secondary/20 flex items-center justify-center flex-shrink-0">
-                    <GraduationCap size={18} className={selectedStudentId === s.student_id ? "text-primary" : "text-muted-foreground"} />
+                  <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                    <UserPlus size={18} />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate">{s.display_name}</p>
-                    <p className="text-[10px] text-muted-foreground">Grade {s.grade_level}</p>
-                  </div>
-                  {selectedStudentId === s.student_id && (
-                    <Check size={16} className="text-primary flex-shrink-0" />
-                  )}
+                  <span className="text-sm font-medium">{t("action.addStudent")}</span>
                 </button>
-              ))}
-              <button
-                onClick={() => { onAddStudent(); setMenuOpen(false); }}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left hover:bg-muted transition-colors text-muted-foreground mt-2 border border-dashed"
-              >
-                <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                  <UserPlus size={18} />
-                </div>
-                <span className="text-sm font-medium">{t("action.addStudent")}</span>
-              </button>
+              </div>
+
+              {/* Navigation section */}
+              <div className="p-3 space-y-0.5">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-2 py-1.5">
+                  {lang === "HT" ? "Navigasyon" : "Navigation"}
+                </p>
+                {NAV_ITEMS.map(({ key, icon: Icon, label, labelHT }) => (
+                  <button
+                    key={key}
+                    onClick={() => { setActiveTab(key); setMenuOpen(false); }}
+                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-all text-sm ${
+                      activeTab === key
+                        ? "bg-primary/10 text-primary font-medium"
+                        : "hover:bg-muted text-foreground"
+                    }`}
+                  >
+                    <Icon size={16} className={activeTab === key ? "text-primary" : "text-muted-foreground"} />
+                    <span className="flex-1">{lang === "HT" ? labelHT : label}</span>
+                    {activeTab === key && <ChevronRight size={14} className="text-primary" />}
+                  </button>
+                ))}
+              </div>
             </div>
           </SheetContent>
         </Sheet>
@@ -129,93 +181,30 @@ export function DadPanel({ onAddStudent }: Props) {
           {/* Alert Banner */}
           <AlertBanner studentId={studentId} />
 
-          <Tabs defaultValue="activity">
-            <TabsList className="w-full grid grid-cols-4 mb-1">
-              <TabsTrigger value="activity" className="font-display text-[10px] px-1">
-                <Activity size={12} className="mr-0.5" /> {t("nav.feed")}
-              </TabsTrigger>
-              <TabsTrigger value="profile" className="font-display text-[10px] px-1">
-                <UserCircle size={12} className="mr-0.5" /> Profile
-              </TabsTrigger>
-              <TabsTrigger value="progress" className="font-display text-[10px] px-1">
-                <BarChart3 size={12} className="mr-0.5" /> {t("nav.progress")}
-              </TabsTrigger>
-              <TabsTrigger value="schedule" className="font-display text-[10px] px-1">
-                <Calendar size={12} className="mr-0.5" /> {t("nav.schedule")}
-              </TabsTrigger>
-            </TabsList>
-            <TabsList className="w-full grid grid-cols-4 mb-1">
-              <TabsTrigger value="tracks" className="font-display text-[10px] px-1">
-                <Settings size={12} className="mr-0.5" /> {t("nav.tracks")}
-              </TabsTrigger>
-              <TabsTrigger value="tools" className="font-display text-[10px] px-1">
-                <Wrench size={12} className="mr-0.5" /> Tools
-              </TabsTrigger>
-              <TabsTrigger value="tutor" className="font-display text-[10px] px-1">
-                <Bot size={12} className="mr-0.5" /> Mr A
-              </TabsTrigger>
-              <TabsTrigger value="curriculum" className="font-display text-[10px] px-1">
-                <BookOpen size={12} className="mr-0.5" /> {t("nav.curriculum")}
-              </TabsTrigger>
-            </TabsList>
-            <TabsList className="w-full grid grid-cols-5">
-              <TabsTrigger value="weekly" className="font-display text-[10px] px-1">
-                <ClipboardList size={12} className="mr-0.5" /> Weekly
-              </TabsTrigger>
-              <TabsTrigger value="certificates" className="font-display text-[10px] px-1">
-                <Award size={12} className="mr-0.5" /> {t("nav.certificates")}
-              </TabsTrigger>
-              <TabsTrigger value="records" className="font-display text-[10px] px-1">
-                <FileText size={12} className="mr-0.5" /> {t("nav.records")}
-              </TabsTrigger>
-              <TabsTrigger value="rewards" className="font-display text-[10px] px-1">
-                <Coins size={12} className="mr-0.5" /> Rewards
-              </TabsTrigger>
-              <TabsTrigger value="telegram" className="font-display text-[10px] px-1">
-                <Bell size={12} className="mr-0.5" /> {t("nav.telegram")}
-              </TabsTrigger>
-            </TabsList>
+          {/* Active tab indicator */}
+          {activeNavItem && (
+            <div className="flex items-center gap-2 px-1">
+              <activeNavItem.icon size={16} className="text-primary" />
+              <h3 className="font-display font-semibold text-base">
+                {lang === "HT" ? activeNavItem.labelHT : activeNavItem.label}
+              </h3>
+            </div>
+          )}
 
-            <TabsContent value="activity" className="mt-4">
-              <ActivityFeed studentId={studentId} />
-            </TabsContent>
-            <TabsContent value="profile" className="mt-4">
-              <StudentProfileCard studentId={studentId} />
-            </TabsContent>
-            <TabsContent value="progress" className="mt-4">
-              <TodayProgressTab studentId={studentId} />
-            </TabsContent>
-            <TabsContent value="schedule" className="mt-4">
-              <ScheduleBuilderTab studentId={studentId} />
-            </TabsContent>
-            <TabsContent value="tracks" className="mt-4">
-              <TrackManagement studentId={studentId} />
-            </TabsContent>
-            <TabsContent value="tools" className="mt-4">
-              <LearningToolsHub studentId={studentId} />
-            </TabsContent>
-            <TabsContent value="tutor" className="mt-4">
-              <TutorChat />
-            </TabsContent>
-            <TabsContent value="curriculum" className="mt-4">
-              <CurriculumTab />
-            </TabsContent>
-            <TabsContent value="weekly" className="mt-4">
-              <WeeklyProgressReport studentId={studentId} />
-            </TabsContent>
-            <TabsContent value="certificates" className="mt-4">
-              <CertificatesPanel studentId={studentId} />
-            </TabsContent>
-            <TabsContent value="records" className="mt-4">
-              <StudentRecords studentId={studentId} />
-            </TabsContent>
-            <TabsContent value="rewards" className="mt-4">
-              <RewardsManagement studentId={studentId} />
-            </TabsContent>
-            <TabsContent value="telegram" className="mt-4">
-              <TelegramSettings />
-            </TabsContent>
-          </Tabs>
+          {/* Tab Content */}
+          {activeTab === "activity" && <ActivityFeed studentId={studentId} />}
+          {activeTab === "profile" && <StudentProfileCard studentId={studentId} />}
+          {activeTab === "progress" && <TodayProgressTab studentId={studentId} />}
+          {activeTab === "schedule" && <ScheduleBuilderTab studentId={studentId} />}
+          {activeTab === "tracks" && <TrackManagement studentId={studentId} />}
+          {activeTab === "tools" && <LearningToolsHub studentId={studentId} />}
+          {activeTab === "tutor" && <TutorChat />}
+          {activeTab === "curriculum" && <CurriculumTab />}
+          {activeTab === "weekly" && <WeeklyProgressReport studentId={studentId} />}
+          {activeTab === "certificates" && <CertificatesPanel studentId={studentId} />}
+          {activeTab === "records" && <StudentRecords studentId={studentId} />}
+          {activeTab === "rewards" && <RewardsManagement studentId={studentId} />}
+          {activeTab === "telegram" && <TelegramSettings />}
         </>
       )}
 
