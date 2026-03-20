@@ -194,6 +194,83 @@ const translations: Record<string, Record<Lang, string>> = {
   "complete": { EN: "Complete", HT: "Konplè" },
   "thisWeek": { EN: "This Week", HT: "Semèn sa a" },
   "streak": { EN: "Streak", HT: "Seri" },
+
+  // Signup
+  "signup.adultConfirmation": { EN: "I confirm I am 18 years of age or older and am the parent or legal guardian of the students I will manage on this platform.", HT: "Mwen konfime ke mwen gen 18 an oswa plis epi mwen se paran oswa gadyen legal elèv yo ke mwen pral jere sou platfòm sa a." },
+
+  // Privacy & Terms
+  "privacy.title": { EN: "Privacy Policy", HT: "Politik Konfidansyalite" },
+  "terms.title": { EN: "Terms of Service", HT: "Kondisyon Sèvis" },
+
+  // Profile
+  "profile.deleteAccount": { EN: "Delete My Account", HT: "Efase Kont Mwen" },
+  "profile.deleteAccountConfirm": { EN: "Type DELETE to confirm", HT: "Tape DELETE pou konfime" },
+
+  // Offline
+  "offline.indicator": { EN: "You are offline", HT: "Ou pa gen entènèt" },
+  "offline.savedLocally": { EN: "Saved locally", HT: "Sove lokalman" },
+  "offline.willSync": { EN: "Will sync when reconnected", HT: "Ap senkronize lè ou rekonekte" },
+  "offline.actionsQueued": { EN: "actions queued", HT: "aksyon nan keu" },
+
+  // Onboarding
+  "onboarding.stepOf": { EN: "Step {current} of {total}", HT: "Etap {current} nan {total}" },
+  "onboarding.step.welcome": { EN: "Welcome", HT: "Byenvini" },
+  "onboarding.step.verify": { EN: "Verify Email", HT: "Verifye Imèl" },
+  "onboarding.step.addStudent": { EN: "Add Student", HT: "Ajoute Elèv" },
+  "onboarding.step.configureTracks": { EN: "Set Up Subjects", HT: "Konfigire Matyè" },
+  "onboarding.step.notifications": { EN: "Notifications", HT: "Notifikasyon" },
+  "onboarding.skipForNow": { EN: "Set up later", HT: "Konfigire pita" },
+  "dashboard.notificationIncomplete": { EN: "Notifications not set up yet", HT: "Notifikasyon pa konfigire ankò" },
+  "dashboard.setupNow": { EN: "Set up now", HT: "Konfigire kounye a" },
+
+  // Rewards suggestions
+  "rewards.suggestions.movieNight": { EN: "Movie Night", HT: "Sware Fim" },
+  "rewards.suggestions.screenTime": { EN: "Extra Screen Time", HT: "Tan Ekran Anplis" },
+  "rewards.suggestions.iceCream": { EN: "Ice Cream Trip", HT: "Ale Pran Krèm" },
+  "rewards.suggestions.stayUpLate": { EN: "Stay Up Late", HT: "Rete Leve Ta" },
+  "rewards.suggestions.chooseDinner": { EN: "Choose Dinner", HT: "Chwazi Dine" },
+  "rewards.suggestions.extraGameTime": { EN: "Extra Game Time", HT: "Tan Jwèt Anplis" },
+  "rewards.suggestions.dayTrip": { EN: "Day Trip", HT: "Pwomnad Jounen" },
+  "rewards.suggestions.newBook": { EN: "New Book", HT: "Nouvo Liv" },
+  "rewards.suggestions.sent": { EN: "Suggestion sent to parent!", HT: "Sijesyon voye bay paran!" },
+  "rewards.empty.inspirationTitle": { EN: "Reward Ideas 💡", HT: "Ide Rekonpans 💡" },
+
+  // Accessibility
+  "a11y.skipToContent": { EN: "Skip to main content", HT: "Ale nan kontni prensipal" },
+  "a11y.statsBar": { EN: "Student statistics", HT: "Estatistik elèv" },
+  "a11y.studentPhoto": { EN: "Photo of", HT: "Foto de" },
+  "a11y.defaultAvatar": { EN: "Default student avatar", HT: "Avatar elèv pa defo" },
+
+  // Notification settings
+  "settings.notifications.title": { EN: "Notification Settings", HT: "Paramèt Notifikasyon" },
+  "settings.whatsapp.enable": { EN: "Enable WhatsApp", HT: "Aktive WhatsApp" },
+  "settings.whatsapp.number": { EN: "WhatsApp Number", HT: "Nimewo WhatsApp" },
+  "settings.whatsapp.invalidFormat": { EN: "Invalid WhatsApp number format", HT: "Fòma nimewo WhatsApp envalid" },
+  "settings.channel.telegram": { EN: "Telegram", HT: "Telegram" },
+  "settings.channel.whatsapp": { EN: "WhatsApp", HT: "WhatsApp" },
+  "settings.channel.both": { EN: "Both", HT: "Tou de" },
+
+  // AI
+  "ai.rateLimitExceeded": { EN: "Hourly limit reached for Mr A", HT: "Limit èdtan rive pou Mr A" },
+  "ai.rateLimitReset": { EN: "Resets at", HT: "Reyinisyalize a" },
+  "ai.clearHistory": { EN: "Clear History", HT: "Efase Istwa" },
+  "ai.clearHistoryConfirm": { EN: "Clear all conversation history?", HT: "Efase tout istwa konvèsasyon?" },
+
+  // MFA
+  "mfa.enable": { EN: "Enable Two-Factor Authentication", HT: "Aktive Otantifikasyon De Faktè" },
+  "mfa.description": { EN: "Add an extra layer of security to your account", HT: "Ajoute yon kouch sekirite anplis nan kont ou" },
+  "mfa.scanQR": { EN: "Scan this QR code with your authenticator app", HT: "Eskanye kòd QR sa a ak aplikasyon otantifikatè ou" },
+  "mfa.enterCode": { EN: "Enter the 6-digit code", HT: "Antre kòd 6 chif la" },
+  "mfa.enabled": { EN: "Two-factor authentication is enabled", HT: "Otantifikasyon de faktè aktive" },
+  "mfa.protected": { EN: "Account Protected", HT: "Kont Pwoteje" },
+  "mfa.disable": { EN: "Disable MFA", HT: "Dezaktive MFA" },
+
+  // Block actions
+  "block.start": { EN: "Start Block", HT: "Kòmanse Blòk" },
+  "block.markDone": { EN: "Mark Done", HT: "Make Fini" },
+
+  // Nav
+  "nav.openMenu": { EN: "Open menu", HT: "Louvri meni" },
 };
 
 interface I18nContextType {
