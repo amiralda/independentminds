@@ -177,7 +177,93 @@ export function WeeklyProgressReport({ studentId }: { studentId: string }) {
     }
   };
 
-  if (blocksLoading) {
+  const handleDownloadPdf = () => {
+    const doc = new jsPDF();
+    const navy = [26, 54, 93] as const;
+    const gold = [212, 160, 23] as const;
+    const pageW = doc.internal.pageSize.getWidth();
+
+    // Header
+    doc.setFillColor(...navy);
+    doc.rect(0, 0, pageW, 32, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(18);
+    doc.setFont("helvetica", "bold");
+    doc.text("Independent Minds EDU", 14, 16);
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "normal");
+    doc.text(lang === "HT" ? "Rapò Semèn" : "Weekly Progress Report", 14, 24);
+
+    // Gold accent line
+    doc.setDrawColor(...gold);
+    doc.setLineWidth(1.5);
+    doc.line(0, 32, pageW, 32);
+
+    let y = 44;
+    doc.setTextColor(26, 54, 93);
+    doc.setFontSize(13);
+    doc.setFont("helvetica", "bold");
+    doc.text(`${lang === "HT" ? "Semèn" : "Week"}: ${week.label}`, 14, y);
+    y += 10;
+
+    // Summary stats
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    const summaryItems = [
+      [`${lang === "HT" ? "Konplete" : "Completion Rate"}`, `${stats.rate}% (${stats.done}/${stats.total})`],
+      [`${lang === "HT" ? "Konsekitif" : "Streak"}`, `${stats.streak} ${lang === "HT" ? "jou" : "days"}`],
+      [`${lang === "HT" ? "Pwen" : "Points Earned"}`, `${pointsEarned}`],
+      [`${lang === "HT" ? "Badj" : "Badges"}`, `${badges.length}`],
+    ];
+    if (stats.avgScore !== null) summaryItems.push([`${lang === "HT" ? "Mwayèn Nòt" : "Avg Score"}`, `${stats.avgScore}%`]);
+
+    summaryItems.forEach(([label, value]) => {
+      doc.setFont("helvetica", "bold");
+      doc.text(label + ":", 14, y);
+      doc.setFont("helvetica", "normal");
+      doc.text(value, 70, y);
+      y += 7;
+    });
+    y += 5;
+
+    // Subject breakdown
+    if (stats.subjectData.length > 0) {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(12);
+      doc.text(lang === "HT" ? "Pa Matyè" : "Subject Breakdown", 14, y);
+      y += 7;
+      doc.setFontSize(10);
+      stats.subjectData.forEach(s => {
+        doc.setFont("helvetica", "normal");
+        doc.text(`${s.name}: ${s.value} ${lang === "HT" ? "blòk" : "blocks"}`, 20, y);
+        y += 6;
+      });
+      y += 5;
+    }
+
+    // Daily breakdown
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.text(lang === "HT" ? "Chak Jou" : "Daily Breakdown", 14, y);
+    y += 7;
+    doc.setFontSize(10);
+    stats.dailyData.forEach(d => {
+      doc.setFont("helvetica", "normal");
+      doc.text(`${d.day}: ${d.done} ${lang === "HT" ? "fini" : "done"}, ${d.missed} ${lang === "HT" ? "manke" : "remaining"}`, 20, y);
+      y += 6;
+    });
+
+    // Footer
+    const footerY = doc.internal.pageSize.getHeight() - 10;
+    doc.setFontSize(8);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Generated ${new Date().toLocaleDateString()} — Independent Minds EDU`, 14, footerY);
+
+    const studentName = studentId.replace(/[^a-zA-Z0-9]/g, "_");
+    const weekLabel = week.label.replace(/[^a-zA-Z0-9]/g, "_");
+    doc.save(`IME_Report_${studentName}_${weekLabel}.pdf`);
+    toast.success(lang === "HT" ? "PDF telechaje!" : "PDF downloaded!");
+  };
     return (
       <div className="space-y-4">
         <Skeleton className="h-16 w-full rounded-xl" />
