@@ -20,13 +20,13 @@ export function useSubmitCheckIn(onSuccess?: () => void) {
       const { error } = await supabase.from("check_ins").insert(data);
       if (error) throw error;
 
-      // Award points for check-in
-      await supabase.from("reward_points").insert({
-        student_id: data.student_id,
-        points: POINT_VALUES.CHECK_IN,
-        reason: `Check-in completed (${data.mood})`,
-        source: "check_in",
-      } as any);
+      // Award points for check-in via secure RPC
+      await supabase.rpc("award_points", {
+        _student_id: data.student_id,
+        _points: POINT_VALUES.CHECK_IN,
+        _reason: `Check-in completed (${data.mood})`,
+        _source: "check_in",
+      });
 
       // If help is needed, trigger urgent parent alert
       if (data.need_help) {
