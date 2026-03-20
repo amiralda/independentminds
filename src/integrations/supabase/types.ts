@@ -109,6 +109,33 @@ export type Database = {
           },
         ]
       }
+      ai_conversations: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          role: string
+          student_id: string
+          subject: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          role: string
+          student_id: string
+          subject?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          role?: string
+          student_id?: string
+          subject?: string
+        }
+        Relationships: []
+      }
       check_ins: {
         Row: {
           blocks_done: number
@@ -276,6 +303,30 @@ export type Database = {
           },
         ]
       }
+      flagged_inputs: {
+        Row: {
+          flag_reason: string | null
+          flagged_at: string | null
+          id: string
+          input_length: number | null
+          student_id: string | null
+        }
+        Insert: {
+          flag_reason?: string | null
+          flagged_at?: string | null
+          id?: string
+          input_length?: number | null
+          student_id?: string | null
+        }
+        Update: {
+          flag_reason?: string | null
+          flagged_at?: string | null
+          id?: string
+          input_length?: number | null
+          student_id?: string | null
+        }
+        Relationships: []
+      }
       learning_tools: {
         Row: {
           category: string
@@ -355,54 +406,81 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          notification_channel: string
           telegram_bot_token: string | null
           telegram_chat_id: string | null
           updated_at: string
           user_id: string
+          whatsapp_enabled: boolean
+          whatsapp_number: string | null
         }
         Insert: {
           created_at?: string
           id?: string
+          notification_channel?: string
           telegram_bot_token?: string | null
           telegram_chat_id?: string | null
           updated_at?: string
           user_id: string
+          whatsapp_enabled?: boolean
+          whatsapp_number?: string | null
         }
         Update: {
           created_at?: string
           id?: string
+          notification_channel?: string
           telegram_bot_token?: string | null
           telegram_chat_id?: string | null
           updated_at?: string
           user_id?: string
+          whatsapp_enabled?: boolean
+          whatsapp_number?: string | null
         }
         Relationships: []
       }
       profiles: {
         Row: {
+          adult_confirmed: boolean
+          adult_confirmed_at: string | null
           created_at: string
+          deletion_warning_sent_at: string | null
           display_name: string
           id: string
           language_pref: string
+          last_active_at: string | null
           onboarding_complete: boolean
+          onboarding_step: number
+          reengagement_sent_at: string | null
           role: string
           student_id: string | null
         }
         Insert: {
+          adult_confirmed?: boolean
+          adult_confirmed_at?: string | null
           created_at?: string
+          deletion_warning_sent_at?: string | null
           display_name: string
           id: string
           language_pref?: string
+          last_active_at?: string | null
           onboarding_complete?: boolean
+          onboarding_step?: number
+          reengagement_sent_at?: string | null
           role?: string
           student_id?: string | null
         }
         Update: {
+          adult_confirmed?: boolean
+          adult_confirmed_at?: string | null
           created_at?: string
+          deletion_warning_sent_at?: string | null
           display_name?: string
           id?: string
           language_pref?: string
+          last_active_at?: string | null
           onboarding_complete?: boolean
+          onboarding_step?: number
+          reengagement_sent_at?: string | null
           role?: string
           student_id?: string | null
         }
@@ -415,6 +493,54 @@ export type Database = {
             referencedColumns: ["student_id"]
           },
         ]
+      }
+      push_subscriptions: {
+        Row: {
+          created_at: string
+          id: string
+          student_id: string
+          subscription: Json
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          student_id: string
+          subscription: Json
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          student_id?: string
+          subscription?: Json
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
+      rate_limits: {
+        Row: {
+          function_name: string
+          id: string
+          request_count: number
+          user_id: string
+          window_start: string
+        }
+        Insert: {
+          function_name: string
+          id?: string
+          request_count?: number
+          user_id: string
+          window_start?: string
+        }
+        Update: {
+          function_name?: string
+          id?: string
+          request_count?: number
+          user_id?: string
+          window_start?: string
+        }
+        Relationships: []
       }
       reward_points: {
         Row: {
@@ -516,6 +642,39 @@ export type Database = {
           name?: string
           point_cost?: number
           student_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      schedule_templates: {
+        Row: {
+          blocks: Json
+          created_at: string
+          id: string
+          is_builtin: boolean
+          name: string
+          parent_id: string
+          student_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          blocks: Json
+          created_at?: string
+          id?: string
+          is_builtin?: boolean
+          name: string
+          parent_id: string
+          student_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          blocks?: Json
+          created_at?: string
+          id?: string
+          is_builtin?: boolean
+          name?: string
+          parent_id?: string
+          student_id?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -651,12 +810,26 @@ export type Database = {
         }
         Returns: undefined
       }
+      clear_ai_history: {
+        Args: { p_student_id: string; p_subject: string }
+        Returns: undefined
+      }
+      delete_my_account: { Args: never; Returns: undefined }
       get_my_role: { Args: never; Returns: string }
       get_my_student_id: { Args: never; Returns: string }
       get_points_balance: { Args: { _student_id: string }; Returns: number }
       get_student_id_by_parent: {
         Args: { _parent_id: string; _student_id: string }
         Returns: boolean
+      }
+      increment_rate_limit: {
+        Args: {
+          p_function_name: string
+          p_limit: number
+          p_user_id: string
+          p_window_start: string
+        }
+        Returns: Json
       }
       is_my_student: { Args: { _student_id: string }; Returns: boolean }
       redeem_reward: {
