@@ -137,7 +137,7 @@ export function StudentProfileCard({ studentId }: Props) {
     if (uploadError) { toast.error("Upload failed"); setUploading(false); return; }
     const { data: urlData } = supabase.storage.from("student-photos").getPublicUrl(path);
     const photoUrl = `${urlData.publicUrl}?t=${Date.now()}`;
-    await supabase.from("students").update({ profile_photo_url: photoUrl } as any).eq("student_id", studentId);
+    await supabase.from("students").update({ profile_photo_url: photoUrl }).eq("student_id", studentId);
     queryClient.invalidateQueries({ queryKey: ["student_profile", studentId] });
     toast.success("Photo updated!");
     setUploading(false);
