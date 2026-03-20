@@ -264,6 +264,8 @@ export function WeeklyProgressReport({ studentId }: { studentId: string }) {
     doc.save(`IME_Report_${studentName}_${weekLabel}.pdf`);
     toast.success(lang === "HT" ? "PDF telechaje!" : "PDF downloaded!");
   };
+
+  if (blocksLoading) {
     return (
       <div className="space-y-4">
         <Skeleton className="h-16 w-full rounded-xl" />
