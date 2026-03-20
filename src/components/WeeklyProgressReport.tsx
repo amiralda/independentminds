@@ -285,13 +285,24 @@ export function WeeklyProgressReport({ studentId }: { studentId: string }) {
         </div>
       )}
 
-      {/* Send Button */}
-      <Button onClick={handleSend} disabled={sending} className="w-full font-display">
-        <Send size={16} className="mr-2" />
-        {sending
-          ? (lang === "HT" ? "Ap voye..." : "Sending...")
-          : (lang === "HT" ? "Voye Rapò nan Telegram" : "Send Report via Telegram")}
-      </Button>
+      {/* Action Buttons */}
+      <div className="flex gap-2">
+        <Button onClick={handleSend} disabled={sending} className="flex-1 font-display">
+          <Send size={16} className="mr-2" />
+          {sending
+            ? (lang === "HT" ? "Ap voye..." : "Sending...")
+            : (lang === "HT" ? "Voye Rapò" : "Send Report")}
+        </Button>
+        <Button
+          variant="outline"
+          className="font-display"
+          onClick={() => handleDownloadPdf()}
+          aria-label={lang === "HT" ? "Telechaje Rapò PDF" : "Download Report PDF"}
+        >
+          <Download size={16} className="mr-2" />
+          PDF
+        </Button>
+      </div>
     </div>
   );
 }
