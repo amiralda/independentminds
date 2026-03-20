@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import { useI18n } from "@/lib/i18n";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Bot, User, Sparkles, Loader2, BookOpen, Calculator, FlaskConical, Globe2, Languages } from "lucide-react";
+import { Send, Bot, User, Sparkles, Loader2, BookOpen, Calculator, FlaskConical, Globe2, Languages, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 type Msg = { role: "user" | "assistant"; content: string };
 type SubjectMode = "general" | "math" | "science" | "english" | "social" | "esl";
@@ -61,7 +63,10 @@ const quickPromptsByMode: Record<SubjectMode, { en: string; ht: string; emoji: s
 };
 
 export function TutorChat() {
-  const { lang } = useI18n();
+  const { lang, t } = useI18n();
+  const { profile } = useAuth();
+  const queryClient = useQueryClient();
+  const studentId = profile?.studentId || "";
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -69,9 +74,43 @@ export function TutorChat() {
   const [rateLimitInfo, setRateLimitInfo] = useState<{ resetAt: string; message: string } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // Load conversation history from database
+  const { data: savedHistory } = useQuery({
+    queryKey: ["ai_history", studentId, subjectMode],
+    queryFn: async () => {
+      if (!studentId) return [];
+      const { data } = await supabase
+        .from("ai_conversations")
+        .select("role, content")
+        .eq("student_id", studentId)
+        .eq("subject", subjectMode)
+        .order("created_at", { ascending: true })
+        .limit(20);
+      return (data || []) as Msg[];
+    },
+    enabled: !!studentId,
+  });
+
+  // Sync saved history into local messages when subject changes
+  useEffect(() => {
+    if (savedHistory && savedHistory.length > 0) {
+      setMessages(savedHistory);
+    } else {
+      setMessages([]);
+    }
+  }, [savedHistory]);
+
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
+
+  const handleClearHistory = async () => {
+    if (!confirm(t("ai.clearHistoryConfirm"))) return;
+    await supabase.rpc("clear_ai_history", { p_student_id: studentId, p_subject: subjectMode });
+    setMessages([]);
+    queryClient.invalidateQueries({ queryKey: ["ai_history", studentId, subjectMode] });
+    toast.success(lang === "HT" ? "Istwa efase" : "History cleared");
+  };
 
   const sendMessage = async (text: string) => {
     if (!text.trim() || isLoading) return;
@@ -89,7 +128,7 @@ export function TutorChat() {
       const resp = await fetch(TUTOR_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
-        body: JSON.stringify({ messages: allMessages, subjectMode }),
+        body: JSON.stringify({ messages: allMessages, subjectMode, studentId }),
       });
 
       if (!resp.ok) {
@@ -106,7 +145,6 @@ export function TutorChat() {
         setIsLoading(false);
         return;
       }
-      // Clear rate limit if request succeeded
       setRateLimitInfo(null);
       if (!resp.body) throw new Error("No response body");
 
@@ -161,7 +199,6 @@ export function TutorChat() {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(input); }
   };
 
-  const currentMode = SUBJECT_MODES.find(m => m.key === subjectMode)!;
   const quickPrompts = quickPromptsByMode[subjectMode];
 
   return (
@@ -171,13 +208,19 @@ export function TutorChat() {
         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
           <Bot size={22} className="text-primary-foreground" />
         </div>
-        <div>
+        <div className="flex-1">
           <h2 className="font-display font-bold text-lg leading-tight">Mr A</h2>
           <p className="text-xs text-muted-foreground">
             {lang === "HT" ? "Pwofesè AI ou" : "Your AI Study Buddy"}
           </p>
         </div>
-        <Sparkles size={16} className="text-warning ml-auto" />
+        {messages.length > 0 && (
+          <Button size="sm" variant="ghost" onClick={handleClearHistory} className="text-xs" aria-label={t("ai.clearHistory")}>
+            <Trash2 size={14} className="mr-1" />
+            {t("ai.clearHistory")}
+          </Button>
+        )}
+        <Sparkles size={16} className="text-warning" />
       </div>
 
       {/* Subject Mode Selector */}
@@ -207,8 +250,7 @@ export function TutorChat() {
             <p className="font-medium text-warning">{rateLimitInfo.message}</p>
             {rateLimitInfo.resetAt && (
               <p className="text-xs text-muted-foreground mt-1">
-                {lang === "HT" ? "Reyinisyalize a:" : "Resets at:"}{" "}
-                {new Date(rateLimitInfo.resetAt).toLocaleTimeString()}
+                {t("ai.rateLimitReset")}: {new Date(rateLimitInfo.resetAt).toLocaleTimeString()}
               </p>
             )}
           </div>
@@ -293,7 +335,7 @@ export function TutorChat() {
             className="resize-none min-h-[44px] max-h-24"
             disabled={isLoading}
           />
-          <Button size="icon" onClick={() => sendMessage(input)} disabled={!input.trim() || isLoading} className="h-11 w-11 flex-shrink-0">
+          <Button size="icon" onClick={() => sendMessage(input)} disabled={!input.trim() || isLoading} className="h-11 w-11 flex-shrink-0" aria-label="Send">
             <Send size={18} />
           </Button>
         </div>
