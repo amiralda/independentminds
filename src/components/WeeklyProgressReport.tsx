@@ -7,8 +7,9 @@ import {
 } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Send, TrendingUp, Award, Coins, Smile, Target, ChevronLeft, ChevronRight } from "lucide-react";
+import { Send, TrendingUp, Award, Coins, Smile, Target, ChevronLeft, ChevronRight, Download } from "lucide-react";
 import { toast } from "sonner";
+import jsPDF from "jspdf";
 import { useI18n } from "@/lib/i18n";
 
 const PIE_COLORS = [
