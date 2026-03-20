@@ -49,12 +49,12 @@ export async function checkAndAwardStreak(studentId: string) {
 
   // Award 3-day streak
   if (streak >= 3 && !awarded.has("streak_3_day")) {
-    await supabase.from("reward_points").insert({
-      student_id: studentId,
-      points: POINT_VALUES.STREAK_3_DAYS,
-      reason: "🔥 3-Day Streak Bonus!",
-      source: "streak_3_day",
-    } as any);
+    await supabase.rpc("award_points", {
+      _student_id: studentId,
+      _points: POINT_VALUES.STREAK_3_DAYS,
+      _reason: "🔥 3-Day Streak Bonus!",
+      _source: "streak_3_day",
+    });
     toast.success(`🔥 3-Day Streak! +${POINT_VALUES.STREAK_3_DAYS} points`);
   }
 
