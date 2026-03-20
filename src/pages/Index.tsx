@@ -96,7 +96,7 @@ const Index = () => {
       </header>
 
       {/* Content */}
-      <main className="container pb-24">
+      <main id="main-content" className="container pb-24">
         {role === "student" ? (
           <>
             <BlockReminderPopup studentId={studentId} />
