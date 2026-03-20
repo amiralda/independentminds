@@ -15,3 +15,7 @@ project_id = "wkvattbvybvgaeobtidl"
     verify_jwt = false
   [functions.weekly-badge]
     verify_jwt = false
+  [functions.weekly-report]
+    verify_jwt = false
+  [functions.hourly-monitor]
+    verify_jwt = false

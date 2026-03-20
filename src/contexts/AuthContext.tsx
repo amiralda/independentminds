@@ -59,6 +59,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSelectedStudentId(null);
         setLoading(false);
       }
+      // Update last_active_at on sign-in
+      if (_event === "SIGNED_IN" && session?.user) {
+        supabase
+          .from("profiles")
+          .update({ last_active_at: new Date().toISOString() } as any)
+          .eq("id", session.user.id)
+          .then(() => {});
+      }
     });
 
     supabase.auth.getSession().then(({ data: { session } }) => {

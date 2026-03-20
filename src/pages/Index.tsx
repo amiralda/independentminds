@@ -63,6 +63,13 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Skip to content link */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:bg-primary focus:text-primary-foreground focus:px-4 focus:py-2 focus:rounded-lg focus:shadow-lg"
+      >
+        {lang === "HT" ? "Ale nan kontni prensipal" : "Skip to main content"}
+      </a>
       {/* Header */}
       <header className="sticky top-0 z-50 bg-primary shadow-md">
         <div className="container py-3 flex items-center justify-between">
@@ -89,7 +96,7 @@ const Index = () => {
       </header>
 
       {/* Content */}
-      <main className="container pb-24">
+      <main id="main-content" className="container pb-24">
         {role === "student" ? (
           <>
             <BlockReminderPopup studentId={studentId} />

@@ -66,6 +66,7 @@ export function TutorChat() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [subjectMode, setSubjectMode] = useState<SubjectMode>("general");
+  const [rateLimitInfo, setRateLimitInfo] = useState<{ resetAt: string; message: string } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -93,12 +94,20 @@ export function TutorChat() {
 
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({ error: "Unknown error" }));
-        if (resp.status === 429) toast.error("Too many requests. Wait a moment.");
-        else if (resp.status === 402) toast.error("AI usage limit reached.");
-        else toast.error(err.error || "Failed to get response");
+        if (resp.status === 429) {
+          const resetAt = err.reset_at || "";
+          const msg = lang === "HT" ? (err.message_ht || "Ou rive limit èdtan ou pou Mr A.") : (err.message || "Hourly limit reached for Mr A.");
+          setRateLimitInfo({ resetAt, message: msg });
+        } else if (resp.status === 402) {
+          toast.error("AI usage limit reached.");
+        } else {
+          toast.error(err.error || "Failed to get response");
+        }
         setIsLoading(false);
         return;
       }
+      // Clear rate limit if request succeeded
+      setRateLimitInfo(null);
       if (!resp.body) throw new Error("No response body");
 
       const reader = resp.body.getReader();
@@ -193,6 +202,17 @@ export function TutorChat() {
 
       {/* Messages */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-4 pr-1 pb-2">
+        {rateLimitInfo && (
+          <div className="rounded-xl bg-warning/10 border border-warning/30 px-4 py-3 text-sm">
+            <p className="font-medium text-warning">{rateLimitInfo.message}</p>
+            {rateLimitInfo.resetAt && (
+              <p className="text-xs text-muted-foreground mt-1">
+                {lang === "HT" ? "Reyinisyalize a:" : "Resets at:"}{" "}
+                {new Date(rateLimitInfo.resetAt).toLocaleTimeString()}
+              </p>
+            )}
+          </div>
+        )}
         {messages.length === 0 && (
           <div className="text-center py-6 space-y-4">
             <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
