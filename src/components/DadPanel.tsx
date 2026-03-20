@@ -25,6 +25,7 @@ import { LearningToolsHub } from "@/components/LearningToolsHub";
 import { RewardsManagement } from "@/components/RewardsManagement";
 import { TutorChat } from "@/components/TutorChat";
 import { WeeklyProgressReport } from "@/components/WeeklyProgressReport";
+import { ScheduleTemplates as ScheduleTemplatesImport } from "@/components/ScheduleTemplates";
 
 const SUBJECTS = ["English", "ESL", "Math", "Science", "Social Studies", "Public Speaking", "Media Education"];
 
