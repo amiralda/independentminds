@@ -202,6 +202,17 @@ export function TutorChat() {
 
       {/* Messages */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-4 pr-1 pb-2">
+        {rateLimitInfo && (
+          <div className="rounded-xl bg-warning/10 border border-warning/30 px-4 py-3 text-sm">
+            <p className="font-medium text-warning">{rateLimitInfo.message}</p>
+            {rateLimitInfo.resetAt && (
+              <p className="text-xs text-muted-foreground mt-1">
+                {lang === "HT" ? "Reyinisyalize a:" : "Resets at:"}{" "}
+                {new Date(rateLimitInfo.resetAt).toLocaleTimeString()}
+              </p>
+            )}
+          </div>
+        )}
         {messages.length === 0 && (
           <div className="text-center py-6 space-y-4">
             <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
