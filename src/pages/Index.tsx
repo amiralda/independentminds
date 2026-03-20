@@ -88,6 +88,7 @@ const Index = () => {
               onClick={async () => { await supabase.auth.signOut(); navigate("/login"); }}
               className="text-primary-foreground/70 hover:text-primary-foreground p-1"
               title={t("action.signOut")}
+              aria-label={t("action.signOut")}
             >
               <LogOut size={18} />
             </button>

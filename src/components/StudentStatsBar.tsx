@@ -64,7 +64,7 @@ export function StudentStatsBar({ studentId, todayDone, todayTotal }: Props) {
       : "bg-primary text-primary-foreground";
 
   return (
-    <div className="space-y-3 mb-4">
+    <div className="space-y-3 mb-4" role="status" aria-live="polite" aria-label="Student statistics">
       {/* Progress bar with pace badge */}
       <div className="rounded-2xl bg-primary p-4 shadow-lg">
         <div className="flex items-center justify-between mb-2">
@@ -78,7 +78,14 @@ export function StudentStatsBar({ studentId, todayDone, todayTotal }: Props) {
             {paceLabel}
           </span>
         </div>
-        <div className="relative h-3 rounded-full bg-primary-foreground/20 overflow-hidden">
+        <div
+          className="relative h-3 rounded-full bg-primary-foreground/20 overflow-hidden"
+          role="progressbar"
+          aria-valuenow={progress}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={`Today's progress: ${progress}%`}
+        >
           <div
             className={`h-full rounded-full transition-all duration-700 ease-out ${
               isComplete
