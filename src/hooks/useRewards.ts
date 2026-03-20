@@ -123,13 +123,13 @@ export function useAwardPoints() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (params: { student_id: string; points: number; reason: string; source?: string; reference_id?: string }) => {
-      const { error } = await supabase.from("reward_points").insert({
-        student_id: params.student_id,
-        points: params.points,
-        reason: params.reason,
-        source: params.source || "system",
-        reference_id: params.reference_id || null,
-      } as any);
+      const { error } = await supabase.rpc("award_points", {
+        _student_id: params.student_id,
+        _points: params.points,
+        _reason: params.reason,
+        _source: params.source || "system",
+        _reference_id: params.reference_id || null,
+      });
       if (error) throw error;
     },
     onSuccess: () => {
