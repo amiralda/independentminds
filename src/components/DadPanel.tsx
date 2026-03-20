@@ -26,6 +26,8 @@ import { RewardsManagement } from "@/components/RewardsManagement";
 import { TutorChat } from "@/components/TutorChat";
 import { WeeklyProgressReport } from "@/components/WeeklyProgressReport";
 import { ScheduleTemplates as ScheduleTemplatesImport } from "@/components/ScheduleTemplates";
+import { MfaSettings } from "@/components/MfaSettings";
+import { DeleteAccountButton } from "@/components/DeleteAccountButton";
 
 const SUBJECTS = ["English", "ESL", "Math", "Science", "Social Studies", "Public Speaking", "Media Education"];
 
