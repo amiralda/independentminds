@@ -12,7 +12,7 @@ import { TrophyRoom } from "@/components/TrophyRoom";
 import { DadPanel } from "@/components/DadPanel";
 import { StudentStatsBar } from "@/components/StudentStatsBar";
 import { CategoryCards } from "@/components/CategoryCards";
-import { StudentSelector } from "@/components/StudentSelector";
+
 import { AddStudentForm } from "@/components/AddStudentForm";
 import { WelcomeModal } from "@/components/WelcomeModal";
 import { useDailyBlocks, useRefreshBlocks } from "@/hooks/useDailyBlocks";
