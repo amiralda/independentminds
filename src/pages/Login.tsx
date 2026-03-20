@@ -1,20 +1,22 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { LogIn, UserPlus, Mail } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { LogIn, UserPlus } from "lucide-react";
 import logo from "@/assets/logo.svg";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
 import { LanguageToggle } from "@/components/LanguageToggle";
 
 export default function Login() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [adultConfirmed, setAdultConfirmed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const navigate = useNavigate();
@@ -33,6 +35,10 @@ export default function Login() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!adultConfirmed) {
+      toast.error(lang === "HT" ? "Ou dwe konfime ke ou gen 18 an oswa plis" : "You must confirm you are 18 or older");
+      return;
+    }
     setLoading(true);
     const { error } = await supabase.auth.signUp({
       email,
@@ -40,6 +46,8 @@ export default function Login() {
       options: {
         data: {
           display_name: displayName || email.split("@")[0],
+          adult_confirmed: true,
+          adult_confirmed_at: new Date().toISOString(),
         },
         emailRedirectTo: window.location.origin,
       },
@@ -118,6 +126,24 @@ export default function Login() {
               className="mt-1"
             />
           </div>
+
+          {/* Adult confirmation for sign-up */}
+          {isSignUp && (
+            <div className="flex items-start gap-2">
+              <Checkbox
+                id="adult-confirm"
+                checked={adultConfirmed}
+                onCheckedChange={(checked) => setAdultConfirmed(checked === true)}
+                className="mt-0.5"
+              />
+              <label htmlFor="adult-confirm" className="text-xs text-muted-foreground leading-tight cursor-pointer">
+                {lang === "HT"
+                  ? "Mwen konfime ke mwen gen 18 an oswa plis epi mwen se paran oswa gadyen legal elèv yo ke mwen pral jere sou platfòm sa a."
+                  : "I confirm I am 18 years of age or older and am the parent or legal guardian of the students I will manage on this platform."}
+              </label>
+            </div>
+          )}
+
           {!isSignUp && (
             <div className="text-right">
               <button
@@ -129,7 +155,11 @@ export default function Login() {
               </button>
             </div>
           )}
-          <Button type="submit" className="w-full font-display bg-secondary text-secondary-foreground hover:bg-secondary/90" disabled={loading}>
+          <Button
+            type="submit"
+            className="w-full font-display bg-secondary text-secondary-foreground hover:bg-secondary/90"
+            disabled={loading || (isSignUp && !adultConfirmed)}
+          >
             {isSignUp ? (
               <><UserPlus size={16} className="mr-2" /> {loading ? t("auth.creatingAccount") : t("action.signUp")}</>
             ) : (
@@ -166,7 +196,7 @@ export default function Login() {
             {isSignUp ? t("auth.hasAccount") : t("auth.noAccount")}{" "}
             <button
               type="button"
-              onClick={() => setIsSignUp(!isSignUp)}
+              onClick={() => { setIsSignUp(!isSignUp); setAdultConfirmed(false); }}
               className="text-primary font-semibold hover:underline"
             >
               {isSignUp ? t("action.signIn") : t("action.signUp")}
@@ -174,9 +204,20 @@ export default function Login() {
           </p>
         </form>
 
-        <p className="text-center text-xs text-primary-foreground/50 font-display">
-          {t("app.version")} — Built with 💡 by Dany Augustin
-        </p>
+        {/* Footer with legal links */}
+        <div className="text-center space-y-2">
+          <div className="flex justify-center gap-4 text-xs">
+            <Link to="/privacy" className="text-primary-foreground/60 hover:text-primary-foreground hover:underline">
+              {lang === "HT" ? "Konfidansyalite" : "Privacy"}
+            </Link>
+            <Link to="/terms" className="text-primary-foreground/60 hover:text-primary-foreground hover:underline">
+              {lang === "HT" ? "Kondisyon" : "Terms"}
+            </Link>
+          </div>
+          <p className="text-xs text-primary-foreground/50 font-display">
+            {t("app.version")} — Built with 💡 by Dany Augustin
+          </p>
+        </div>
       </div>
     </div>
   );
