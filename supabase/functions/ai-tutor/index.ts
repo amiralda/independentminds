@@ -224,9 +224,11 @@ Student grade: ${grade}. Subject focus: ${subject}. Language: ${language}.`;
       } finally {
         // Save assistant response to history
         if (fullAssistantContent) {
-          await serviceClient.from("ai_conversations").insert({
+          console.log("Saving assistant message, length:", fullAssistantContent.length);
+          const { error: saveErr } = await serviceClient.from("ai_conversations").insert({
             student_id: effectiveStudentId, subject, role: "assistant", content: fullAssistantContent,
           });
+          if (saveErr) console.error("Failed to save assistant message:", saveErr);
 
           // Clean up old messages (keep max 100 per student per subject)
           const { data: countData } = await serviceClient
