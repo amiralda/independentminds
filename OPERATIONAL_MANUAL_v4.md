@@ -845,8 +845,10 @@ AI conversations are persisted for active tutoring continuity but:
 | daily-report | Cron (evening) | Cron secret | — | End-of-day summary |
 | weekly-report | Cron (weekly) | Cron secret | — | Weekly progress report |
 | weekly-badge | Cron (weekly) | Cron secret | — | Award weekly badges |
-| account-maintenance | Cron (monthly) | Cron secret | — | Data retention lifecycle |
-| auth-email-hook | Auth hook | Internal | — | Custom email templates |
+| account-merge | HTTP POST | JWT | — | Account merge processing |
+| auth-email-hook | Auth hook | Internal | — | Custom branded email templates |
+| send-guardian-invite | HTTP POST | JWT | — | Send co-guardian invite emails |
+| accept-guardian-invite | HTTP POST | JWT | — | Process co-guardian invite acceptance |
 
 ### Environment Secrets
 
