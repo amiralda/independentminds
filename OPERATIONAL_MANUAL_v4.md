@@ -772,7 +772,7 @@ AI conversations are persisted for active tutoring continuity but:
 
 ## 14. Database Schema
 
-### Tables (19 total)
+### Tables (25 total)
 
 | Table | Purpose | RLS |
 |-------|---------|-----|
