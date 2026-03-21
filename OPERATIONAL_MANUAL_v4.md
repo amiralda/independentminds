@@ -43,7 +43,7 @@
 
 ### Platform Description
 
-Independent Minds EDU is a bilingual (English / Haitian Creole) homeschool management platform designed for Haitian families. It empowers parents to organize, monitor, and celebrate their children's learning from anywhere in the world. The platform combines daily block scheduling, real-time progress tracking, AI-powered tutoring, gamification, and multi-channel notifications into a single progressive web application.
+Independent Minds EDU is a multilingual (10 languages) homeschool management platform designed for Haitian families and international users. It empowers parents to organize, monitor, and celebrate their children's learning from anywhere in the world. The platform combines daily block scheduling, real-time progress tracking, AI-powered tutoring, gamification, co-guardian collaboration, and multi-channel notifications into a single progressive web application.
 
 ### v4.0 Highlights
 
