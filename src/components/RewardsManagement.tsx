@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Plus, Pencil, Trash2, Gift, Coins, CheckCircle, X } from "lucide-react";
 import { toast } from "sonner";
+import { PointSettingsPanel } from "@/components/PointSettingsPanel";
+import { ChallengesPanel } from "@/components/ChallengesPanel";
 
 const EMOJI_OPTIONS = ["🎁", "🎮", "📱", "🍕", "🍦", "🎬", "⚽", "🎨", "📚", "🏖️", "🎵", "🧸", "🎂", "🛍️", "✨", "🎯"];
 
@@ -247,6 +249,11 @@ export function RewardsManagement({ studentId }: Props) {
           </div>
         </DialogContent>
       </Dialog>
+      {/* Point Settings */}
+      <PointSettingsPanel studentId={studentId} />
+
+      {/* Challenges */}
+      <ChallengesPanel studentId={studentId} isParent />
     </div>
   );
 }

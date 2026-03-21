@@ -14,6 +14,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { StudentRecords } from "@/components/StudentRecords";
 import { useAwardPoints, POINT_VALUES } from "@/hooks/useRewards";
 import { checkAndAwardStreak } from "@/hooks/useStreakBonus";
+import { checkAndAwardCategoryBonus } from "@/hooks/useCategoryBonus";
+import { incrementChallengeProgress } from "@/hooks/useChallenges";
+import { usePointSettings, getPointValue } from "@/hooks/usePointSettings";
 
 interface Block {
   id: string;
@@ -50,6 +53,7 @@ export function TodayBlocks({ blocks, onRefresh }: Props) {
   const { profile } = useAuth();
   const checkBadges = useCheckAndAwardBadges(profile?.studentId || "CHRIS");
   const awardPoints = useAwardPoints();
+  const { data: pointSettings = [] } = usePointSettings(profile?.studentId || null);
   const [completingBlock, setCompletingBlock] = useState<Block | null>(null);
   const [showRecords, setShowRecords] = useState(false);
   const [rating, setRating] = useState(3);
@@ -158,33 +162,46 @@ export function TodayBlocks({ blocks, onRefresh }: Props) {
     // Award points for completing a block
     const sid = profile?.studentId;
     if (sid) {
-      awardPoints.mutate({
-        student_id: sid,
-        points: POINT_VALUES.BLOCK_COMPLETED,
-        reason: `Completed: ${completingBlock.subject}`,
-        source: "block_complete",
-        reference_id: completingBlock.id,
-      });
-      if (rating === 5) {
+      const blockPts = getPointValue(pointSettings, "block_complete");
+      if (blockPts > 0) {
         awardPoints.mutate({
           student_id: sid,
-          points: POINT_VALUES.HIGH_RATING,
-          reason: "Perfect self-rating ⭐",
-          source: "high_rating",
+          points: blockPts,
+          reason: `Completed: ${completingBlock.subject}`,
+          source: "block_complete",
+          reference_id: completingBlock.id,
         });
+      }
+      if (rating === 5) {
+        const ratingPts = getPointValue(pointSettings, "high_rating");
+        if (ratingPts > 0) {
+          awardPoints.mutate({
+            student_id: sid,
+            points: ratingPts,
+            reason: "Perfect self-rating ⭐",
+            source: "high_rating",
+          });
+        }
       }
       const doneAfter = blocks.filter(b => b.status === "Done").length + 1;
       if (doneAfter === blocks.length && blocks.length > 0) {
-        awardPoints.mutate({
-          student_id: sid,
-          points: POINT_VALUES.PERFECT_DAY,
-          reason: "Perfect Day — all blocks done! 🌟",
-          source: "perfect_day",
-        });
+        const perfectPts = getPointValue(pointSettings, "perfect_day");
+        if (perfectPts > 0) {
+          awardPoints.mutate({
+            student_id: sid,
+            points: perfectPts,
+            reason: "Perfect Day — all blocks done! 🌟",
+            source: "perfect_day",
+          });
+        }
       }
 
       // Check streak bonuses (async, fire-and-forget)
       checkAndAwardStreak(sid).catch(() => {});
+      // Check category completion bonus
+      checkAndAwardCategoryBonus(sid, completingBlock.subject, pointSettings).catch(() => {});
+      // Increment challenge progress
+      incrementChallengeProgress(sid, completingBlock.subject).catch(() => {});
     }
   };
 

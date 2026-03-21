@@ -14,6 +14,7 @@ import { Coins, Gift, History, Star, Zap, Trophy, ShoppingCart, Sparkles, Send }
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
+import { ChallengesPanel } from "@/components/ChallengesPanel";
 
 const SUGGESTED_REWARDS = [
   { key: "movieNight", icon: "🎬", points: 200 },
@@ -90,6 +91,9 @@ export function RewardsPanel() {
           <EarnBadge icon={Star} label={lang === "HT" ? "Jou pafè" : "Perfect Day"} points={POINT_VALUES.PERFECT_DAY} />
         </div>
       </div>
+
+      {/* Active Challenges */}
+      <ChallengesPanel studentId={studentId || ""} />
 
       <Tabs defaultValue="shop">
         <TabsList className="w-full grid grid-cols-3">
