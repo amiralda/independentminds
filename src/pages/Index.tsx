@@ -111,6 +111,26 @@ const Index = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {role === "parent" && (
+              <button
+                onClick={() => {
+                  // Navigate to inbox tab in DadPanel
+                  const dadPanel = document.querySelector('[data-tab="inbox"]') as HTMLButtonElement;
+                  if (dadPanel) dadPanel.click();
+                  else navigate("/?tab=inbox");
+                }}
+                className="relative text-primary-foreground/70 hover:text-primary-foreground p-1"
+                title={lang === "HT" ? "Bwat Mesaj" : "Inbox"}
+                aria-label={lang === "HT" ? "Bwat Mesaj" : "Inbox"}
+              >
+                <Mail size={18} />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-1">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )}
+              </button>
+            )}
             <LanguageToggle variant="dark" />
             {isAdmin && (
               <Link
