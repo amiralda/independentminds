@@ -930,7 +930,7 @@ All 12 checks pass as of v4.0.
 
 ---
 
-## 18. Deployment and Infrastructure
+## 21. Deployment and Infrastructure
 
 ### Deployment Pipeline
 
