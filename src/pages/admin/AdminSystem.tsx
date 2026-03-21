@@ -14,6 +14,7 @@ const EDGE_FUNCTIONS = [
 export default function AdminSystem() {
   const [flagged, setFlagged] = useState<any[]>([]);
   const [rateLimits, setRateLimits] = useState<any[]>([]);
+  const tick = useAutoRefresh();
 
   useEffect(() => {
     Promise.all([
