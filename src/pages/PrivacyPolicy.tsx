@@ -157,7 +157,7 @@ const sectionsHT = [
   {
     title: "Entwodiksyon",
     content: [
-      "Independent Minds EDU se yon platfòm jesyon lekòl kay bileng ki te bati pa Dany Augustin. Politik Konfidansyalite sa a eksplike kijan nou kolekte, itilize, epi pwoteje enfòmasyon ou lè ou itilize platfòm nou an sou independentmindsedu.com.",
+      "Independent Minds EDU se yon platfòm jesyon lekòl kay bileng ki te bati pa KòdLabo. Politik Konfidansyalite sa a eksplike kijan nou kolekte, itilize, epi pwoteje enfòmasyon ou lè ou itilize platfòm nou an sou independentmindsedu.com.",
       "Pou kesyon sou politik sa a, kontakte nou nan privacy@independentmindsedu.com.",
     ],
   },
