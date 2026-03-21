@@ -50,6 +50,7 @@ const EMPTY_FORM = {
 
 interface Props {
   onAddStudent: () => void;
+  initialTab?: DadTab;
 }
 
 type DadTab = "activity" | "profile" | "progress" | "schedule" | "tracks" | "tools" | "tutor" | "curriculum" | "weekly" | "certificates" | "records" | "rewards" | "telegram" | "guardians" | "inbox";
