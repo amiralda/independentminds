@@ -1058,10 +1058,15 @@ All accessibility labels are available in all 10 supported languages:
 
 ---
 
-## 22. Screenshots and Visual Reference
+## 25. Screenshots and Visual Reference
 
-Screenshots reflect v3.0 of the platform. The platform has been updated to v4.0 with new features visible in the live app at https://independentmindsedu.com. Key visual additions in v4.0 include:
+Screenshots reflect v4.1 of the platform. Key visual features include:
 
+- Parent dashboard with Co-Guardians above Students in sidebar
+- Admin panel with dark sidebar and 7 metric sections
+- 10-language dropdown selector (replacing previous flag toggle)
+- Unified Inbox with filter tabs and unread badges
+- Co-Guardian permission toggles with copy-to-clipboard invite links
 - Onboarding progress indicator with gold progress bar
 - MFA settings panel with QR code display
 - Offline indicator amber banner
@@ -1072,7 +1077,7 @@ Screenshots reflect v3.0 of the platform. The platform has been updated to v4.0 
 - Schedule template management buttons
 - PDF report download button
 
-For the most current visual reference, visit the live application.
+For the most current visual reference, visit the live application at https://independentminds.lovable.app.
 
 ---
 
