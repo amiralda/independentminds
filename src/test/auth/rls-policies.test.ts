@@ -75,10 +75,9 @@ describe("RLS Policy Design Validation", () => {
     ];
 
     it("all student-owned tables require is_my_student() for access", () => {
-      // This is a design validation — these tables MUST use is_my_student()
-      // in their RLS policies. Verified by database schema inspection.
-      studentOwnedTables.forEach((table) => {
-        expect(table).toBeTruthy();
+      // Design validation — these tables MUST use is_my_student() in RLS
+      studentOwnedTables.forEach((tableName) => {
+        expect(tableName).toBeTruthy();
       });
       // If any table is missing from this list, it's a security gap
       expect(studentOwnedTables.length).toBeGreaterThanOrEqual(9);
