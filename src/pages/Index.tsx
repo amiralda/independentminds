@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useI18n } from "@/lib/i18n";
 import { LibraryPanel } from "@/components/LibraryPanel";
 import { useAuth } from "@/contexts/AuthContext";
@@ -19,7 +19,7 @@ import { WelcomeModal } from "@/components/WelcomeModal";
 import { useDailyBlocks, useRefreshBlocks } from "@/hooks/useDailyBlocks";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BlockReminderPopup } from "@/components/BlockReminderPopup";
-import { BookOpen, CheckSquare, Trophy, LogOut, Award, Target, Library, Bot, UserCircle, Coins, HelpCircle, Shield } from "lucide-react";
+import { BookOpen, CheckSquare, Trophy, LogOut, Award, Target, Library, Bot, UserCircle, Coins, HelpCircle, Shield, Mail } from "lucide-react";
 import logo from "@/assets/logo.svg";
 import { TutorChat } from "@/components/TutorChat";
 import { StudentProfileCard } from "@/components/StudentProfileCard";
@@ -44,6 +44,30 @@ const Index = () => {
 
   const { data: blocks = [], isLoading } = useDailyBlocks(studentId);
   const refreshBlocks = useRefreshBlocks();
+
+  // Unread inbox count for parents
+  const [unreadCount, setUnreadCount] = useState(0);
+  useEffect(() => {
+    if (role !== "parent" || !profile) return;
+    const fetchUnread = async () => {
+      const { count } = await supabase
+        .from("inbox_messages")
+        .select("*", { count: "exact", head: true })
+        .eq("is_read", false);
+      setUnreadCount(count || 0);
+    };
+    fetchUnread();
+
+    // Realtime subscription for new messages
+    const channel = supabase
+      .channel("inbox-badge")
+      .on("postgres_changes", { event: "*", schema: "public", table: "inbox_messages" }, () => {
+        fetchUnread();
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [role, profile]);
 
   // Show welcome modal for new parents
   const shouldShowWelcome = role === "parent" && profile && !profile.onboardingComplete;
@@ -87,6 +111,26 @@ const Index = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {role === "parent" && (
+              <button
+                onClick={() => {
+                  // Navigate to inbox tab in DadPanel
+                  const dadPanel = document.querySelector('[data-tab="inbox"]') as HTMLButtonElement;
+                  if (dadPanel) dadPanel.click();
+                  else navigate("/?tab=inbox");
+                }}
+                className="relative text-primary-foreground/70 hover:text-primary-foreground p-1"
+                title={lang === "HT" ? "Bwat Mesaj" : "Inbox"}
+                aria-label={lang === "HT" ? "Bwat Mesaj" : "Inbox"}
+              >
+                <Mail size={18} />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-1">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )}
+              </button>
+            )}
             <LanguageToggle variant="dark" />
             {isAdmin && (
               <Link
