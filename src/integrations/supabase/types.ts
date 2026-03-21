@@ -918,6 +918,27 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -945,6 +966,7 @@ export type Database = {
         Args: { _parent_id: string; _student_id: string }
         Returns: boolean
       }
+      has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
       increment_rate_limit: {
         Args: {
           p_function_name: string
@@ -957,6 +979,14 @@ export type Database = {
       is_my_student: { Args: { _student_id: string }; Returns: boolean }
       redeem_reward: {
         Args: { _points_spent: number; _reward_id: string; _student_id: string }
+        Returns: undefined
+      }
+      remove_user_role: {
+        Args: { old_role: string; target_uid: string }
+        Returns: undefined
+      }
+      set_user_role: {
+        Args: { new_role: string; target_uid: string }
         Returns: undefined
       }
     }

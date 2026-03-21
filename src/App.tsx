@@ -13,6 +13,14 @@ import ResetPassword from "./pages/ResetPassword";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import NotFound from "./pages/NotFound";
+import AdminLayout from "./components/admin/AdminLayout";
+import AdminOverview from "./pages/admin/AdminOverview";
+import AdminStudents from "./pages/admin/AdminStudents";
+import AdminEngagement from "./pages/admin/AdminEngagement";
+import AdminRewards from "./pages/admin/AdminRewards";
+import AdminSystem from "./pages/admin/AdminSystem";
+import AdminMessages from "./pages/admin/AdminMessages";
+import AdminUsers from "./pages/admin/AdminUsers";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +57,15 @@ const App = () => (
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/terms" element={<TermsOfService />} />
+              <Route path="/admin" element={<AuthGuard><AdminLayout /></AuthGuard>}>
+                <Route index element={<AdminOverview />} />
+                <Route path="students" element={<AdminStudents />} />
+                <Route path="engagement" element={<AdminEngagement />} />
+                <Route path="rewards" element={<AdminRewards />} />
+                <Route path="system" element={<AdminSystem />} />
+                <Route path="messages" element={<AdminMessages />} />
+                <Route path="users" element={<AdminUsers />} />
+              </Route>
               <Route path="/" element={<AuthGuard><Index /></AuthGuard>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
