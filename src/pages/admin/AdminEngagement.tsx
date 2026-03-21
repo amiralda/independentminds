@@ -8,6 +8,7 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianG
 export default function AdminEngagement() {
   const [stats, setStats] = useState({ checkInsToday: 0, sosThisWeek: 0, totalCheckIns: 0 });
   const [dailyData, setDailyData] = useState<any[]>([]);
+  const tick = useAutoRefresh();
 
   useEffect(() => {
     const load = async () => {
