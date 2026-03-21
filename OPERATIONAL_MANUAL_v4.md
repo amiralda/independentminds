@@ -499,7 +499,7 @@ Input sanitization:
 
 ---
 
-## 8. Weekly Analytics and Reporting
+## 11. Weekly Analytics and Reporting
 
 ### Dashboard Analytics
 
