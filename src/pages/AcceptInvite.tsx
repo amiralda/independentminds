@@ -34,53 +34,19 @@ export default function AcceptInvite() {
     setStatus("loading");
 
     try {
-      // Look up invite
-      const { data: invite, error: lookupError } = await supabase
-        .from("guardian_invites")
-        .select("*")
-        .eq("token", token)
-        .eq("status", "pending")
-        .single();
+      const { data, error } = await supabase.functions.invoke("accept-guardian-invite", {
+        body: { token },
+      });
 
-      if (lookupError || !invite) {
+      if (error) throw error;
+      if (data?.error) {
         setStatus("error");
-        setErrorMsg("This invite link is invalid or has expired.");
+        setErrorMsg(data.error);
         return;
       }
-
-      // Check expiry
-      if (new Date((invite as any).expires_at) < new Date()) {
-        setStatus("error");
-        setErrorMsg("This invite link has expired.");
-        return;
-      }
-
-      // Create co-guardian record
-      const { error: insertError } = await supabase.from("co_guardians").insert({
-        student_id: (invite as any).student_id,
-        guardian_id: session.user.id,
-        invited_by: (invite as any).invited_by,
-        can_view_progress: true,
-      } as any);
-
-      if (insertError) {
-        if (insertError.message.includes("duplicate")) {
-          setStatus("error");
-          setErrorMsg("You are already a co-guardian for this student.");
-        } else {
-          throw insertError;
-        }
-        return;
-      }
-
-      // Mark invite as accepted
-      await supabase
-        .from("guardian_invites")
-        .update({ status: "accepted", accepted_at: new Date().toISOString() } as any)
-        .eq("id", (invite as any).id);
 
       setStatus("success");
-      toast.success("You now have co-guardian access!");
+      toast.success(`You now have co-guardian access to ${data?.student_name || "the student"}'s profile!`);
       setTimeout(() => navigate("/"), 2000);
     } catch (err: any) {
       setStatus("error");
