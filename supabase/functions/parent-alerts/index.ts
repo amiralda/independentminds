@@ -118,17 +118,32 @@ Deno.serve(async (req) => {
 
     let result;
 
+    // Helper to insert inbox message for the parent
+    const insertInbox = async (messageType: string, title: string, bodyText: string) => {
+      if (parentUserId) {
+        await supabase.from("inbox_messages").insert({
+          parent_id: parentUserId,
+          student_id: studentId,
+          message_type: messageType,
+          title,
+          body: bodyText,
+        });
+      }
+    };
+
     // 4. All user inputs are HTML-escaped
     if (alertType === "badge_earned") {
       const badgeName = escapeHtml(body.badge_name || "20-Lesson Legend");
       const dateStr = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
       result = await sendTelegram(`🚀 <b>${studentName} Hit Today's Goal!</b>\n\n🏆 Badge Earned: <b>${badgeName}</b>\n📅 Date: ${dateStr}\n\n💪 Keep up the momentum!\n\n— <i>Independent Minds EDU v2.0</i>`);
+      await insertInbox("streak_milestone", `${studentName} earned a badge!`, `Badge: ${badgeName} — ${dateStr}`);
     }
     else if (alertType === "help_needed") {
       const comment = escapeHtml(body.comment || "No comment provided");
       const subject = escapeHtml(body.focus || "Unknown");
       const mood = escapeHtml(body.mood || "Unknown");
       result = await sendTelegram(`🚨 <b>URGENT INTERVENTION NEEDED</b>\n\n👤 Student: ${studentName}\n📚 Current Focus: <b>${subject}</b>\n😟 Mood: <b>${mood}</b>\n💬 Comment: "<i>${comment}</i>"\n\n${studentName} has requested help.\n\n— <i>Independent Minds EDU Alert System</i>`);
+      await insertInbox("sos", `SOS from ${studentName}`, `Subject: ${subject} | Mood: ${mood} — "${comment}"`);
     }
     else if (alertType === "weekly_summary") {
       const now = new Date();
@@ -146,6 +161,7 @@ Deno.serve(async (req) => {
       const badgeList = badges?.map(b => `🏆 ${escapeHtml(b.name)}`).join("\n") || "No new badges this week";
 
       result = await sendTelegram(`📊 <b>WEEKLY PROGRESS REPORT</b>\n👤 ${studentName} | ${monStr} to ${todayStr}\n\n📈 Completed: <b>${done.length} / ${total}</b>\n📊 Rate: <b>${total > 0 ? Math.round((done.length / total) * 100) : 0}%</b>\n\n🏅 <b>New Badges:</b>\n${badgeList}\n\n— <i>Independent Minds EDU v2.0</i>`);
+      await insertInbox("lesson_completed", `Weekly summary for ${studentName}`, `Completed ${done.length}/${total} blocks (${total > 0 ? Math.round((done.length / total) * 100) : 0}%)`);
     }
     else if (alertType === "test_connection") {
       result = await sendTelegram(`🛠️ <b>Independent Minds EDU: System Test</b>\n\nConnection successful. ✅\n<b>Status:</b> Ready 🚀\n\n— <i>Independent Minds EDU v2.0</i>`);
@@ -157,12 +173,14 @@ Deno.serve(async (req) => {
       const unitType = escapeHtml(body.unit_type || "lessons");
       const isGoalMet = doneToday >= target;
       result = await sendTelegram(`${isGoalMet ? "🎯" : "📝"} <b>Activity Update</b>\n\n👤 Student: ${studentName}\n📚 Track: <b>${trackName}</b>\n✅ Completed: <b>${doneToday}/${target} ${unitType}</b>\n\n${isGoalMet ? `🏆 <b>Daily goal reached!</b> 🎉` : `Progress update: ${doneToday} of ${target} ${unitType} completed.`}\n\n— <i>Independent Minds EDU v2.0</i>`);
+      await insertInbox("lesson_completed", `${studentName} — ${trackName}`, `Completed ${doneToday}/${target} ${unitType}${isGoalMet ? " — Daily goal reached!" : ""}`);
     }
     else if (alertType === "reward_suggestion") {
       const rewardName = escapeHtml(body.reward_name || "a reward");
       const rewardIcon = body.reward_icon || "🎁";
       const rewardPoints = Number(body.reward_points) || 0;
       result = await sendTelegram(`💡 <b>Reward Suggestion from ${studentName}!</b>\n\n${rewardIcon} <b>${rewardName}</b>\n💰 Points: <b>${rewardPoints}</b>\n\n${studentName} would love this as a reward! You can add it in the Rewards Management section of your dashboard.\n\n— <i>Independent Minds EDU v2.0</i>`);
+      await insertInbox("reward_redeemed", `${studentName} suggested a reward`, `${rewardIcon} ${rewardName} — ${rewardPoints} pts`);
     }
     else {
       return new Response(JSON.stringify({ error: "Unknown alert type" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
