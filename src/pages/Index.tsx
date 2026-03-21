@@ -48,18 +48,47 @@ const Index = () => {
 
   // Unread inbox count for parents
   const [unreadCount, setUnreadCount] = useState(0);
+  const [bellRing, setBellRing] = useState(false);
+  const [badgeBounce, setBadgeBounce] = useState(false);
+
   useEffect(() => {
     if (role !== "parent" || !profile) return;
+    let prevCount = -1;
+
     const fetchUnread = async () => {
       const { count } = await supabase
         .from("inbox_messages")
         .select("*", { count: "exact", head: true })
         .eq("is_read", false);
-      setUnreadCount(count || 0);
+      const newCount = count || 0;
+
+      // Trigger animation + sound when count increases
+      if (prevCount >= 0 && newCount > prevCount) {
+        setBellRing(true);
+        setBadgeBounce(true);
+        // Play notification sound
+        try {
+          const ctx = new AudioContext();
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.frequency.setValueAtTime(880, ctx.currentTime);
+          osc.frequency.setValueAtTime(1100, ctx.currentTime + 0.1);
+          osc.frequency.setValueAtTime(880, ctx.currentTime + 0.2);
+          gain.gain.setValueAtTime(0.15, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+          osc.start(ctx.currentTime);
+          osc.stop(ctx.currentTime + 0.4);
+        } catch {}
+        setTimeout(() => setBellRing(false), 600);
+        setTimeout(() => setBadgeBounce(false), 400);
+      }
+      prevCount = newCount;
+      setUnreadCount(newCount);
     };
     fetchUnread();
 
-    // Realtime subscription for new messages
     const channel = supabase
       .channel("inbox-badge")
       .on("postgres_changes", { event: "*", schema: "public", table: "inbox_messages" }, () => {
