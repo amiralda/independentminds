@@ -460,7 +460,7 @@ Tapping a card sends a `reward_suggestion` notification to the parent via Telegr
 
 ---
 
-## 7. AI Tutor — Mr A
+## 10. AI Tutor — Mr A
 
 ### Overview
 
