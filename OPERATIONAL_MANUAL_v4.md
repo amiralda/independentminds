@@ -912,7 +912,7 @@ The sync manager in `src/lib/syncManager.ts`:
 
 ### Security Testing
 
-The 12-point security audit (Part 7) covers:
+The 12-point security audit (Section 15) covers:
 1. RLS completeness on all 19 tables
 2. Storage bucket privacy
 3. Edge function authentication
