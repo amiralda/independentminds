@@ -14,6 +14,8 @@ import { Coins, Gift, History, Star, Zap, Trophy, ShoppingCart, Sparkles, Send }
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
+import { ChallengesPanel } from "@/components/ChallengesPanel";
+import { supabase } from "@/integrations/supabase/client";
 
 const SUGGESTED_REWARDS = [
   { key: "movieNight", icon: "🎬", points: 200 },
