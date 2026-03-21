@@ -33,7 +33,7 @@ export default function AdminRewards() {
   }, [tick]);
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <h1 className="text-2xl font-display font-bold text-white">Rewards Economy</h1>
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <StatCard label="Points Issued" value={stats.issued} icon={Coins} color="text-amber-400" />
