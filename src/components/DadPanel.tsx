@@ -74,6 +74,8 @@ const NAV_ITEMS: NavItem[] = [
   { key: "certificates", icon: Award, label: "Certificates", labelHT: "Sètifika" },
   { key: "records", icon: FileText, label: "Records", labelHT: "Dosye" },
   { key: "rewards", icon: Coins, label: "Rewards", labelHT: "Rekonpans" },
+  { key: "guardians", icon: Shield, label: "Co-Guardians", labelHT: "Ko-gadyen" },
+  { key: "inbox", icon: Inbox, label: "Inbox", labelHT: "Bwat mesaj" },
   { key: "telegram", icon: Bell, label: "Notifications", labelHT: "Notifikasyon" },
 ];
 
