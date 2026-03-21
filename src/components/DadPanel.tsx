@@ -231,7 +231,7 @@ export function DadPanel({ onAddStudent }: Props) {
       )}
 
       <p className="text-center text-xs text-muted-foreground pt-6 border-t mt-8">
-        {t("app.version")} — Built with 💡 by Dany Augustin
+        {t("app.version")} — Built with Love by KòdLabo
       </p>
     </div>
   );
