@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { CoGuardiansPanel } from "@/components/CoGuardiansPanel";
+import { InboxPanel } from "@/components/InboxPanel";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
