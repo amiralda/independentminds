@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAutoRefresh } from "@/hooks/useAutoRefresh";
 import StatCard from "@/components/admin/StatCard";
 import { Users, CheckCircle, Flame, Coins } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
