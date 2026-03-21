@@ -16,23 +16,26 @@
 3. User Roles and Authentication
 4. Parent Dashboard
 5. Student Dashboard
-6. Gamification and Rewards System
-7. AI Tutor — Mr A
-8. Weekly Analytics and Reporting
-9. Notification System
-10. Hourly Monitoring System
-11. Internationalization
-12. Security Model
-13. Data Privacy and COPPA/FERPA Compliance
-14. Database Schema
-15. Edge Functions Reference
-16. Error Handling and Resilience
-17. Testing and Quality Assurance
-18. Deployment and Infrastructure
-19. PWA and Mobile Experience
-20. Accessibility
-21. Known Limitations and Roadmap
-22. Screenshots and Visual Reference
+6. Admin Panel
+7. Co-Guardian System
+8. Unified Message Inbox
+9. Gamification and Rewards System
+10. AI Tutor — Mr A
+11. Weekly Analytics and Reporting
+12. Notification System
+13. Hourly Monitoring System
+14. Internationalization
+15. Security Model
+16. Data Privacy and COPPA/FERPA Compliance
+17. Database Schema
+18. Edge Functions Reference
+19. Error Handling and Resilience
+20. Testing and Quality Assurance
+21. Deployment and Infrastructure
+22. PWA and Mobile Experience
+23. Accessibility
+24. Known Limitations and Roadmap
+25. Screenshots and Visual Reference
 
 ---
 
