@@ -27,7 +27,7 @@ export default function AdminMessages() {
       });
     };
     load();
-  }, []);
+  }, [tick]);
 
   useEffect(() => {
     let query = supabase.from("messages_log").select("*").order("timestamp", { ascending: false }).limit(50);
