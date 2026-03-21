@@ -831,7 +831,7 @@ AI conversations are persisted for active tutoring continuity but:
 
 ---
 
-## 15. Edge Functions Reference
+## 18. Edge Functions Reference
 
 ### Function Inventory
 
