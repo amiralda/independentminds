@@ -37,6 +37,7 @@ const Index = () => {
   const [showAddStudent, setShowAddStudent] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
   const [showHelpGuide, setShowHelpGuide] = useState(false);
+  const [parentTab, setParentTab] = useState<string | undefined>(undefined);
 
   const role = profile?.role || "student";
   const studentId = role === "student" ? (profile?.studentId || null) : selectedStudentId;
