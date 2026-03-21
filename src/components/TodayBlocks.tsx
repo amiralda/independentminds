@@ -14,6 +14,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { StudentRecords } from "@/components/StudentRecords";
 import { useAwardPoints, POINT_VALUES } from "@/hooks/useRewards";
 import { checkAndAwardStreak } from "@/hooks/useStreakBonus";
+import { checkAndAwardCategoryBonus } from "@/hooks/useCategoryBonus";
+import { incrementChallengeProgress } from "@/hooks/useChallenges";
+import { usePointSettings, getPointValue } from "@/hooks/usePointSettings";
 
 interface Block {
   id: string;
