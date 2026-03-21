@@ -981,7 +981,7 @@ All 12 checks pass as of v4.0.
 
 ---
 
-## 20. Accessibility
+## 23. Accessibility
 
 ### WCAG 2.1 AA Compliance (v4.0)
 
