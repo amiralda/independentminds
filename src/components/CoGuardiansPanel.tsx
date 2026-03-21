@@ -164,6 +164,14 @@ export function CoGuardiansPanel({ studentId }: Props) {
                   {t("guardians.pending")}
                 </span>
               </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => copyInviteLink(inv.token, inv.id)}
+                title="Copy invite link"
+              >
+                {copiedId === inv.id ? <Check size={14} className="text-primary" /> : <Copy size={14} />}
+              </Button>
               <Button variant="ghost" size="sm" onClick={() => revokeInvite(inv.id)}>
                 <Trash2 size={14} />
               </Button>
