@@ -823,6 +823,11 @@ AI conversations are persisted for active tutoring continuity but:
 | `clear_ai_history(...)` | SECURITY DEFINER: deletes AI conversation for subject |
 | `delete_my_account()` | SECURITY DEFINER: deletes user from auth.users |
 | `update_updated_at_column()` | Trigger: auto-updates updated_at |
+| `has_role(_user_id, _role)` | SECURITY DEFINER: checks admin role |
+| `has_guardian_permission(uid, sid, permission)` | SECURITY DEFINER: checks co-guardian permission |
+| `set_user_role(target_uid, new_role)` | Assigns role to user |
+| `remove_user_role(target_uid, old_role)` | Removes role from user |
+| `get_student_id_by_parent(...)` | Validates parent-student relationship |
 
 ---
 
