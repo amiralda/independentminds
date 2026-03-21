@@ -32,6 +32,7 @@ const Index = () => {
   const { t, lang } = useI18n();
   const navigate = useNavigate();
   const { profile, selectedStudentId } = useAuth();
+  const { isAdmin } = useAdminAuth();
   const [tab, setTab] = useState<StudentTab>("today");
   const [showAddStudent, setShowAddStudent] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
