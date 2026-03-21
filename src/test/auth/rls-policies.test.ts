@@ -54,7 +54,7 @@ describe("RLS Policy Design Validation", () => {
     blockedWriteTables.forEach((table) => {
       it(`${table} blocks client INSERT`, async () => {
         const { supabase } = await import("@/integrations/supabase/client");
-        const result = await (supabase.from(table) as any).insert({ fake: "data" });
+        const result = await (supabase.from as any)(table).insert({ fake: "data" });
         expect(result.error).toBeTruthy();
         expect(result.error.code).toBe("42501");
       });

@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
-// @ts-expect-error testing-library types
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import React from "react";
 
