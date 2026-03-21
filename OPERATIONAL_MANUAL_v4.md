@@ -723,7 +723,7 @@ Implemented via the `increment_rate_limit()` SECURITY DEFINER RPC. The `rate_lim
 
 ---
 
-## 13. Data Privacy and COPPA/FERPA Compliance
+## 16. Data Privacy and COPPA/FERPA Compliance
 
 ### Privacy Policy
 
