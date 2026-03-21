@@ -9,6 +9,7 @@ export default function AdminMessages() {
   const [stats, setStats] = useState({ total: 0, delivered: 0, failed: 0, sos: 0 });
   const [messages, setMessages] = useState<any[]>([]);
   const [filter, setFilter] = useState<string>("all");
+  const tick = useAutoRefresh();
 
   useEffect(() => {
     const load = async () => {
