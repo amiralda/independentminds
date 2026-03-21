@@ -197,7 +197,7 @@ const Index = () => {
           </>
         ) : (
           <div className="py-4">
-            <DadPanel onAddStudent={() => setShowAddStudent(true)} />
+            <DadPanel onAddStudent={() => setShowAddStudent(true)} initialTab={parentTab as any} />
           </div>
         )}
       </main>
