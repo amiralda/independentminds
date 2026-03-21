@@ -1,10 +1,11 @@
-# Independent Minds EDU — Operational Manual v4.0
+# Independent Minds EDU — Operational Manual v4.1
 
-**Version:** 4.0  
+**Version:** 4.1  
 **Date:** March 2026  
 **Author:** Dany Augustin  
 **Platform URL:** https://independentmindsedu.com  
-**Contact:** privacy@independentmindsedu.com
+**Contact:** privacy@independentmindsedu.com  
+**Built by:** KòdLabo
 
 ---
 
