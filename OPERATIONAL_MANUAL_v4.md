@@ -776,7 +776,7 @@ AI conversations are persisted for active tutoring continuity but:
 
 ---
 
-## 14. Database Schema
+## 17. Database Schema
 
 ### Tables (25 total)
 
