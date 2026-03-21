@@ -8,6 +8,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGri
 export default function AdminOverview() {
   const [stats, setStats] = useState({ students: 0, activeLogs: 0, avgStreak: 0, pointsIssued: 0, pointsRedeemed: 0 });
   const [weeklyData, setWeeklyData] = useState<any[]>([]);
+  const tick = useAutoRefresh();
 
   useEffect(() => {
     const load = async () => {
