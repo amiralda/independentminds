@@ -522,7 +522,7 @@ A "Download Report" button generates a professional PDF using jsPDF with:
 
 ---
 
-## 9. Notification System
+## 12. Notification System
 
 ### Multi-Channel Architecture (v4.0)
 
