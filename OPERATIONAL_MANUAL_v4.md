@@ -224,6 +224,8 @@ This sets `adult_confirmed: true` and `adult_confirmed_at` in the profile. Googl
 | Schedule Templates | Save, apply, clone weekly schedules |
 | Weekly Reports | Analytics with PDF export |
 | Rewards Management | Create/manage the rewards catalog |
+| Co-Guardians | Invite co-parents, manage permissions (above Students in sidebar) |
+| Inbox | Unified message center with filter tabs |
 | Notification Settings | Telegram, WhatsApp, channel selection |
 | Activity Feed | Recent student actions |
 | Certificates | Generate completion certificates |
