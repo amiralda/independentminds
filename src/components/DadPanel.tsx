@@ -52,7 +52,7 @@ interface Props {
   onAddStudent: () => void;
 }
 
-type DadTab = "activity" | "profile" | "progress" | "schedule" | "tracks" | "tools" | "tutor" | "curriculum" | "weekly" | "certificates" | "records" | "rewards" | "telegram";
+type DadTab = "activity" | "profile" | "progress" | "schedule" | "tracks" | "tools" | "tutor" | "curriculum" | "weekly" | "certificates" | "records" | "rewards" | "telegram" | "guardians" | "inbox";
 
 interface NavItem {
   key: DadTab;
