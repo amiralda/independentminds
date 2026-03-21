@@ -123,19 +123,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchStudents = async () => {
     if (!session?.user) return;
-    const { data } = await supabase
+
+    // Fetch students where user is primary parent
+    const { data: ownStudents } = await supabase
       .from("students")
       .select("student_id, display_name, grade_level, parent_id")
       .eq("parent_id", session.user.id)
       .order("display_name");
-    if (data) {
-      setStudents(data as StudentRecord[]);
-      // Auto-select first student if none selected
-      if (!selectedStudentId && data.length > 0) {
-        const saved = localStorage.getItem("im_selected_student");
-        const found = data.find(s => s.student_id === saved);
-        setSelectedStudentId(found ? found.student_id : data[0].student_id);
+
+    // Fetch students where user is a co-guardian
+    const { data: coGuardianLinks } = await supabase
+      .from("co_guardians")
+      .select("student_id")
+      .eq("guardian_id", session.user.id);
+
+    let allStudents = (ownStudents || []) as StudentRecord[];
+
+    if (coGuardianLinks && coGuardianLinks.length > 0) {
+      const coStudentIds = coGuardianLinks
+        .map(cg => cg.student_id)
+        .filter(id => !allStudents.some(s => s.student_id === id));
+
+      if (coStudentIds.length > 0) {
+        const { data: coStudents } = await supabase
+          .from("students")
+          .select("student_id, display_name, grade_level, parent_id")
+          .in("student_id", coStudentIds)
+          .order("display_name");
+
+        if (coStudents) {
+          allStudents = [...allStudents, ...(coStudents as StudentRecord[])];
+        }
       }
+    }
+
+    setStudents(allStudents);
+    if (!selectedStudentId && allStudents.length > 0) {
+      const saved = localStorage.getItem("im_selected_student");
+      const found = allStudents.find(s => s.student_id === saved);
+      setSelectedStudentId(found ? found.student_id : allStudents[0].student_id);
     }
   };
 
