@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAutoRefresh } from "@/hooks/useAutoRefresh";
 import StatCard from "@/components/admin/StatCard";
 import { Users, UserCheck, GitMerge, Shield } from "lucide-react";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
