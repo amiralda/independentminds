@@ -1,54 +1,80 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 
-type Lang = "EN" | "HT";
+type Lang = "EN" | "HT" | "FR" | "ES" | "PT" | "AR" | "ZH" | "DE" | "JA" | "RU";
 
-const translations: Record<string, Record<Lang, string>> = {
+interface LangOption {
+  code: Lang;
+  label: string;
+  flag: string;
+}
+
+const LANGUAGES: LangOption[] = [
+  { code: "EN", label: "English", flag: "🇺🇸" },
+  { code: "HT", label: "Kreyòl", flag: "🇭🇹" },
+  { code: "FR", label: "Français", flag: "🇫🇷" },
+  { code: "ES", label: "Español", flag: "🇪🇸" },
+  { code: "PT", label: "Português", flag: "🇧🇷" },
+  { code: "AR", label: "العربية", flag: "🇸🇦" },
+  { code: "ZH", label: "中文", flag: "🇨🇳" },
+  { code: "DE", label: "Deutsch", flag: "🇩🇪" },
+  { code: "JA", label: "日本語", flag: "🇯🇵" },
+  { code: "RU", label: "Русский", flag: "🇷🇺" },
+];
+
+const VALID_LANGS = LANGUAGES.map(l => l.code);
+
+// Translation type: each key maps to a partial record of Lang → string.
+// EN is always present; others fall back to EN.
+type Translations = Record<string, Partial<Record<Lang, string>>>;
+
+const translations: Translations = {
   // App
-  "app.title": { EN: "Independent Minds", HT: "Independent Minds" },
-  "app.subtitle": { EN: "Learn Smart. Grow Every Day.", HT: "Aprann Enpòtan. Grandi Chak Jou." },
+  "app.title": { EN: "Independent Minds", HT: "Independent Minds", FR: "Independent Minds", ES: "Independent Minds", PT: "Independent Minds", AR: "Independent Minds", ZH: "Independent Minds", DE: "Independent Minds", JA: "Independent Minds", RU: "Independent Minds" },
+  "app.subtitle": { EN: "Learn Smart. Grow Every Day.", HT: "Aprann Enpòtan. Grandi Chak Jou.", FR: "Apprenez intelligemment. Grandissez chaque jour.", ES: "Aprende inteligente. Crece cada día.", PT: "Aprenda de forma inteligente. Cresça todos os dias.", AR: "تعلم بذكاء. انمُ كل يوم.", ZH: "聪明学习，每天成长。", DE: "Lerne klug. Wachse jeden Tag.", JA: "賢く学ぼう。毎日成長しよう。", RU: "Учись умно. Расти каждый день." },
   "app.version": { EN: "Independent Minds EDU v2.0", HT: "Independent Minds EDU v2.0" },
 
   // Nav
-  "nav.today": { EN: "Today", HT: "Jodi a" },
-  "nav.checkin": { EN: "Check-In", HT: "Tcheke" },
-  "nav.badges": { EN: "Badges", HT: "Badj" },
-  "nav.library": { EN: "Library", HT: "Bibliyotèk" },
-  "nav.dadPanel": { EN: "Parent Dashboard", HT: "Tablo Paran" },
-  "nav.tracks": { EN: "Tracks", HT: "Pis" },
-  "nav.trophies": { EN: "Trophies", HT: "Twofe" },
-  "nav.settings": { EN: "Settings", HT: "Paramèt" },
-  "nav.alerts": { EN: "Alerts", HT: "Alèt" },
+  "nav.today": { EN: "Today", HT: "Jodi a", FR: "Aujourd'hui", ES: "Hoy", PT: "Hoje", AR: "اليوم", ZH: "今天", DE: "Heute", JA: "今日", RU: "Сегодня" },
+  "nav.checkin": { EN: "Check-In", HT: "Tcheke", FR: "Pointage", ES: "Registro", PT: "Check-In", AR: "تسجيل", ZH: "签到", DE: "Check-In", JA: "チェックイン", RU: "Отметка" },
+  "nav.badges": { EN: "Badges", HT: "Badj", FR: "Badges", ES: "Insignias", PT: "Insígnias", AR: "شارات", ZH: "徽章", DE: "Abzeichen", JA: "バッジ", RU: "Значки" },
+  "nav.library": { EN: "Library", HT: "Bibliyotèk", FR: "Bibliothèque", ES: "Biblioteca", PT: "Biblioteca", AR: "مكتبة", ZH: "图书馆", DE: "Bibliothek", JA: "ライブラリ", RU: "Библиотека" },
+  "nav.dadPanel": { EN: "Parent Dashboard", HT: "Tablo Paran", FR: "Tableau de bord parent", ES: "Panel de padres", PT: "Painel dos pais", AR: "لوحة الوالدين", ZH: "家长仪表板", DE: "Eltern-Dashboard", JA: "保護者ダッシュボード", RU: "Панель родителя" },
+  "nav.tracks": { EN: "Tracks", HT: "Pis", FR: "Pistes", ES: "Pistas", PT: "Trilhas", AR: "مسارات", ZH: "学习轨道", DE: "Kurse", JA: "トラック", RU: "Треки" },
+  "nav.trophies": { EN: "Trophies", HT: "Twofe", FR: "Trophées", ES: "Trofeos", PT: "Troféus", AR: "جوائز", ZH: "奖杯", DE: "Trophäen", JA: "トロフィー", RU: "Трофеи" },
+  "nav.settings": { EN: "Settings", HT: "Paramèt", FR: "Paramètres", ES: "Configuración", PT: "Configurações", AR: "إعدادات", ZH: "设置", DE: "Einstellungen", JA: "設定", RU: "Настройки" },
+  "nav.alerts": { EN: "Alerts", HT: "Alèt", FR: "Alertes", ES: "Alertas", PT: "Alertas", AR: "تنبيهات", ZH: "提醒", DE: "Warnungen", JA: "アラート", RU: "Оповещения" },
   "nav.progress": { EN: "Today", HT: "Jodi a" },
-  "nav.schedule": { EN: "Schedule", HT: "Orè" },
-  "nav.feed": { EN: "Feed", HT: "Aktivite" },
-  "nav.curriculum": { EN: "Curriculum", HT: "Pwogram" },
-  "nav.certificates": { EN: "Certificates", HT: "Sètifika" },
-  "nav.reports": { EN: "Reports", HT: "Rapò" },
+  "nav.schedule": { EN: "Schedule", HT: "Orè", FR: "Horaire", ES: "Horario", PT: "Agenda", AR: "جدول", ZH: "日程", DE: "Zeitplan", JA: "スケジュール", RU: "Расписание" },
+  "nav.feed": { EN: "Feed", HT: "Aktivite", FR: "Activité", ES: "Actividad", PT: "Feed", AR: "النشاط", ZH: "动态", DE: "Feed", JA: "フィード", RU: "Лента" },
+  "nav.curriculum": { EN: "Curriculum", HT: "Pwogram", FR: "Programme", ES: "Currículo", PT: "Currículo", AR: "منهج", ZH: "课程", DE: "Lehrplan", JA: "カリキュラム", RU: "Учебный план" },
+  "nav.certificates": { EN: "Certificates", HT: "Sètifika", FR: "Certificats", ES: "Certificados", PT: "Certificados", AR: "شهادات", ZH: "证书", DE: "Zertifikate", JA: "証明書", RU: "Сертификаты" },
+  "nav.reports": { EN: "Reports", HT: "Rapò", FR: "Rapports", ES: "Informes", PT: "Relatórios", AR: "تقارير", ZH: "报告", DE: "Berichte", JA: "レポート", RU: "Отчёты" },
   "nav.telegram": { EN: "Telegram", HT: "Telegram" },
-  "nav.records": { EN: "Records", HT: "Dosye" },
+  "nav.records": { EN: "Records", HT: "Dosye", FR: "Dossiers", ES: "Registros", PT: "Registros", AR: "سجلات", ZH: "记录", DE: "Datensätze", JA: "記録", RU: "Записи" },
+  "nav.inbox": { EN: "Inbox", HT: "Bwat mesaj", FR: "Boîte de réception", ES: "Bandeja de entrada", PT: "Caixa de entrada", AR: "صندوق الوارد", ZH: "收件箱", DE: "Posteingang", JA: "受信トレイ", RU: "Входящие" },
 
   // Status
-  "status.planned": { EN: "Planned", HT: "Planifye" },
-  "status.inProgress": { EN: "In Progress", HT: "Ap fèt" },
-  "status.done": { EN: "Done", HT: "Fini" },
-  "status.missed": { EN: "Missed", HT: "Manke" },
+  "status.planned": { EN: "Planned", HT: "Planifye", FR: "Planifié", ES: "Planificado", PT: "Planejado", AR: "مخطط", ZH: "已计划", DE: "Geplant", JA: "計画済み", RU: "Запланировано" },
+  "status.inProgress": { EN: "In Progress", HT: "Ap fèt", FR: "En cours", ES: "En progreso", PT: "Em andamento", AR: "جارٍ", ZH: "进行中", DE: "In Arbeit", JA: "進行中", RU: "В процессе" },
+  "status.done": { EN: "Done", HT: "Fini", FR: "Terminé", ES: "Listo", PT: "Feito", AR: "تم", ZH: "完成", DE: "Erledigt", JA: "完了", RU: "Готово" },
+  "status.missed": { EN: "Missed", HT: "Manke", FR: "Manqué", ES: "Perdido", PT: "Perdido", AR: "فائت", ZH: "错过", DE: "Verpasst", JA: "欠席", RU: "Пропущено" },
 
   // Actions
-  "action.start": { EN: "Start Block", HT: "Kòmanse Blòk" },
-  "action.markDone": { EN: "Mark Done", HT: "Make Fini" },
-  "action.save": { EN: "Save", HT: "Sove" },
-  "action.cancel": { EN: "Cancel", HT: "Anile" },
-  "action.add": { EN: "Add", HT: "Ajoute" },
-  "action.edit": { EN: "Edit", HT: "Modifye" },
-  "action.delete": { EN: "Delete", HT: "Efase" },
-  "action.undo": { EN: "Undo", HT: "Defèt" },
-  "action.override": { EN: "Override", HT: "Remèt" },
-  "action.signOut": { EN: "Sign Out", HT: "Dekonekte" },
-  "action.signIn": { EN: "Sign In", HT: "Konekte" },
-  "action.signUp": { EN: "Sign Up", HT: "Enskri" },
-  "action.continueWith": { EN: "Continue with", HT: "Kontinye ak" },
-  "action.addStudent": { EN: "Add Student", HT: "Ajoute Elèv" },
-  "action.selectStudent": { EN: "Select Student", HT: "Chwazi Elèv" },
+  "action.start": { EN: "Start Block", HT: "Kòmanse Blòk", FR: "Démarrer le bloc", ES: "Iniciar bloque", PT: "Iniciar bloco", AR: "بدء الكتلة", ZH: "开始区块", DE: "Block starten", JA: "ブロック開始", RU: "Начать блок" },
+  "action.markDone": { EN: "Mark Done", HT: "Make Fini", FR: "Marquer terminé", ES: "Marcar listo", PT: "Marcar como feito", AR: "وضع علامة تم", ZH: "标记完成", DE: "Als erledigt markieren", JA: "完了にする", RU: "Отметить готовым" },
+  "action.save": { EN: "Save", HT: "Sove", FR: "Enregistrer", ES: "Guardar", PT: "Salvar", AR: "حفظ", ZH: "保存", DE: "Speichern", JA: "保存", RU: "Сохранить" },
+  "action.cancel": { EN: "Cancel", HT: "Anile", FR: "Annuler", ES: "Cancelar", PT: "Cancelar", AR: "إلغاء", ZH: "取消", DE: "Abbrechen", JA: "キャンセル", RU: "Отмена" },
+  "action.add": { EN: "Add", HT: "Ajoute", FR: "Ajouter", ES: "Agregar", PT: "Adicionar", AR: "إضافة", ZH: "添加", DE: "Hinzufügen", JA: "追加", RU: "Добавить" },
+  "action.edit": { EN: "Edit", HT: "Modifye", FR: "Modifier", ES: "Editar", PT: "Editar", AR: "تعديل", ZH: "编辑", DE: "Bearbeiten", JA: "編集", RU: "Изменить" },
+  "action.delete": { EN: "Delete", HT: "Efase", FR: "Supprimer", ES: "Eliminar", PT: "Excluir", AR: "حذف", ZH: "删除", DE: "Löschen", JA: "削除", RU: "Удалить" },
+  "action.undo": { EN: "Undo", HT: "Defèt", FR: "Annuler", ES: "Deshacer", PT: "Desfazer", AR: "تراجع", ZH: "撤销", DE: "Rückgängig", JA: "元に戻す", RU: "Отменить" },
+  "action.override": { EN: "Override", HT: "Remèt", FR: "Remplacer", ES: "Anular", PT: "Substituir", AR: "تجاوز", ZH: "覆盖", DE: "Überschreiben", JA: "上書き", RU: "Переопределить" },
+  "action.signOut": { EN: "Sign Out", HT: "Dekonekte", FR: "Se déconnecter", ES: "Cerrar sesión", PT: "Sair", AR: "تسجيل خروج", ZH: "退出", DE: "Abmelden", JA: "ログアウト", RU: "Выйти" },
+  "action.signIn": { EN: "Sign In", HT: "Konekte", FR: "Se connecter", ES: "Iniciar sesión", PT: "Entrar", AR: "تسجيل دخول", ZH: "登录", DE: "Anmelden", JA: "ログイン", RU: "Войти" },
+  "action.signUp": { EN: "Sign Up", HT: "Enskri", FR: "S'inscrire", ES: "Registrarse", PT: "Cadastrar-se", AR: "تسجيل", ZH: "注册", DE: "Registrieren", JA: "サインアップ", RU: "Регистрация" },
+  "action.continueWith": { EN: "Continue with", HT: "Kontinye ak", FR: "Continuer avec", ES: "Continuar con", PT: "Continuar com", AR: "متابعة مع", ZH: "继续使用", DE: "Weiter mit", JA: "続行", RU: "Продолжить с" },
+  "action.addStudent": { EN: "Add Student", HT: "Ajoute Elèv", FR: "Ajouter un élève", ES: "Agregar estudiante", PT: "Adicionar aluno", AR: "إضافة طالب", ZH: "添加学生", DE: "Schüler hinzufügen", JA: "生徒を追加", RU: "Добавить ученика" },
+  "action.selectStudent": { EN: "Select Student", HT: "Chwazi Elèv", FR: "Sélectionner un élève", ES: "Seleccionar estudiante", PT: "Selecionar aluno", AR: "اختيار طالب", ZH: "选择学生", DE: "Schüler auswählen", JA: "生徒を選択", RU: "Выбрать ученика" },
 
   // Mood & Focus
   "mood.good": { EN: "Good 😊", HT: "Bon 😊" },
@@ -59,12 +85,12 @@ const translations: Record<string, Record<Lang, string>> = {
   "focus.low": { EN: "Low 🐢", HT: "Ba 🐢" },
 
   // Check-in
-  "checkin.mood": { EN: "How are you feeling?", HT: "Kijan ou santi ou?" },
-  "checkin.focus": { EN: "How is your focus?", HT: "Kijan konsantrasyon ou ye?" },
-  "checkin.needHelp": { EN: "Do you need help?", HT: "Èske ou bezwen èd?" },
-  "checkin.comment": { EN: "Any comments?", HT: "Kòmantè?" },
-  "checkin.submit": { EN: "Submit Check-In", HT: "Soumèt Tcheke" },
-  "checkin.success": { EN: "Check-in submitted!", HT: "Tcheke soumèt!" },
+  "checkin.mood": { EN: "How are you feeling?", HT: "Kijan ou santi ou?", FR: "Comment vous sentez-vous?", ES: "¿Cómo te sientes?", PT: "Como você está?", AR: "كيف تشعر؟", ZH: "你感觉怎么样？", DE: "Wie fühlst du dich?", JA: "気分はどうですか？", RU: "Как ты себя чувствуешь?" },
+  "checkin.focus": { EN: "How is your focus?", HT: "Kijan konsantrasyon ou ye?", FR: "Comment est votre concentration?", ES: "¿Cómo es tu concentración?", PT: "Como está seu foco?", AR: "كيف تركيزك؟", ZH: "你的专注力如何？", DE: "Wie ist deine Konzentration?", JA: "集中力はどうですか？", RU: "Как с концентрацией?" },
+  "checkin.needHelp": { EN: "Do you need help?", HT: "Èske ou bezwen èd?", FR: "Avez-vous besoin d'aide?", ES: "¿Necesitas ayuda?", PT: "Precisa de ajuda?", AR: "هل تحتاج مساعدة؟", ZH: "你需要帮助吗？", DE: "Brauchst du Hilfe?", JA: "助けが必要ですか？", RU: "Нужна помощь?" },
+  "checkin.comment": { EN: "Any comments?", HT: "Kòmantè?", FR: "Des commentaires?", ES: "¿Algún comentario?", PT: "Comentários?", AR: "أي تعليقات؟", ZH: "有什么意见？", DE: "Kommentare?", JA: "コメントは？", RU: "Комментарии?" },
+  "checkin.submit": { EN: "Submit Check-In", HT: "Soumèt Tcheke", FR: "Soumettre le pointage", ES: "Enviar registro", PT: "Enviar check-in", AR: "إرسال التسجيل", ZH: "提交签到", DE: "Check-In absenden", JA: "チェックインを送信", RU: "Отправить отметку" },
+  "checkin.success": { EN: "Check-in submitted!", HT: "Tcheke soumèt!", FR: "Pointage soumis!", ES: "¡Registro enviado!", PT: "Check-in enviado!", AR: "تم إرسال التسجيل!", ZH: "签到已提交！", DE: "Check-In eingereicht!", JA: "チェックイン送信済み！", RU: "Отметка отправлена!" },
 
   // Badges
   "badge.champion": { EN: "🏆 Champion of the Week!", HT: "🏆 Chanpyon Semèn nan!" },
@@ -73,17 +99,17 @@ const translations: Record<string, Record<Lang, string>> = {
   "badge.newWeek": { EN: "🔄 New Week, New Start!", HT: "🔄 Nouvo Semèn, Nouvo Kòmansman!" },
 
   // Greetings
-  "greeting.morning": { EN: "Good morning", HT: "Bonjou" },
-  "greeting.afternoon": { EN: "Good afternoon", HT: "Bonswa" },
-  "greeting.evening": { EN: "Good evening", HT: "Bonswa" },
+  "greeting.morning": { EN: "Good morning", HT: "Bonjou", FR: "Bonjour", ES: "Buenos días", PT: "Bom dia", AR: "صباح الخير", ZH: "早上好", DE: "Guten Morgen", JA: "おはようございます", RU: "Доброе утро" },
+  "greeting.afternoon": { EN: "Good afternoon", HT: "Bonswa", FR: "Bon après-midi", ES: "Buenas tardes", PT: "Boa tarde", AR: "مساء الخير", ZH: "下午好", DE: "Guten Nachmittag", JA: "こんにちは", RU: "Добрый день" },
+  "greeting.evening": { EN: "Good evening", HT: "Bonswa", FR: "Bonsoir", ES: "Buenas noches", PT: "Boa noite", AR: "مساء الخير", ZH: "晚上好", DE: "Guten Abend", JA: "こんばんは", RU: "Добрый вечер" },
 
   // Roles
-  "role.student": { EN: "Student", HT: "Elèv" },
-  "role.parent": { EN: "Parent/Admin", HT: "Paran/Admin" },
+  "role.student": { EN: "Student", HT: "Elèv", FR: "Élève", ES: "Estudiante", PT: "Aluno", AR: "طالب", ZH: "学生", DE: "Schüler", JA: "生徒", RU: "Ученик" },
+  "role.parent": { EN: "Parent/Admin", HT: "Paran/Admin", FR: "Parent/Admin", ES: "Padre/Admin", PT: "Pai/Admin", AR: "والد/مسؤول", ZH: "家长/管理员", DE: "Eltern/Admin", JA: "保護者/管理者", RU: "Родитель/Админ" },
 
   // Yes/No
-  "yes": { EN: "Yes", HT: "Wi" },
-  "no": { EN: "No", HT: "Non" },
+  "yes": { EN: "Yes", HT: "Wi", FR: "Oui", ES: "Sí", PT: "Sim", AR: "نعم", ZH: "是", DE: "Ja", JA: "はい", RU: "Да" },
+  "no": { EN: "No", HT: "Non", FR: "Non", ES: "No", PT: "Não", AR: "لا", ZH: "否", DE: "Nein", JA: "いいえ", RU: "Нет" },
 
   // Blocks & Scores
   "blocks.done": { EN: "Blocks Done", HT: "Blòk Fini" },
@@ -96,9 +122,9 @@ const translations: Record<string, Record<Lang, string>> = {
   "library.t4l": { EN: "Open Time4Learning", HT: "Louvri Time4Learning" },
 
   // Auth
-  "auth.email": { EN: "Email", HT: "Imèl" },
-  "auth.password": { EN: "Password", HT: "Modpas" },
-  "auth.displayName": { EN: "Display Name", HT: "Non Afichaj" },
+  "auth.email": { EN: "Email", HT: "Imèl", FR: "Courriel", ES: "Correo", PT: "E-mail", AR: "بريد إلكتروني", ZH: "电子邮件", DE: "E-Mail", JA: "メール", RU: "Электронная почта" },
+  "auth.password": { EN: "Password", HT: "Modpas", FR: "Mot de passe", ES: "Contraseña", PT: "Senha", AR: "كلمة المرور", ZH: "密码", DE: "Passwort", JA: "パスワード", RU: "Пароль" },
+  "auth.displayName": { EN: "Display Name", HT: "Non Afichaj", FR: "Nom d'affichage", ES: "Nombre", PT: "Nome de exibição", AR: "اسم العرض", ZH: "显示名称", DE: "Anzeigename", JA: "表示名", RU: "Отображаемое имя" },
   "auth.signingIn": { EN: "Signing in...", HT: "Ap konekte..." },
   "auth.creatingAccount": { EN: "Creating account...", HT: "Ap kreye kont..." },
   "auth.noAccount": { EN: "Don't have an account?", HT: "Ou pa gen kont?" },
@@ -186,7 +212,7 @@ const translations: Record<string, Record<Lang, string>> = {
   "schedule.blockOrder": { EN: "Block Order", HT: "Lòd Blòk" },
 
   // Misc
-  "loading": { EN: "Loading...", HT: "Ap chaje..." },
+  "loading": { EN: "Loading...", HT: "Ap chaje...", FR: "Chargement...", ES: "Cargando...", PT: "Carregando...", AR: "جارٍ التحميل...", ZH: "加载中...", DE: "Laden...", JA: "読み込み中...", RU: "Загрузка..." },
   "noAlerts": { EN: "No alerts", HT: "Pa gen alèt" },
   "helpNeeded": { EN: "Help Needed", HT: "Bezwen Èd" },
   "done": { EN: "Done", HT: "Fini" },
@@ -271,24 +297,175 @@ const translations: Record<string, Record<Lang, string>> = {
 
   // Nav
   "nav.openMenu": { EN: "Open menu", HT: "Louvri meni" },
+
+  // ── Guardians ──
+  "guardians.title": {
+    EN: "Co-Guardians", HT: "Ko-gadyen", FR: "Co-tuteurs", ES: "Co-tutores",
+    PT: "Co-responsáveis", AR: "أولياء مشاركون", ZH: "共同监护人",
+    DE: "Mit-Erziehungsberechtigte", JA: "共同保護者", RU: "Со-опекуны",
+  },
+  "guardians.add": {
+    EN: "Invite Co-Guardian", HT: "Envite yon ko-gadyen", FR: "Inviter un co-tuteur", ES: "Invitar co-tutor",
+    PT: "Convidar co-responsável", AR: "دعوة ولي مشارك", ZH: "邀请共同监护人",
+    DE: "Mit-Erziehungsberechtigten einladen", JA: "共同保護者を招待", RU: "Пригласить со-опекуна",
+  },
+  "guardians.invite_sent": {
+    EN: "Invite sent", HT: "Envitasyon voye", FR: "Invitation envoyée", ES: "Invitación enviada",
+    PT: "Convite enviado", AR: "تم إرسال الدعوة", ZH: "邀请已发送",
+    DE: "Einladung gesendet", JA: "招待を送信しました", RU: "Приглашение отправлено",
+  },
+  "guardians.invite_placeholder": {
+    EN: "Enter their email address", HT: "Antre adrès imèl yo", FR: "Entrez leur adresse courriel", ES: "Ingresa su correo electrónico",
+    PT: "Digite o e-mail", AR: "أدخل عنوان بريدهم", ZH: "输入邮箱地址",
+    DE: "E-Mail-Adresse eingeben", JA: "メールアドレスを入力", RU: "Введите email",
+  },
+  "guardians.send_invite": {
+    EN: "Send Invite", HT: "Voye envitasyon", FR: "Envoyer l'invitation", ES: "Enviar invitación",
+    PT: "Enviar convite", AR: "إرسال الدعوة", ZH: "发送邀请",
+    DE: "Einladung senden", JA: "招待を送信", RU: "Отправить приглашение",
+  },
+  "guardians.pending": {
+    EN: "Pending", HT: "Annatant", FR: "En attente", ES: "Pendiente",
+    PT: "Pendente", AR: "معلّق", ZH: "待处理",
+    DE: "Ausstehend", JA: "保留中", RU: "Ожидает",
+  },
+  "guardians.active": {
+    EN: "Active", HT: "Aktif", FR: "Actif", ES: "Activo",
+    PT: "Ativo", AR: "نشط", ZH: "活跃",
+    DE: "Aktiv", JA: "有効", RU: "Активный",
+  },
+  "guardians.revoke": {
+    EN: "Revoke access", HT: "Retire aksè", FR: "Révoquer l'accès", ES: "Revocar acceso",
+    PT: "Revogar acesso", AR: "إلغاء الوصول", ZH: "撤销访问",
+    DE: "Zugriff widerrufen", JA: "アクセスを取り消す", RU: "Отозвать доступ",
+  },
+  "guardians.permissions": {
+    EN: "Permissions", HT: "Pèmisyon", FR: "Permissions", ES: "Permisos",
+    PT: "Permissões", AR: "الأذونات", ZH: "权限",
+    DE: "Berechtigungen", JA: "権限", RU: "Разрешения",
+  },
+  "guardians.view_progress": {
+    EN: "View student progress", HT: "Wè pwogrè elèv", FR: "Voir la progression", ES: "Ver progreso",
+    PT: "Ver progresso", AR: "عرض تقدم الطالب", ZH: "查看学生进度",
+    DE: "Fortschritt anzeigen", JA: "生徒の進捗を見る", RU: "Просмотр прогресса",
+  },
+  "guardians.receive_sos": {
+    EN: "Receive SOS alerts", HT: "Resevwa alèt SOS", FR: "Recevoir les alertes SOS", ES: "Recibir alertas SOS",
+    PT: "Receber alertas SOS", AR: "استقبال تنبيهات SOS", ZH: "接收SOS警报",
+    DE: "SOS-Alarme empfangen", JA: "SOSアラートを受信", RU: "Получать SOS-оповещения",
+  },
+  "guardians.approve_rewards": {
+    EN: "Approve & deny rewards", HT: "Apwouve rekonpans", FR: "Approuver les récompenses", ES: "Aprobar recompensas",
+    PT: "Aprovar recompensas", AR: "الموافقة على المكافآت", ZH: "审批奖励",
+    DE: "Belohnungen genehmigen", JA: "報酬を承認", RU: "Одобрять награды",
+  },
+  "guardians.edit_lessons": {
+    EN: "Add & edit lessons", HT: "Ajoute ak modifye leson", FR: "Ajouter et modifier les leçons", ES: "Agregar y editar lecciones",
+    PT: "Adicionar e editar aulas", AR: "إضافة وتعديل الدروس", ZH: "添加和编辑课程",
+    DE: "Lektionen hinzufügen", JA: "レッスンの追加・編集", RU: "Добавлять и редактировать уроки",
+  },
+  "guardians.full_access": {
+    EN: "Full access", HT: "Aksè konplè", FR: "Accès complet", ES: "Acceso completo",
+    PT: "Acesso completo", AR: "وصول كامل", ZH: "完全访问",
+    DE: "Vollzugriff", JA: "フルアクセス", RU: "Полный доступ",
+  },
+  "guardians.no_guardians": {
+    EN: "No co-guardians added yet", HT: "Pa gen ko-gadyen ankò", FR: "Aucun co-tuteur ajouté", ES: "Sin co-tutores aún",
+    PT: "Nenhum co-responsável", AR: "لا أولياء مشاركون بعد", ZH: "尚无共同监护人",
+    DE: "Noch keine Mit-Erziehungsberechtigten", JA: "共同保護者はまだいません", RU: "Со-опекуны не добавлены",
+  },
+  "guardians.invite_accepted": {
+    EN: "Invite accepted", HT: "Envitasyon aksepte", FR: "Invitation acceptée", ES: "Invitación aceptada",
+    PT: "Convite aceito", AR: "تم قبول الدعوة", ZH: "邀请已接受",
+    DE: "Einladung angenommen", JA: "招待が受け入れられました", RU: "Приглашение принято",
+  },
+  "guardians.manage": {
+    EN: "Manage", HT: "Jere", FR: "Gérer", ES: "Gestionar",
+    PT: "Gerenciar", AR: "إدارة", ZH: "管理",
+    DE: "Verwalten", JA: "管理", RU: "Управление",
+  },
+
+  // ── Inbox ──
+  "inbox.title": {
+    EN: "Inbox", HT: "Bwat mesaj", FR: "Boîte de réception", ES: "Bandeja de entrada",
+    PT: "Caixa de entrada", AR: "صندوق الوارد", ZH: "收件箱",
+    DE: "Posteingang", JA: "受信トレイ", RU: "Входящие",
+  },
+  "inbox.empty": {
+    EN: "No messages yet", HT: "Pa gen mesaj", FR: "Aucun message", ES: "Sin mensajes",
+    PT: "Nenhuma mensagem", AR: "لا رسائل بعد", ZH: "暂无消息",
+    DE: "Noch keine Nachrichten", JA: "メッセージはありません", RU: "Сообщений нет",
+  },
+  "inbox.mark_read": {
+    EN: "Mark as read", HT: "Mak kòm li", FR: "Marquer comme lu", ES: "Marcar como leído",
+    PT: "Marcar como lido", AR: "وضع علامة مقروء", ZH: "标记为已读",
+    DE: "Als gelesen markieren", JA: "既読にする", RU: "Отметить прочитанным",
+  },
+  "inbox.mark_all_read": {
+    EN: "Mark all as read", HT: "Mak tout kòm li", FR: "Tout marquer comme lu", ES: "Marcar todo como leído",
+    PT: "Marcar tudo como lido", AR: "تحديد الكل مقروء", ZH: "全部标记为已读",
+    DE: "Alle als gelesen markieren", JA: "すべて既読にする", RU: "Отметить все прочитанным",
+  },
+  "inbox.all": {
+    EN: "All", HT: "Tout", FR: "Tout", ES: "Todos",
+    PT: "Todos", AR: "الكل", ZH: "全部",
+    DE: "Alle", JA: "すべて", RU: "Все",
+  },
+  "inbox.unread": {
+    EN: "Unread", HT: "Pa li", FR: "Non lu", ES: "No leído",
+    PT: "Não lido", AR: "غير مقروء", ZH: "未读",
+    DE: "Ungelesen", JA: "未読", RU: "Непрочитанные",
+  },
+  "inbox.sos": {
+    EN: "SOS", HT: "SOS", FR: "SOS", ES: "SOS",
+    PT: "SOS", AR: "SOS", ZH: "SOS",
+    DE: "SOS", JA: "SOS", RU: "SOS",
+  },
+  "inbox.lessons": {
+    EN: "Lessons", HT: "Leson", FR: "Leçons", ES: "Lecciones",
+    PT: "Aulas", AR: "دروس", ZH: "课程",
+    DE: "Lektionen", JA: "レッスン", RU: "Уроки",
+  },
+  "inbox.rewards": {
+    EN: "Rewards", HT: "Rekonpans", FR: "Récompenses", ES: "Recompensas",
+    PT: "Recompensas", AR: "مكافآت", ZH: "奖励",
+    DE: "Belohnungen", JA: "報酬", RU: "Награды",
+  },
+  "inbox.streaks": {
+    EN: "Streaks", HT: "Seri", FR: "Séries", ES: "Rachas",
+    PT: "Sequências", AR: "سلاسل", ZH: "连续记录",
+    DE: "Serien", JA: "ストリーク", RU: "Серии",
+  },
+  "inbox.from": {
+    EN: "From", HT: "De", FR: "De", ES: "De",
+    PT: "De", AR: "من", ZH: "来自",
+    DE: "Von", JA: "差出人", RU: "От",
+  },
+  "inbox.new_badge": {
+    EN: "New", HT: "Nouvo", FR: "Nouveau", ES: "Nuevo",
+    PT: "Novo", AR: "جديد", ZH: "新",
+    DE: "Neu", JA: "新着", RU: "Новое",
+  },
 };
 
 interface I18nContextType {
   lang: Lang;
   setLang: (l: Lang) => void;
   t: (key: string) => string;
+  languages: LangOption[];
 }
 
 const I18nContext = createContext<I18nContextType>({
   lang: "EN",
   setLang: () => {},
   t: (key) => key,
+  languages: LANGUAGES,
 });
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [lang, setLangState] = useState<Lang>(() => {
     const saved = localStorage.getItem("im_lang");
-    return (saved === "HT" ? "HT" : "EN") as Lang;
+    return (saved && VALID_LANGS.includes(saved as Lang)) ? saved as Lang : "EN";
   });
 
   const setLang = useCallback((l: Lang) => {
@@ -299,7 +476,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   const t = useCallback((key: string) => translations[key]?.[lang] || translations[key]?.["EN"] || key, [lang]);
 
   return (
-    <I18nContext.Provider value={{ lang, setLang, t }}>
+    <I18nContext.Provider value={{ lang, setLang, t, languages: LANGUAGES }}>
       {children}
     </I18nContext.Provider>
   );
@@ -307,3 +484,4 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
 
 export const useI18n = () => useContext(I18nContext);
 export type { Lang };
+export { LANGUAGES };
