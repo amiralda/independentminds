@@ -1044,5 +1044,5 @@ For the most current visual reference, visit the live application.
 
 ---
 
-*Independent Minds EDU v4.0 — Built with ❤️ by Dany Augustin*  
+*Independent Minds EDU v4.1 — Built with Love by KòdLabo*  
 *© 2026 Independent Minds EDU. All rights reserved.*
