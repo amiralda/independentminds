@@ -183,6 +183,9 @@ const Index = () => {
 
       {/* Add Student Dialog */}
       <AddStudentForm open={showAddStudent} onClose={() => setShowAddStudent(false)} />
+
+      {/* Student Help Guide */}
+      <StudentHelpGuide open={showHelpGuide} onClose={() => setShowHelpGuide(false)} />
     </div>
   );
 };
