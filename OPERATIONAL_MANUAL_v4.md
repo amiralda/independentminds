@@ -870,7 +870,7 @@ AI conversations are persisted for active tutoring continuity but:
 
 ---
 
-## 16. Error Handling and Resilience
+## 19. Error Handling and Resilience
 
 ### Error Strategy
 
