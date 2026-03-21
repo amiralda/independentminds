@@ -304,7 +304,121 @@ Students can opt in to browser push notifications:
 
 ---
 
-## 6. Gamification and Rewards System
+## 6. Admin Panel (v4.1)
+
+### Overview
+
+The admin panel is a completely isolated surface accessible only to users with the `admin` role in `user_roles`. It provides read-only analytics across all families on the platform. Admin access is enforced at both the RLS layer (`has_role(auth.uid(), 'admin')`) and frontend routing.
+
+### Navigation
+
+The admin panel has its own dark sidebar layout with 7 sections:
+
+| Section | Route | Description |
+|---------|-------|-------------|
+| Overview | `/admin` | Metric cards, weekly completions chart, pace tracker |
+| Students | `/admin/students` | Full student table with velocity, streak, pace badges |
+| Engagement | `/admin/engagement` | Streak leaderboards, mood charts, daily completion trends |
+| Rewards | `/admin/rewards` | Points economy analytics, popular rewards, pending redemptions |
+| System | `/admin/system` | Edge function status, rate limits, flagged AI inputs |
+| Messages | `/admin/messages` | Delivery rates, channel breakdown, delivery logs |
+| Users | `/admin/users` | Parent accounts, co-guardian overview, merge requests, role management |
+
+### Access Control
+
+- Admin role stored in `user_roles` table (separate from profiles)
+- `has_role()` security-definer function prevents RLS recursion
+- Admin link (Shield icon) visible in parent dashboard header for admin users
+- "Parent Dashboard" link in admin sidebar for switching back
+- All admin queries are read-only — no mutation from admin surface
+
+### Real-Time Refresh
+
+Admin dashboard metrics auto-refresh every 30 seconds using the `useAutoRefresh` hook, providing live data without page reloads.
+
+---
+
+## 7. Co-Guardian System (v4.1)
+
+### Overview
+
+The primary parent (account owner) can invite additional co-guardians per student. Each co-guardian has a granular permission set controlled with individual on/off toggles. Co-guardians are added via secure token-based invite links.
+
+### Database Tables
+
+| Table | Purpose |
+|-------|---------|
+| `guardian_invites` | Stores pending/accepted/revoked invite tokens with 7-day expiry |
+| `co_guardians` | Active co-guardian relationships with 5 permission toggles |
+
+### Permission Model
+
+| Permission | Default | Description |
+|-----------|---------|-------------|
+| `can_view_progress` | ✅ ON | View student progress (always on, minimum permission) |
+| `can_receive_sos` | ❌ OFF | Receive SOS alerts |
+| `can_approve_rewards` | ❌ OFF | Approve & deny reward redemptions |
+| `can_edit_lessons` | ❌ OFF | Add & edit lessons |
+| `is_full_access` | ❌ OFF | Enables all permissions; disabling reverts to individual states |
+
+### Invite Flow
+
+1. Primary parent enters email in the Co-Guardians section (above Students in sidebar)
+2. `send-guardian-invite` edge function validates ownership, creates invite, sends branded email
+3. Invitee receives email with accept link (`/accept-invite?token=...`)
+4. If not logged in, invitee is redirected to login/signup first
+5. `accept-guardian-invite` edge function validates token, creates co-guardian record
+6. Primary parent is notified via inbox
+7. Primary parent manages permissions via toggle switches
+
+### Security
+
+- Invite tokens are 64-character hex, single-use, expire after 7 days
+- Self-accept is blocked (primary parent cannot accept their own invite)
+- Permissions enforced at DB layer via `has_guardian_permission()` security-definer
+- Co-guardians cannot elevate their own permissions
+- RLS policies ensure co-guardians only see students they co-manage
+
+### UI Location
+
+Co-Guardians section is positioned **above the Students section** in the parent dashboard sidebar, making it the first management area visible when opening the menu.
+
+---
+
+## 8. Unified Message Inbox (v4.1)
+
+### Overview
+
+All alerts (SOS, lesson completions, streak milestones, reward redemptions) are stored as messages in the `inbox_messages` table. Parents access them via the Inbox tab in the sidebar.
+
+### Message Types
+
+| Type | Source | Icon Color |
+|------|--------|-----------|
+| `sos` | parent-alerts edge function | Red |
+| `lesson_completed` | parent-alerts, daily-report | Teal |
+| `streak_milestone` | weekly-badge | Purple |
+| `reward_redeemed` | reward processing | Amber |
+| `inactivity_alert` | monitoring | Gray |
+
+### Features
+
+- **Filter Tabs**: All, Unread, SOS, Lessons, Rewards, Streaks
+- **Read-Once Dashboard Banners**: SOS banners clear after reading in inbox
+- **Unread Badge**: Red count badge on Inbox nav link, updates in real-time
+- **Mark All Read**: Bulk mark-as-read button
+- **Co-Guardian Access**: Co-guardians with `can_receive_sos` see SOS messages only
+
+### Edge Function Integration
+
+The following edge functions insert into `inbox_messages` alongside their existing notification channels:
+- `parent-alerts` — maps `help_needed` → SOS, `track_completed` → lesson_completed, `badge_earned` → streak_milestone
+- `weekly-badge` — inserts streak_milestone messages with badge details
+- `daily-report` — inserts lesson_completed summary messages
+
+---
+
+## 9. Gamification and Rewards System
 
 ### Points Economy
 
