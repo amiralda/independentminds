@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { UserPlus, Shield, Trash2, Mail } from "lucide-react";
+import { UserPlus, Shield, Trash2, Mail, Copy, Check } from "lucide-react";
 
 interface Props {
   studentId: string;
