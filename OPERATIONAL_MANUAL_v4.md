@@ -952,7 +952,7 @@ All 12 checks pass as of v4.0.
 
 ---
 
-## 19. PWA and Mobile Experience
+## 22. PWA and Mobile Experience
 
 ### PWA Features
 
