@@ -19,6 +19,17 @@ export function CoGuardiansPanel({ studentId }: Props) {
   const queryClient = useQueryClient();
   const [email, setEmail] = useState("");
   const [sending, setSending] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const siteUrl = "https://independentminds.lovable.app";
+
+  const copyInviteLink = async (token: string, id: string) => {
+    const link = `${siteUrl}/accept-invite?token=${token}`;
+    await navigator.clipboard.writeText(link);
+    setCopiedId(id);
+    toast.success(t("guardians.link_copied") || "Invite link copied!");
+    setTimeout(() => setCopiedId(null), 2000);
+  };
 
   const { data: guardians = [] } = useQuery({
     queryKey: ["co_guardians", studentId],
