@@ -479,38 +479,46 @@ Please check on your student.
 
 ---
 
-## 11. Internationalization
+## 14. Internationalization
 
-### Supported Languages
+### Supported Languages (v4.1)
 
-| Code | Language | Coverage |
-|------|----------|----------|
-| EN | English | 100% |
-| HT | Haitian Creole (Kreyòl) | 100% |
+| Code | Language | Flag | Coverage |
+|------|----------|------|----------|
+| EN | English | 🇺🇸 | 100% |
+| HT | Haitian Creole (Kreyòl) | 🇭🇹 | 100% |
+| FR | Français | 🇫🇷 | 100% |
+| ES | Español | 🇪🇸 | 100% |
+| PT | Português | 🇧🇷 | 100% |
+| AR | العربية | 🇸🇦 | 100% |
+| ZH | 中文 | 🇨🇳 | 100% |
+| DE | Deutsch | 🇩🇪 | 100% |
+| JA | 日本語 | 🇯🇵 | 100% |
+| RU | Русский | 🇷🇺 | 100% |
 
 ### Implementation
 
 The `useI18n()` hook from `src/lib/i18n.tsx` provides:
 - `lang` — current language code
-- `t(key)` — translation lookup
+- `t(key)` — translation lookup with nested key support
 - `setLang(code)` — language switcher
 
 Language preference is stored in `profiles.language_pref` and `students.language_pref`.
 
-### Translation Keys (v4.0 additions)
+The language selector is a dropdown (replacing the previous 🇺🇸/🇭🇹 toggle) showing all 10 languages with their flags and native labels, available from every view.
 
-All new features include bilingual translations:
-- Signup adult confirmation
-- Privacy and Terms page titles
-- Account deletion UI
-- Offline indicators and sync messages
-- Onboarding step labels
-- Reward suggestion names
+### Translation Keys (150+)
+
+All features include translations across all 10 languages:
+- Core navigation and UI labels
+- Co-guardian system (invite, permissions, management)
+- Message inbox (filters, status labels, actions)
+- Signup, privacy, terms, deletion
+- Offline indicators, sync messages
+- Onboarding steps, reward suggestions
+- AI tutor, rate limit messages
+- MFA, notification settings
 - Accessibility labels
-- Notification settings
-- AI rate limit messages
-- MFA setup strings
-- Navigation labels
 
 ---
 
