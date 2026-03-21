@@ -144,7 +144,7 @@ const Index = () => {
           <div className="flex items-center gap-2">
             {role === "parent" && (
               <button
-                onClick={() => setParentTab("inbox")}
+                onClick={() => { setParentTab("inbox"); setParentTabKey(k => k + 1); }}
                 className={`relative text-primary-foreground/70 hover:text-primary-foreground p-1 transition-transform ${bellRing ? "animate-bell-ring" : ""}`}
                 title={lang === "HT" ? "Bwat Mesaj" : "Inbox"}
                 aria-label={lang === "HT" ? "Bwat Mesaj" : "Inbox"}
