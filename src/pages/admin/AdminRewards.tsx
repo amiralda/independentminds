@@ -9,6 +9,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGri
 export default function AdminRewards() {
   const [stats, setStats] = useState({ issued: 0, redeemed: 0, pending: 0, catalogItems: 0 });
   const [pendingList, setPendingList] = useState<any[]>([]);
+  const tick = useAutoRefresh();
 
   useEffect(() => {
     const load = async () => {
