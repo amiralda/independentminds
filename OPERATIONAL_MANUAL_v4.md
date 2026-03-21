@@ -638,11 +638,11 @@ All features include translations across all 10 languages:
 
 ---
 
-## 12. Security Model
+## 15. Security Model
 
 ### Row-Level Security (RLS)
 
-Every table in the database has RLS enabled. All 19 tables have appropriate policies:
+Every table in the database has RLS enabled. All 25 tables have appropriate policies:
 
 | Table | SELECT | INSERT | UPDATE | DELETE |
 |-------|--------|--------|--------|--------|
