@@ -53,6 +53,7 @@ export function TodayBlocks({ blocks, onRefresh }: Props) {
   const { profile } = useAuth();
   const checkBadges = useCheckAndAwardBadges(profile?.studentId || "CHRIS");
   const awardPoints = useAwardPoints();
+  const { data: pointSettings = [] } = usePointSettings(profile?.studentId || null);
   const [completingBlock, setCompletingBlock] = useState<Block | null>(null);
   const [showRecords, setShowRecords] = useState(false);
   const [rating, setRating] = useState(3);
