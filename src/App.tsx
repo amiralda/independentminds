@@ -21,6 +21,7 @@ import AdminRewards from "./pages/admin/AdminRewards";
 import AdminSystem from "./pages/admin/AdminSystem";
 import AdminMessages from "./pages/admin/AdminMessages";
 import AdminUsers from "./pages/admin/AdminUsers";
+import AcceptInvite from "./pages/AcceptInvite";
 
 const queryClient = new QueryClient();
 
