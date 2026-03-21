@@ -87,7 +87,7 @@ Deno.serve(async (req) => {
     const { data: parentSettings } = await supabase
       .from("parent_settings")
       .select("telegram_bot_token, telegram_chat_id")
-      .eq("user_id", callingUserId)
+      .eq("user_id", parentUserId)
       .single();
 
     if (parentSettings?.telegram_bot_token && parentSettings?.telegram_chat_id) {
