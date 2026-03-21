@@ -136,6 +136,63 @@ export type Database = {
         }
         Relationships: []
       }
+      challenges: {
+        Row: {
+          bonus_points: number
+          category_filter: string | null
+          challenge_type: string
+          completed_at: string | null
+          created_at: string
+          current_count: number
+          description: string | null
+          ends_at: string
+          id: string
+          starts_at: string
+          status: string
+          student_id: string
+          subject_filter: string | null
+          target_count: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          bonus_points?: number
+          category_filter?: string | null
+          challenge_type?: string
+          completed_at?: string | null
+          created_at?: string
+          current_count?: number
+          description?: string | null
+          ends_at?: string
+          id?: string
+          starts_at?: string
+          status?: string
+          student_id: string
+          subject_filter?: string | null
+          target_count?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          bonus_points?: number
+          category_filter?: string | null
+          challenge_type?: string
+          completed_at?: string | null
+          created_at?: string
+          current_count?: number
+          description?: string | null
+          ends_at?: string
+          id?: string
+          starts_at?: string
+          status?: string
+          student_id?: string
+          subject_filter?: string | null
+          target_count?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       check_ins: {
         Row: {
           blocks_done: number
@@ -435,6 +492,36 @@ export type Database = {
           user_id?: string
           whatsapp_enabled?: boolean
           whatsapp_number?: string | null
+        }
+        Relationships: []
+      }
+      point_settings: {
+        Row: {
+          action_key: string
+          created_at: string
+          enabled: boolean
+          id: string
+          points: number
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          action_key: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          points?: number
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          action_key?: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          points?: number
+          student_id?: string
+          updated_at?: string
         }
         Relationships: []
       }
