@@ -114,12 +114,7 @@ const Index = () => {
           <div className="flex items-center gap-2">
             {role === "parent" && (
               <button
-                onClick={() => {
-                  // Navigate to inbox tab in DadPanel
-                  const dadPanel = document.querySelector('[data-tab="inbox"]') as HTMLButtonElement;
-                  if (dadPanel) dadPanel.click();
-                  else navigate("/?tab=inbox");
-                }}
+                onClick={() => setParentTab("inbox")}
                 className="relative text-primary-foreground/70 hover:text-primary-foreground p-1"
                 title={lang === "HT" ? "Bwat Mesaj" : "Inbox"}
                 aria-label={lang === "HT" ? "Bwat Mesaj" : "Inbox"}
