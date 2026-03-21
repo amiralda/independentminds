@@ -69,7 +69,7 @@ const sectionsEN = [
   {
     title: "Introduction",
     content: [
-      "Independent Minds EDU is a bilingual homeschool management platform built by Dany Augustin. This Privacy Policy explains how we collect, use, and protect your information when you use our platform at independentmindsedu.com.",
+      "Independent Minds EDU is a bilingual homeschool management platform built by KòdLabo. This Privacy Policy explains how we collect, use, and protect your information when you use our platform at independentmindsedu.com.",
       "For questions about this policy, contact us at privacy@independentmindsedu.com.",
     ],
   },
