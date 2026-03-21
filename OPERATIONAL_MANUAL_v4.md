@@ -45,21 +45,17 @@
 
 Independent Minds EDU is a multilingual (10 languages) homeschool management platform designed for Haitian families and international users. It empowers parents to organize, monitor, and celebrate their children's learning from anywhere in the world. The platform combines daily block scheduling, real-time progress tracking, AI-powered tutoring, gamification, co-guardian collaboration, and multi-channel notifications into a single progressive web application.
 
-### v4.0 Highlights
+### v4.1 Highlights
 
-Version 4.0 delivers a comprehensive security, compliance, and architecture upgrade:
+Version 4.1 builds on the security and compliance foundation of v4.0 with major feature additions:
 
-- **Security hardening** — AES-256-GCM encryption of stored Telegram tokens, rate limiting on all HTTP edge functions, AI prompt injection defenses, optional MFA for parent accounts
-- **Compliance** — Live Privacy Policy and Terms of Service pages, COPPA-compliant adult confirmation at signup, automated data retention lifecycle, account self-deletion
-- **Multi-channel notifications** — WhatsApp support via Twilio alongside existing Telegram, with per-parent channel selection
-- **AI conversation persistence** — Per-subject chat history stored in the database, surviving sessions and page reloads
-- **Offline data sync** — IndexedDB queue with background sync for block completions and check-ins
-- **Schedule templates** — Save, apply, and clone weekly schedules; 3 built-in templates
-- **Web Push notifications** — Browser push alerts for students on missed blocks and morning schedules
-- **Rewards discovery** — 8 suggested reward cards when the shop is empty, with parent notification on tap
-- **PDF report export** — Branded weekly progress reports downloadable as PDF
-- **WCAG 2.1 AA accessibility** — Skip-to-content links, ARIA roles, focus management, contrast compliance
-- **Onboarding progress** — 5-step guided onboarding with progress indicator and skip option
+- **Admin Panel** — Full role-based admin dashboard with 7 sections (Overview, Students, Engagement, Rewards, System Health, Messages, Users) with real-time auto-refresh
+- **Co-Guardian System** — Invite co-parents via secure token-based email links with granular permission toggles (view progress, receive SOS, approve rewards, edit lessons, full access)
+- **Unified Message Inbox** — Read-once alert system at `/parent/inbox` with filter tabs, live unread badge, and edge function integration
+- **10-Language i18n** — Expanded from 2 to 10 languages: EN, HT, FR, ES, PT, AR, ZH, DE, JA, RU with 150+ translation keys
+- **Guardian Edge Functions** — `send-guardian-invite` and `accept-guardian-invite` for secure server-side invite processing
+- **Inbox-Connected Alerts** — parent-alerts, weekly-badge, and daily-report edge functions now auto-populate the inbox alongside Telegram/WhatsApp
+- **Branded Auth Emails** — Custom email templates via `auth-email-hook` with project branding
 
 ### Key Metrics
 
