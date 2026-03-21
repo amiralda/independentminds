@@ -88,6 +88,16 @@ const Index = () => {
           </div>
           <div className="flex items-center gap-2">
             <LanguageToggle variant="dark" />
+            {isAdmin && (
+              <Link
+                to="/admin"
+                className="text-primary-foreground/70 hover:text-primary-foreground p-1"
+                title="Admin Panel"
+                aria-label="Admin Panel"
+              >
+                <Shield size={18} />
+              </Link>
+            )}
             {role === "student" && (
               <button
                 onClick={() => setShowHelpGuide(true)}
