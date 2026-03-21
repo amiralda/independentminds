@@ -131,21 +131,21 @@ const Index = () => {
       </a>
       {/* Header */}
       <header className="sticky top-0 z-50 bg-primary shadow-md">
-        <div className="container py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src={logo} alt="Independent Minds" className="w-8 h-8" />
-            <div>
-              <h1 className="font-display text-xl font-bold text-primary-foreground leading-tight">
+        <div className="container py-2 sm:py-3 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <img src={logo} alt="Independent Minds" className="w-7 h-7 sm:w-8 sm:h-8 flex-shrink-0" />
+            <div className="min-w-0">
+              <h1 className="font-display text-base sm:text-xl font-bold text-primary-foreground leading-tight truncate">
                 {t("app.title")}
               </h1>
-              <p className="text-primary-foreground/70 text-xs">{t("app.subtitle")}</p>
+              <p className="text-primary-foreground/70 text-[10px] sm:text-xs truncate">{t("app.subtitle")}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
             {role === "parent" && (
               <button
                 onClick={() => { setParentTab("inbox"); setParentTabKey(k => k + 1); }}
-                className={`relative text-primary-foreground/70 hover:text-primary-foreground p-1 transition-transform ${bellRing ? "animate-bell-ring" : ""}`}
+                className={`relative text-primary-foreground/70 hover:text-primary-foreground p-1.5 transition-transform ${bellRing ? "animate-bell-ring" : ""}`}
                 title={lang === "HT" ? "Bwat Mesaj" : "Inbox"}
                 aria-label={lang === "HT" ? "Bwat Mesaj" : "Inbox"}
               >
@@ -161,7 +161,7 @@ const Index = () => {
             {isAdmin && (
               <Link
                 to="/admin"
-                className="text-primary-foreground/70 hover:text-primary-foreground p-1"
+                className="text-primary-foreground/70 hover:text-primary-foreground p-1.5"
                 title="Admin Panel"
                 aria-label="Admin Panel"
               >
@@ -171,7 +171,7 @@ const Index = () => {
             {role === "student" && (
               <button
                 onClick={() => setShowHelpGuide(true)}
-                className="text-primary-foreground/70 hover:text-primary-foreground p-1"
+                className="text-primary-foreground/70 hover:text-primary-foreground p-1.5"
                 title={lang === "HT" ? "Gid" : "Help Guide"}
                 aria-label={lang === "HT" ? "Gid Elèv" : "Student Help Guide"}
               >
@@ -180,7 +180,7 @@ const Index = () => {
             )}
             <button
               onClick={async () => { await supabase.auth.signOut(); navigate("/login"); }}
-              className="text-primary-foreground/70 hover:text-primary-foreground p-1"
+              className="text-primary-foreground/70 hover:text-primary-foreground p-1.5"
               title={t("action.signOut")}
               aria-label={t("action.signOut")}
             >
