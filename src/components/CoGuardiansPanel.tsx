@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { UserPlus, Shield, Trash2, Mail } from "lucide-react";
+import { UserPlus, Shield, Trash2, Mail, Copy, Check } from "lucide-react";
 
 interface Props {
   studentId: string;
@@ -19,6 +19,17 @@ export function CoGuardiansPanel({ studentId }: Props) {
   const queryClient = useQueryClient();
   const [email, setEmail] = useState("");
   const [sending, setSending] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const siteUrl = "https://independentminds.lovable.app";
+
+  const copyInviteLink = async (token: string, id: string) => {
+    const link = `${siteUrl}/accept-invite?token=${token}`;
+    await navigator.clipboard.writeText(link);
+    setCopiedId(id);
+    toast.success(t("guardians.link_copied") || "Invite link copied!");
+    setTimeout(() => setCopiedId(null), 2000);
+  };
 
   const { data: guardians = [] } = useQuery({
     queryKey: ["co_guardians", studentId],
@@ -153,6 +164,14 @@ export function CoGuardiansPanel({ studentId }: Props) {
                   {t("guardians.pending")}
                 </span>
               </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => copyInviteLink(inv.token, inv.id)}
+                title="Copy invite link"
+              >
+                {copiedId === inv.id ? <Check size={14} className="text-primary" /> : <Copy size={14} />}
+              </Button>
               <Button variant="ghost" size="sm" onClick={() => revokeInvite(inv.id)}>
                 <Trash2 size={14} />
               </Button>
