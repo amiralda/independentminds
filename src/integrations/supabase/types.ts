@@ -431,6 +431,7 @@ export type Database = {
           id: string
           invited_by: string
           invitee_email: string
+          permissions: Json | null
           status: string
           student_id: string
           token: string
@@ -442,6 +443,7 @@ export type Database = {
           id?: string
           invited_by: string
           invitee_email: string
+          permissions?: Json | null
           status?: string
           student_id: string
           token?: string
@@ -453,6 +455,7 @@ export type Database = {
           id?: string
           invited_by?: string
           invitee_email?: string
+          permissions?: Json | null
           status?: string
           student_id?: string
           token?: string
