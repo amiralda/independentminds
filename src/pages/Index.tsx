@@ -45,6 +45,30 @@ const Index = () => {
   const { data: blocks = [], isLoading } = useDailyBlocks(studentId);
   const refreshBlocks = useRefreshBlocks();
 
+  // Unread inbox count for parents
+  const [unreadCount, setUnreadCount] = useState(0);
+  useEffect(() => {
+    if (role !== "parent" || !profile) return;
+    const fetchUnread = async () => {
+      const { count } = await supabase
+        .from("inbox_messages")
+        .select("*", { count: "exact", head: true })
+        .eq("is_read", false);
+      setUnreadCount(count || 0);
+    };
+    fetchUnread();
+
+    // Realtime subscription for new messages
+    const channel = supabase
+      .channel("inbox-badge")
+      .on("postgres_changes", { event: "*", schema: "public", table: "inbox_messages" }, () => {
+        fetchUnread();
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [role, profile]);
+
   // Show welcome modal for new parents
   const shouldShowWelcome = role === "parent" && profile && !profile.onboardingComplete;
 
