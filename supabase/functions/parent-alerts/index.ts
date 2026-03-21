@@ -51,19 +51,32 @@ Deno.serve(async (req) => {
     const alertType = body.type;
     const studentId = body.student_id || "CHRIS";
 
-    // 2. Verify the student belongs to the calling user
+    // 2. Verify the student belongs to the calling user OR the caller IS the student
     const { data: student } = await supabase
       .from("students")
       .select("*")
       .eq("student_id", studentId)
       .single();
 
-    if (!student || student.parent_id !== callingUserId) {
+    // Check if caller is the parent
+    const isParent = student && student.parent_id === callingUserId;
+    // Check if caller is the student themselves (via profiles)
+    const { data: callerProfile } = await supabase
+      .from("profiles")
+      .select("student_id, role")
+      .eq("id", callingUserId)
+      .single();
+    const isStudent = callerProfile?.role === "student" && callerProfile?.student_id === studentId;
+
+    if (!student || (!isParent && !isStudent)) {
       return new Response(JSON.stringify({ error: "Forbidden: not your student" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // For parent notifications, resolve the parent's user_id for settings lookup
+    const parentUserId = student.parent_id;
 
     const studentName = escapeHtml(student.display_name || studentId);
 
