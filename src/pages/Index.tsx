@@ -2,8 +2,9 @@ import { useState } from "react";
 import { useI18n } from "@/lib/i18n";
 import { LibraryPanel } from "@/components/LibraryPanel";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { TodayBlocks } from "@/components/TodayBlocks";
 import { CheckInForm } from "@/components/CheckInForm";
@@ -18,7 +19,7 @@ import { WelcomeModal } from "@/components/WelcomeModal";
 import { useDailyBlocks, useRefreshBlocks } from "@/hooks/useDailyBlocks";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BlockReminderPopup } from "@/components/BlockReminderPopup";
-import { BookOpen, CheckSquare, Trophy, LogOut, Award, Target, Library, Bot, UserCircle, Coins, HelpCircle } from "lucide-react";
+import { BookOpen, CheckSquare, Trophy, LogOut, Award, Target, Library, Bot, UserCircle, Coins, HelpCircle, Shield } from "lucide-react";
 import logo from "@/assets/logo.svg";
 import { TutorChat } from "@/components/TutorChat";
 import { StudentProfileCard } from "@/components/StudentProfileCard";
@@ -31,6 +32,7 @@ const Index = () => {
   const { t, lang } = useI18n();
   const navigate = useNavigate();
   const { profile, selectedStudentId } = useAuth();
+  const { isAdmin } = useAdminAuth();
   const [tab, setTab] = useState<StudentTab>("today");
   const [showAddStudent, setShowAddStudent] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
@@ -86,6 +88,16 @@ const Index = () => {
           </div>
           <div className="flex items-center gap-2">
             <LanguageToggle variant="dark" />
+            {isAdmin && (
+              <Link
+                to="/admin"
+                className="text-primary-foreground/70 hover:text-primary-foreground p-1"
+                title="Admin Panel"
+                aria-label="Admin Panel"
+              >
+                <Shield size={18} />
+              </Link>
+            )}
             {role === "student" && (
               <button
                 onClick={() => setShowHelpGuide(true)}
