@@ -79,12 +79,17 @@ const NAV_ITEMS: NavItem[] = [
   { key: "telegram", icon: Bell, label: "Notifications", labelHT: "Notifikasyon" },
 ];
 
-export function DadPanel({ onAddStudent }: Props) {
+export function DadPanel({ onAddStudent, initialTab }: Props) {
   const { t, lang } = useI18n();
   const { students, selectedStudentId, setSelectedStudentId } = useAuth();
   const studentId = selectedStudentId || "";
   const [menuOpen, setMenuOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<DadTab>("activity");
+  const [activeTab, setActiveTab] = useState<DadTab>(initialTab || "activity");
+
+  // Allow parent to switch tab from outside
+  useEffect(() => {
+    if (initialTab) setActiveTab(initialTab);
+  }, [initialTab]);
 
   const selectedStudent = students.find(s => s.student_id === selectedStudentId);
   const activeNavItem = NAV_ITEMS.find(n => n.key === activeTab);
