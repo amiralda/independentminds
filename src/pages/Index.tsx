@@ -234,18 +234,18 @@ const Index = () => {
 
       {/* Bottom nav (student only) */}
       {role === "student" && (
-        <nav className="fixed bottom-0 left-0 right-0 bg-card border-t shadow-lg z-50">
-          <div className="container flex justify-around py-2">
+        <nav className="fixed bottom-0 left-0 right-0 bg-card border-t shadow-lg z-50 safe-area-bottom">
+          <div className="container flex justify-around py-1.5 sm:py-2 px-1">
             {studentTabs.map(({ key, icon: Icon, label }) => (
               <button
                 key={key}
                 onClick={() => setTab(key)}
-                className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg transition-all ${
+                className={`flex flex-col items-center gap-0.5 py-1 px-1.5 sm:px-3 rounded-lg transition-all min-w-0 ${
                   tab === key ? "text-primary" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                <Icon size={20} />
-                <span className="text-[10px] font-medium">{label}</span>
+                <Icon size={18} className="sm:w-5 sm:h-5" />
+                <span className="text-[9px] sm:text-[10px] font-medium truncate max-w-[48px] sm:max-w-none">{label}</span>
               </button>
             ))}
           </div>
