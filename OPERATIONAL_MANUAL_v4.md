@@ -664,6 +664,12 @@ Every table in the database has RLS enabled. All 25 tables have appropriate poli
 | schedule_templates | Own or builtin | Own only | Own only | Own only |
 | curriculum_map | Own only | Parent only | Parent only | Parent only |
 | activity_logs | Own student | Own student | Parent only | Parent only |
+| co_guardians | Primary parent + own | Via edge fn | Primary parent | Primary parent |
+| guardian_invites | Primary parent + admin | Via edge fn | Via edge fn | Blocked |
+| inbox_messages | Own + co-guardian SOS | Via edge fn | Own (mark read) | Blocked |
+| user_roles | Admin only | Admin only | Admin only | Admin only |
+| challenges | Own student | Parent only | Parent/student | Parent only |
+| merge_requests | Own only | Own only | Admin only | Blocked |
 | learning_tools | Own student | Parent only | Parent only | Parent only |
 
 ### Encryption (v4.0)
