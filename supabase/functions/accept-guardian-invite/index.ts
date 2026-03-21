@@ -65,7 +65,6 @@ Deno.serve(async (req) => {
 
     // Check expiry
     if (new Date(invite.expires_at) < new Date()) {
-      // Mark as expired
       await admin
         .from("guardian_invites")
         .update({ status: "expired" } as any)
@@ -85,16 +84,24 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Create co-guardian record
+    // Extract permissions from invite (set by primary guardian)
+    const perms = invite.permissions || {};
+    const canViewProgress = perms.can_view_progress !== false; // default true
+    const canReceiveSos = perms.can_receive_sos === true;
+    const canApproveRewards = perms.can_approve_rewards === true;
+    const canEditLessons = perms.can_edit_lessons === true;
+    const isFullAccess = perms.is_full_access === true;
+
+    // Create co-guardian record with permissions from invite
     const { error: insertErr } = await admin.from("co_guardians").insert({
       student_id: invite.student_id,
       guardian_id: user.id,
       invited_by: invite.invited_by,
-      can_view_progress: true,
-      can_receive_sos: false,
-      can_approve_rewards: false,
-      can_edit_lessons: false,
-      is_full_access: false,
+      can_view_progress: isFullAccess || canViewProgress,
+      can_receive_sos: isFullAccess || canReceiveSos,
+      can_approve_rewards: isFullAccess || canApproveRewards,
+      can_edit_lessons: isFullAccess || canEditLessons,
+      is_full_access: isFullAccess,
     });
 
     if (insertErr) {
@@ -106,6 +113,21 @@ Deno.serve(async (req) => {
       }
       throw insertErr;
     }
+
+    // CRITICAL FIX: Set the co-guardian's profile role to "parent"
+    // This prevents them from being treated as a student
+    await admin
+      .from("profiles")
+      .update({ role: "parent" })
+      .eq("id", user.id);
+
+    // Also update auth user metadata to include parent role
+    await admin.auth.admin.updateUserById(user.id, {
+      user_metadata: {
+        ...user.user_metadata,
+        role: "parent",
+      },
+    });
 
     // Mark invite as accepted
     await admin
