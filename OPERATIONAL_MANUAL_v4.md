@@ -1006,7 +1006,7 @@ All accessibility labels are available in all 10 supported languages:
 
 ---
 
-## 21. Known Limitations and Roadmap
+## 24. Known Limitations and Roadmap
 
 ### Completed in v4.0
 
