@@ -205,6 +205,7 @@ export function DadPanel({ onAddStudent }: Props) {
                   {lang === "HT" ? "Paramèt Kont" : "Account Settings"}
                 </p>
                 <MfaSettings />
+                <AccountMergeRequest />
                 <DeleteAccountButton />
               </div>
             </div>
