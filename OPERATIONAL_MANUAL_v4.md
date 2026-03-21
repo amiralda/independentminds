@@ -801,6 +801,12 @@ AI conversations are persisted for active tutoring continuity but:
 | push_subscriptions | Web Push subscriptions (v4.0) | ✅ |
 | rate_limits | API rate limit counters (v4.0) | ✅ |
 | flagged_inputs | Suspicious AI input metadata (v4.0) | ✅ |
+| co_guardians | Co-guardian relationships & permissions (v4.1) | ✅ |
+| guardian_invites | Invite tokens for co-guardians (v4.1) | ✅ |
+| inbox_messages | Unified parent message inbox (v4.1) | ✅ |
+| user_roles | Role-based access control (v4.1) | ✅ |
+| challenges | Student challenge tracking (v4.1) | ✅ |
+| merge_requests | Account merge requests (v4.1) | ✅ |
 
 ### Key Database Functions
 
