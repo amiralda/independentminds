@@ -59,7 +59,14 @@ export default function AdminLayout() {
             </NavLink>
           ))}
         </nav>
-        <div className="p-3 border-t border-white/10">
+        <div className="p-3 border-t border-white/10 space-y-1">
+          <Link
+            to="/"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-white/50 hover:text-white/80 hover:bg-white/8 w-full transition-colors"
+          >
+            <Home size={18} />
+            Parent Dashboard
+          </Link>
           <button
             onClick={() => supabase.auth.signOut()}
             className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-white/50 hover:text-white/80 hover:bg-white/8 w-full transition-colors"
