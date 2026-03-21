@@ -12,6 +12,7 @@ export default function AdminUsers() {
   const [mergeRequests, setMergeRequests] = useState<any[]>([]);
   const [roles, setRoles] = useState<any[]>([]);
   const [stats, setStats] = useState({ parents: 0, admins: 0, pendingMerges: 0 });
+  const tick = useAutoRefresh();
 
   useEffect(() => {
     const load = async () => {
