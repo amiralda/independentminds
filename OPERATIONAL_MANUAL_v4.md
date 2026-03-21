@@ -1,10 +1,11 @@
-# Independent Minds EDU — Operational Manual v4.0
+# Independent Minds EDU — Operational Manual v4.1
 
-**Version:** 4.0  
+**Version:** 4.1  
 **Date:** March 2026  
 **Author:** Dany Augustin  
 **Platform URL:** https://independentmindsedu.com  
-**Contact:** privacy@independentmindsedu.com
+**Contact:** privacy@independentmindsedu.com  
+**Built by:** KòdLabo
 
 ---
 
@@ -15,23 +16,26 @@
 3. User Roles and Authentication
 4. Parent Dashboard
 5. Student Dashboard
-6. Gamification and Rewards System
-7. AI Tutor — Mr A
-8. Weekly Analytics and Reporting
-9. Notification System
-10. Hourly Monitoring System
-11. Internationalization
-12. Security Model
-13. Data Privacy and COPPA/FERPA Compliance
-14. Database Schema
-15. Edge Functions Reference
-16. Error Handling and Resilience
-17. Testing and Quality Assurance
-18. Deployment and Infrastructure
-19. PWA and Mobile Experience
-20. Accessibility
-21. Known Limitations and Roadmap
-22. Screenshots and Visual Reference
+6. Admin Panel
+7. Co-Guardian System
+8. Unified Message Inbox
+9. Gamification and Rewards System
+10. AI Tutor — Mr A
+11. Weekly Analytics and Reporting
+12. Notification System
+13. Hourly Monitoring System
+14. Internationalization
+15. Security Model
+16. Data Privacy and COPPA/FERPA Compliance
+17. Database Schema
+18. Edge Functions Reference
+19. Error Handling and Resilience
+20. Testing and Quality Assurance
+21. Deployment and Infrastructure
+22. PWA and Mobile Experience
+23. Accessibility
+24. Known Limitations and Roadmap
+25. Screenshots and Visual Reference
 
 ---
 
@@ -39,23 +43,19 @@
 
 ### Platform Description
 
-Independent Minds EDU is a bilingual (English / Haitian Creole) homeschool management platform designed for Haitian families. It empowers parents to organize, monitor, and celebrate their children's learning from anywhere in the world. The platform combines daily block scheduling, real-time progress tracking, AI-powered tutoring, gamification, and multi-channel notifications into a single progressive web application.
+Independent Minds EDU is a multilingual (10 languages) homeschool management platform designed for Haitian families and international users. It empowers parents to organize, monitor, and celebrate their children's learning from anywhere in the world. The platform combines daily block scheduling, real-time progress tracking, AI-powered tutoring, gamification, co-guardian collaboration, and multi-channel notifications into a single progressive web application.
 
-### v4.0 Highlights
+### v4.1 Highlights
 
-Version 4.0 delivers a comprehensive security, compliance, and architecture upgrade:
+Version 4.1 builds on the security and compliance foundation of v4.0 with major feature additions:
 
-- **Security hardening** — AES-256-GCM encryption of stored Telegram tokens, rate limiting on all HTTP edge functions, AI prompt injection defenses, optional MFA for parent accounts
-- **Compliance** — Live Privacy Policy and Terms of Service pages, COPPA-compliant adult confirmation at signup, automated data retention lifecycle, account self-deletion
-- **Multi-channel notifications** — WhatsApp support via Twilio alongside existing Telegram, with per-parent channel selection
-- **AI conversation persistence** — Per-subject chat history stored in the database, surviving sessions and page reloads
-- **Offline data sync** — IndexedDB queue with background sync for block completions and check-ins
-- **Schedule templates** — Save, apply, and clone weekly schedules; 3 built-in templates
-- **Web Push notifications** — Browser push alerts for students on missed blocks and morning schedules
-- **Rewards discovery** — 8 suggested reward cards when the shop is empty, with parent notification on tap
-- **PDF report export** — Branded weekly progress reports downloadable as PDF
-- **WCAG 2.1 AA accessibility** — Skip-to-content links, ARIA roles, focus management, contrast compliance
-- **Onboarding progress** — 5-step guided onboarding with progress indicator and skip option
+- **Admin Panel** — Full role-based admin dashboard with 7 sections (Overview, Students, Engagement, Rewards, System Health, Messages, Users) with real-time auto-refresh
+- **Co-Guardian System** — Invite co-parents via secure token-based email links with granular permission toggles (view progress, receive SOS, approve rewards, edit lessons, full access)
+- **Unified Message Inbox** — Read-once alert system at `/parent/inbox` with filter tabs, live unread badge, and edge function integration
+- **10-Language i18n** — Expanded from 2 to 10 languages: EN, HT, FR, ES, PT, AR, ZH, DE, JA, RU with 150+ translation keys
+- **Guardian Edge Functions** — `send-guardian-invite` and `accept-guardian-invite` for secure server-side invite processing
+- **Inbox-Connected Alerts** — parent-alerts, weekly-badge, and daily-report edge functions now auto-populate the inbox alongside Telegram/WhatsApp
+- **Branded Auth Emails** — Custom email templates via `auth-email-hook` with project branding
 
 ### Key Metrics
 
@@ -64,11 +64,12 @@ Version 4.0 delivers a comprehensive security, compliance, and architecture upgr
 | Lighthouse Performance | > 90 | ✅ 94 |
 | Lighthouse Accessibility | > 90 | ✅ 95 |
 | Security Audit Checks | 12/12 | ✅ 12/12 |
-| RLS Coverage | 100% tables | ✅ 19/19 |
-| Edge Functions | 10 | ✅ 10 |
-| Translation Coverage | 100% | ✅ 100% |
+| RLS Coverage | 100% tables | ✅ 25/25 |
+| Edge Functions | 14 | ✅ 14 |
+| Translation Coverage | 10 languages | ✅ 10/10 |
 | Offline Capability | Full | ✅ Queue + Sync |
 | Notification Channels | 3 | ✅ Telegram, WhatsApp, Push |
+| Admin Panel Sections | 7 | ✅ 7/7 |
 
 ### Problem Statement
 
@@ -223,6 +224,8 @@ This sets `adult_confirmed: true` and `adult_confirmed_at` in the profile. Googl
 | Schedule Templates | Save, apply, clone weekly schedules |
 | Weekly Reports | Analytics with PDF export |
 | Rewards Management | Create/manage the rewards catalog |
+| Co-Guardians | Invite co-parents, manage permissions (above Students in sidebar) |
+| Inbox | Unified message center with filter tabs |
 | Notification Settings | Telegram, WhatsApp, channel selection |
 | Activity Feed | Recent student actions |
 | Certificates | Generate completion certificates |
@@ -301,7 +304,121 @@ Students can opt in to browser push notifications:
 
 ---
 
-## 6. Gamification and Rewards System
+## 6. Admin Panel (v4.1)
+
+### Overview
+
+The admin panel is a completely isolated surface accessible only to users with the `admin` role in `user_roles`. It provides read-only analytics across all families on the platform. Admin access is enforced at both the RLS layer (`has_role(auth.uid(), 'admin')`) and frontend routing.
+
+### Navigation
+
+The admin panel has its own dark sidebar layout with 7 sections:
+
+| Section | Route | Description |
+|---------|-------|-------------|
+| Overview | `/admin` | Metric cards, weekly completions chart, pace tracker |
+| Students | `/admin/students` | Full student table with velocity, streak, pace badges |
+| Engagement | `/admin/engagement` | Streak leaderboards, mood charts, daily completion trends |
+| Rewards | `/admin/rewards` | Points economy analytics, popular rewards, pending redemptions |
+| System | `/admin/system` | Edge function status, rate limits, flagged AI inputs |
+| Messages | `/admin/messages` | Delivery rates, channel breakdown, delivery logs |
+| Users | `/admin/users` | Parent accounts, co-guardian overview, merge requests, role management |
+
+### Access Control
+
+- Admin role stored in `user_roles` table (separate from profiles)
+- `has_role()` security-definer function prevents RLS recursion
+- Admin link (Shield icon) visible in parent dashboard header for admin users
+- "Parent Dashboard" link in admin sidebar for switching back
+- All admin queries are read-only — no mutation from admin surface
+
+### Real-Time Refresh
+
+Admin dashboard metrics auto-refresh every 30 seconds using the `useAutoRefresh` hook, providing live data without page reloads.
+
+---
+
+## 7. Co-Guardian System (v4.1)
+
+### Overview
+
+The primary parent (account owner) can invite additional co-guardians per student. Each co-guardian has a granular permission set controlled with individual on/off toggles. Co-guardians are added via secure token-based invite links.
+
+### Database Tables
+
+| Table | Purpose |
+|-------|---------|
+| `guardian_invites` | Stores pending/accepted/revoked invite tokens with 7-day expiry |
+| `co_guardians` | Active co-guardian relationships with 5 permission toggles |
+
+### Permission Model
+
+| Permission | Default | Description |
+|-----------|---------|-------------|
+| `can_view_progress` | ✅ ON | View student progress (always on, minimum permission) |
+| `can_receive_sos` | ❌ OFF | Receive SOS alerts |
+| `can_approve_rewards` | ❌ OFF | Approve & deny reward redemptions |
+| `can_edit_lessons` | ❌ OFF | Add & edit lessons |
+| `is_full_access` | ❌ OFF | Enables all permissions; disabling reverts to individual states |
+
+### Invite Flow
+
+1. Primary parent enters email in the Co-Guardians section (above Students in sidebar)
+2. `send-guardian-invite` edge function validates ownership, creates invite, sends branded email
+3. Invitee receives email with accept link (`/accept-invite?token=...`)
+4. If not logged in, invitee is redirected to login/signup first
+5. `accept-guardian-invite` edge function validates token, creates co-guardian record
+6. Primary parent is notified via inbox
+7. Primary parent manages permissions via toggle switches
+
+### Security
+
+- Invite tokens are 64-character hex, single-use, expire after 7 days
+- Self-accept is blocked (primary parent cannot accept their own invite)
+- Permissions enforced at DB layer via `has_guardian_permission()` security-definer
+- Co-guardians cannot elevate their own permissions
+- RLS policies ensure co-guardians only see students they co-manage
+
+### UI Location
+
+Co-Guardians section is positioned **above the Students section** in the parent dashboard sidebar, making it the first management area visible when opening the menu.
+
+---
+
+## 8. Unified Message Inbox (v4.1)
+
+### Overview
+
+All alerts (SOS, lesson completions, streak milestones, reward redemptions) are stored as messages in the `inbox_messages` table. Parents access them via the Inbox tab in the sidebar.
+
+### Message Types
+
+| Type | Source | Icon Color |
+|------|--------|-----------|
+| `sos` | parent-alerts edge function | Red |
+| `lesson_completed` | parent-alerts, daily-report | Teal |
+| `streak_milestone` | weekly-badge | Purple |
+| `reward_redeemed` | reward processing | Amber |
+| `inactivity_alert` | monitoring | Gray |
+
+### Features
+
+- **Filter Tabs**: All, Unread, SOS, Lessons, Rewards, Streaks
+- **Read-Once Dashboard Banners**: SOS banners clear after reading in inbox
+- **Unread Badge**: Red count badge on Inbox nav link, updates in real-time
+- **Mark All Read**: Bulk mark-as-read button
+- **Co-Guardian Access**: Co-guardians with `can_receive_sos` see SOS messages only
+
+### Edge Function Integration
+
+The following edge functions insert into `inbox_messages` alongside their existing notification channels:
+- `parent-alerts` — maps `help_needed` → SOS, `track_completed` → lesson_completed, `badge_earned` → streak_milestone
+- `weekly-badge` — inserts streak_milestone messages with badge details
+- `daily-report` — inserts lesson_completed summary messages
+
+---
+
+## 9. Gamification and Rewards System
 
 ### Points Economy
 
@@ -478,38 +595,46 @@ Please check on your student.
 
 ---
 
-## 11. Internationalization
+## 14. Internationalization
 
-### Supported Languages
+### Supported Languages (v4.1)
 
-| Code | Language | Coverage |
-|------|----------|----------|
-| EN | English | 100% |
-| HT | Haitian Creole (Kreyòl) | 100% |
+| Code | Language | Flag | Coverage |
+|------|----------|------|----------|
+| EN | English | 🇺🇸 | 100% |
+| HT | Haitian Creole (Kreyòl) | 🇭🇹 | 100% |
+| FR | Français | 🇫🇷 | 100% |
+| ES | Español | 🇪🇸 | 100% |
+| PT | Português | 🇧🇷 | 100% |
+| AR | العربية | 🇸🇦 | 100% |
+| ZH | 中文 | 🇨🇳 | 100% |
+| DE | Deutsch | 🇩🇪 | 100% |
+| JA | 日本語 | 🇯🇵 | 100% |
+| RU | Русский | 🇷🇺 | 100% |
 
 ### Implementation
 
 The `useI18n()` hook from `src/lib/i18n.tsx` provides:
 - `lang` — current language code
-- `t(key)` — translation lookup
+- `t(key)` — translation lookup with nested key support
 - `setLang(code)` — language switcher
 
 Language preference is stored in `profiles.language_pref` and `students.language_pref`.
 
-### Translation Keys (v4.0 additions)
+The language selector is a dropdown (replacing the previous 🇺🇸/🇭🇹 toggle) showing all 10 languages with their flags and native labels, available from every view.
 
-All new features include bilingual translations:
-- Signup adult confirmation
-- Privacy and Terms page titles
-- Account deletion UI
-- Offline indicators and sync messages
-- Onboarding step labels
-- Reward suggestion names
+### Translation Keys (150+)
+
+All features include translations across all 10 languages:
+- Core navigation and UI labels
+- Co-guardian system (invite, permissions, management)
+- Message inbox (filters, status labels, actions)
+- Signup, privacy, terms, deletion
+- Offline indicators, sync messages
+- Onboarding steps, reward suggestions
+- AI tutor, rate limit messages
+- MFA, notification settings
 - Accessibility labels
-- Notification settings
-- AI rate limit messages
-- MFA setup strings
-- Navigation labels
 
 ---
 
@@ -647,7 +772,7 @@ AI conversations are persisted for active tutoring continuity but:
 
 ## 14. Database Schema
 
-### Tables (19 total)
+### Tables (25 total)
 
 | Table | Purpose | RLS |
 |-------|---------|-----|
@@ -919,5 +1044,5 @@ For the most current visual reference, visit the live application.
 
 ---
 
-*Independent Minds EDU v4.0 — Built with ❤️ by Dany Augustin*  
+*Independent Minds EDU v4.1 — Built with Love by KòdLabo*  
 *© 2026 Independent Minds EDU. All rights reserved.*

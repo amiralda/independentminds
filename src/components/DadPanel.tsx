@@ -74,7 +74,6 @@ const NAV_ITEMS: NavItem[] = [
   { key: "certificates", icon: Award, label: "Certificates", labelHT: "Sètifika" },
   { key: "records", icon: FileText, label: "Records", labelHT: "Dosye" },
   { key: "rewards", icon: Coins, label: "Rewards", labelHT: "Rekonpans" },
-  { key: "guardians", icon: Shield, label: "Co-Guardians", labelHT: "Ko-gadyen" },
   { key: "inbox", icon: Inbox, label: "Inbox", labelHT: "Bwat mesaj" },
   { key: "telegram", icon: Bell, label: "Notifications", labelHT: "Notifikasyon" },
 ];
@@ -105,6 +104,30 @@ export function DadPanel({ onAddStudent }: Props) {
             </SheetHeader>
 
             <div className="flex-1 overflow-y-auto">
+              {/* Co-Guardians section (above students) */}
+              <div className="p-3 space-y-1 border-b">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-2 py-1.5">
+                  {lang === "HT" ? "Ko-gadyen" : "Co-Guardians"}
+                </p>
+                <button
+                  onClick={() => { setActiveTab("guardians"); setMenuOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all ${
+                    activeTab === "guardians"
+                      ? "bg-primary/10 text-primary border border-primary/20"
+                      : "hover:bg-muted text-foreground"
+                  }`}
+                >
+                  <div className="w-9 h-9 rounded-full bg-secondary/20 flex items-center justify-center flex-shrink-0">
+                    <Shield size={18} className={activeTab === "guardians" ? "text-primary" : "text-muted-foreground"} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm">{lang === "HT" ? "Jere Ko-gadyen" : "Manage Co-Guardians"}</p>
+                    <p className="text-[10px] text-muted-foreground">{lang === "HT" ? "Envite ak pèmisyon" : "Invites & permissions"}</p>
+                  </div>
+                  {activeTab === "guardians" && <Check size={16} className="text-primary flex-shrink-0" />}
+                </button>
+              </div>
+
               {/* Students section */}
               <div className="p-3 space-y-1 border-b">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-2 py-1.5">
