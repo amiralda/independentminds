@@ -1024,6 +1024,18 @@ All accessibility labels are available in all 10 supported languages:
 - ✅ Rewards discovery system
 - ✅ Prompt injection hardening
 
+### Completed in v4.1
+
+- ✅ Admin panel with 7 sections and real-time refresh
+- ✅ Co-guardian system with invite flow and permission toggles
+- ✅ Unified message inbox with filter tabs and live unread badge
+- ✅ Extended i18n to 10 languages (150+ keys)
+- ✅ Guardian edge functions (send-invite, accept-invite)
+- ✅ Inbox-connected alerts (parent-alerts, weekly-badge, daily-report)
+- ✅ Branded auth email templates
+- ✅ Copy-to-clipboard for invite links
+- ✅ Co-Guardians repositioned above Students in sidebar
+
 ### Current Limitations
 
 - No native mobile app (PWA only)
