@@ -144,13 +144,13 @@ const Index = () => {
             {role === "parent" && (
               <button
                 onClick={() => setParentTab("inbox")}
-                className="relative text-primary-foreground/70 hover:text-primary-foreground p-1"
+                className={`relative text-primary-foreground/70 hover:text-primary-foreground p-1 transition-transform ${bellRing ? "animate-bell-ring" : ""}`}
                 title={lang === "HT" ? "Bwat Mesaj" : "Inbox"}
                 aria-label={lang === "HT" ? "Bwat Mesaj" : "Inbox"}
               >
                 <Mail size={18} />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-1">
+                  <span className={`absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-1 ${badgeBounce ? "animate-badge-bounce" : "animate-pulse-gentle"}`}>
                     {unreadCount > 99 ? "99+" : unreadCount}
                   </span>
                 )}
