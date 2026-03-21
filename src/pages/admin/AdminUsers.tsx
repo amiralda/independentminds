@@ -35,7 +35,7 @@ export default function AdminUsers() {
       });
     };
     load();
-  }, []);
+  }, [tick]);
 
   const handleMerge = async (id: string, action: "approved" | "denied") => {
     const { error } = await supabase

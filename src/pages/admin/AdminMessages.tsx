@@ -35,7 +35,7 @@ export default function AdminMessages() {
     if (filter === "failed") query = query.eq("status", "Failed");
     if (filter === "sos") query = query.eq("type", "sos");
     query.then(({ data }) => setMessages(data || []));
-  }, [filter]);
+  }, [filter, tick]);
 
   const filters = ["all", "delivered", "failed", "sos"];
 

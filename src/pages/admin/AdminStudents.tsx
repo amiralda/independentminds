@@ -22,7 +22,7 @@ export default function AdminStudents() {
       .select("student_id, display_name, grade_level, parent_id, created_at, updated_at")
       .order("display_name")
       .then(({ data }) => setStudents((data as StudentRow[]) || []));
-  }, []);
+  }, [tick]);
 
   return (
     <div className="p-6 space-y-6">

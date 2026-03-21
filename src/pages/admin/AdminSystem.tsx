@@ -24,7 +24,7 @@ export default function AdminSystem() {
       setFlagged(flaggedRes.data || []);
       setRateLimits(rlRes.data || []);
     });
-  }, []);
+  }, [tick]);
 
   return (
     <div className="p-6 space-y-6">
