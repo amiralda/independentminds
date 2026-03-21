@@ -125,6 +125,17 @@ Keep pushing, Christian! 💪🎓
       provider_message_id: telegramData.result?.message_id?.toString() || null,
     });
 
+    // Insert inbox message for the parent
+    if (student.parent_id) {
+      await supabase.from("inbox_messages").insert({
+        parent_id: student.parent_id,
+        student_id: "CHRIS",
+        message_type: "streak_milestone",
+        title: `${emoji} ${student.display_name || "Christian"} — ${badgeEN}`,
+        body: `Completed ${done}/${total} blocks (${rate}%). Badge: ${badgeEN}`,
+      });
+    }
+
     return new Response(JSON.stringify({ success: true, rate, badge: badgeEN }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

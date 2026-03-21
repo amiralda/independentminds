@@ -113,6 +113,17 @@ Deno.serve(async (req) => {
       provider_message_id: telegramData.result?.message_id?.toString() || null,
     });
 
+    // Insert inbox message for the parent
+    if (student.parent_id) {
+      await supabase.from("inbox_messages").insert({
+        parent_id: student.parent_id,
+        student_id: "CHRIS",
+        message_type: "lesson_completed",
+        title: `Daily Report — ${today}`,
+        body: `Completed ${doneBlocks.length}/${blocks?.length || 0} blocks (${completionRate}%). Done: ${doneList}`,
+      });
+    }
+
     // Mark remaining planned blocks as "Missed"
     if (blocks) {
       const plannedIds = blocks.filter(b => b.status === "Planned" || b.status === "In Progress").map(b => b.id);
