@@ -25,7 +25,7 @@ export default function AdminStudents() {
   }, [tick]);
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <h1 className="text-2xl font-display font-bold text-white">All Students</h1>
       <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
         <Table>

@@ -71,7 +71,7 @@ export default function AdminUsers() {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <h1 className="text-2xl font-display font-bold text-white">User Management</h1>
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <StatCard label="Parent Accounts" value={stats.parents} icon={Users} color="text-blue-400" />
