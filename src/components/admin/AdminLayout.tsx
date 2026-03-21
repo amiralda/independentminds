@@ -1,8 +1,8 @@
-import { NavLink, Outlet, Navigate } from "react-router-dom";
+import { NavLink, Outlet, Navigate, Link } from "react-router-dom";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import {
   LayoutDashboard, Users, TrendingUp, Gift, Activity,
-  MessageSquare, Shield, LogOut
+  MessageSquare, Shield, LogOut, Home
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.svg";
