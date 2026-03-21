@@ -249,6 +249,11 @@ export function RewardsManagement({ studentId }: Props) {
           </div>
         </DialogContent>
       </Dialog>
+      {/* Point Settings */}
+      <PointSettingsPanel studentId={studentId} />
+
+      {/* Challenges */}
+      <ChallengesPanel studentId={studentId} isParent />
     </div>
   );
 }
