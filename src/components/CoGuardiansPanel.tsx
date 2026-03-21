@@ -49,13 +49,15 @@ export function CoGuardiansPanel({ studentId }: Props) {
     if (!email.trim() || !user) return;
     setSending(true);
     try {
-      const { error } = await supabase.from("guardian_invites").insert({
-        student_id: studentId,
-        invited_by: user.id,
-        invitee_email: email.trim().toLowerCase(),
-      } as any);
+      const { data, error } = await supabase.functions.invoke("send-guardian-invite", {
+        body: {
+          student_id: studentId,
+          invitee_email: email.trim().toLowerCase(),
+        },
+      });
       if (error) throw error;
-      toast.success(t("guardians.invite_sent"));
+      if (data?.error) throw new Error(data.error);
+      toast.success(data?.email_sent ? t("guardians.invite_sent") : data?.message || t("guardians.invite_sent"));
       setEmail("");
       queryClient.invalidateQueries({ queryKey: ["guardian_invites", studentId] });
     } catch (err: any) {
