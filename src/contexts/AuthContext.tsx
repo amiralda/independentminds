@@ -122,9 +122,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [session?.user?.id, profile?.role]);
 
   const fetchStudents = async () => {
+    if (!session?.user) return;
     const { data } = await supabase
       .from("students")
       .select("student_id, display_name, grade_level, parent_id")
+      .eq("parent_id", session.user.id)
       .order("display_name");
     if (data) {
       setStudents(data as StudentRecord[]);
