@@ -38,7 +38,13 @@ export default function AcceptInvite() {
         body: { token },
       });
 
-      if (error) throw error;
+      // The SDK wraps non-2xx as an error, but data may still contain our message
+      if (error) {
+        const msg = data?.error || error.message || "Something went wrong.";
+        setStatus("error");
+        setErrorMsg(msg);
+        return;
+      }
       if (data?.error) {
         setStatus("error");
         setErrorMsg(data.error);
