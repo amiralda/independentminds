@@ -84,17 +84,30 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Extract permissions from invite (set by primary guardian)
+    // Extract permissions from invite
     const perms = invite.permissions || {};
-    const canViewProgress = perms.can_view_progress !== false; // default true
+    const canViewProgress = perms.can_view_progress !== false;
     const canReceiveSos = perms.can_receive_sos === true;
     const canApproveRewards = perms.can_approve_rewards === true;
     const canEditLessons = perms.can_edit_lessons === true;
     const isFullAccess = perms.is_full_access === true;
 
-    // Create co-guardian record with permissions from invite
-    const { error: insertErr } = await admin.from("co_guardians").insert({
-      student_id: invite.student_id,
+    // Fetch ALL students belonging to the primary guardian
+    const { data: allStudents, error: studentsErr } = await admin
+      .from("students")
+      .select("student_id, display_name")
+      .eq("parent_id", invite.invited_by);
+
+    if (studentsErr || !allStudents || allStudents.length === 0) {
+      return new Response(JSON.stringify({ error: "No students found for the primary guardian" }), {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Create co-guardian records for ALL students of the primary parent
+    const insertRows = allStudents.map((s) => ({
+      student_id: s.student_id,
       guardian_id: user.id,
       invited_by: invite.invited_by,
       can_view_progress: isFullAccess || canViewProgress,
@@ -102,26 +115,24 @@ Deno.serve(async (req) => {
       can_approve_rewards: isFullAccess || canApproveRewards,
       can_edit_lessons: isFullAccess || canEditLessons,
       is_full_access: isFullAccess,
-    });
+    }));
+
+    const { error: insertErr } = await admin
+      .from("co_guardians")
+      .upsert(insertRows, { onConflict: "student_id,guardian_id", ignoreDuplicates: true });
 
     if (insertErr) {
-      if (insertErr.message.includes("duplicate") || insertErr.code === "23505") {
-        return new Response(JSON.stringify({ error: "You are already a co-guardian for this student" }), {
-          status: 409,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
+      console.error("co_guardians insert error:", insertErr);
       throw insertErr;
     }
 
-    // CRITICAL FIX: Set the co-guardian's profile role to "parent"
-    // This prevents them from being treated as a student
+    // CRITICAL: Set co-guardian's profile role to "parent" (not student)
     await admin
       .from("profiles")
-      .update({ role: "parent" })
+      .update({ role: "parent", student_id: null })
       .eq("id", user.id);
 
-    // Also update auth user metadata to include parent role
+    // Also update auth user metadata
     await admin.auth.admin.updateUserById(user.id, {
       user_metadata: {
         ...user.user_metadata,
@@ -135,26 +146,22 @@ Deno.serve(async (req) => {
       .update({ status: "accepted", accepted_at: new Date().toISOString() } as any)
       .eq("id", invite.id);
 
-    // Get student name for response
-    const { data: student } = await admin
-      .from("students")
-      .select("display_name")
-      .eq("student_id", invite.student_id)
-      .single();
+    const studentNames = allStudents.map((s) => s.display_name).join(", ");
 
     // Send inbox notification to primary parent
     await admin.from("inbox_messages").insert({
       parent_id: invite.invited_by,
-      student_id: invite.student_id,
+      student_id: allStudents[0].student_id,
       message_type: "lesson_completed",
       title: "Co-guardian invite accepted",
-      body: `${user.email} has accepted the co-guardian invite for ${student?.display_name || "your student"}.`,
+      body: `${user.email} has accepted the co-guardian invite and now has access to: ${studentNames}.`,
     });
 
     return new Response(JSON.stringify({
       success: true,
-      student_id: invite.student_id,
-      student_name: student?.display_name || "Student",
+      student_ids: allStudents.map((s) => s.student_id),
+      student_names: studentNames,
+      students_count: allStudents.length,
     }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
