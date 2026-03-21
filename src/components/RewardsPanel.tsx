@@ -93,6 +93,9 @@ export function RewardsPanel() {
         </div>
       </div>
 
+      {/* Active Challenges */}
+      <ChallengesPanel studentId={studentId || ""} />
+
       <Tabs defaultValue="shop">
         <TabsList className="w-full grid grid-cols-3">
           <TabsTrigger value="shop" className="font-display text-xs">
