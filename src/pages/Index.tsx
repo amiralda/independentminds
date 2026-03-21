@@ -86,6 +86,16 @@ const Index = () => {
           </div>
           <div className="flex items-center gap-2">
             <LanguageToggle variant="dark" />
+            {role === "student" && (
+              <button
+                onClick={() => setShowHelpGuide(true)}
+                className="text-primary-foreground/70 hover:text-primary-foreground p-1"
+                title={lang === "HT" ? "Gid" : "Help Guide"}
+                aria-label={lang === "HT" ? "Gid Elèv" : "Student Help Guide"}
+              >
+                <HelpCircle size={18} />
+              </button>
+            )}
             <button
               onClick={async () => { await supabase.auth.signOut(); navigate("/login"); }}
               className="text-primary-foreground/70 hover:text-primary-foreground p-1"
