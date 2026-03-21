@@ -215,7 +215,7 @@ export default function Login() {
             </Link>
           </div>
           <p className="text-xs text-primary-foreground/50 font-display">
-            {t("app.version")} — Built with 💡 by Dany Augustin
+            {t("app.version")} — Built with Love by KòdLabo
           </p>
         </div>
       </div>

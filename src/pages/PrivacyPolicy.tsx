@@ -50,7 +50,7 @@ export default function PrivacyPolicy() {
         ))}
 
         <div className="border-t pt-6 text-center text-xs text-muted-foreground">
-          <p>Independent Minds EDU — Built by Dany Augustin</p>
+          <p>Independent Minds EDU — Built with Love by KòdLabo</p>
           <div className="flex justify-center gap-4 mt-2">
             <Link to="/terms" className="hover:underline" style={{ color: "#D4A017" }}>
               {isHT ? "Kondisyon Sèvis" : "Terms of Service"}
@@ -69,7 +69,7 @@ const sectionsEN = [
   {
     title: "Introduction",
     content: [
-      "Independent Minds EDU is a bilingual homeschool management platform built by Dany Augustin. This Privacy Policy explains how we collect, use, and protect your information when you use our platform at independentmindsedu.com.",
+      "Independent Minds EDU is a bilingual homeschool management platform built by KòdLabo. This Privacy Policy explains how we collect, use, and protect your information when you use our platform at independentmindsedu.com.",
       "For questions about this policy, contact us at privacy@independentmindsedu.com.",
     ],
   },
@@ -157,7 +157,7 @@ const sectionsHT = [
   {
     title: "Entwodiksyon",
     content: [
-      "Independent Minds EDU se yon platfòm jesyon lekòl kay bileng ki te bati pa Dany Augustin. Politik Konfidansyalite sa a eksplike kijan nou kolekte, itilize, epi pwoteje enfòmasyon ou lè ou itilize platfòm nou an sou independentmindsedu.com.",
+      "Independent Minds EDU se yon platfòm jesyon lekòl kay bileng ki te bati pa KòdLabo. Politik Konfidansyalite sa a eksplike kijan nou kolekte, itilize, epi pwoteje enfòmasyon ou lè ou itilize platfòm nou an sou independentmindsedu.com.",
       "Pou kesyon sou politik sa a, kontakte nou nan privacy@independentmindsedu.com.",
     ],
   },
