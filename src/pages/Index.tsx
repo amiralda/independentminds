@@ -18,11 +18,12 @@ import { WelcomeModal } from "@/components/WelcomeModal";
 import { useDailyBlocks, useRefreshBlocks } from "@/hooks/useDailyBlocks";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BlockReminderPopup } from "@/components/BlockReminderPopup";
-import { BookOpen, CheckSquare, Trophy, LogOut, Award, Target, Library, Bot, UserCircle, Coins } from "lucide-react";
+import { BookOpen, CheckSquare, Trophy, LogOut, Award, Target, Library, Bot, UserCircle, Coins, HelpCircle } from "lucide-react";
 import logo from "@/assets/logo.svg";
 import { TutorChat } from "@/components/TutorChat";
 import { StudentProfileCard } from "@/components/StudentProfileCard";
 import { RewardsPanel } from "@/components/RewardsPanel";
+import { StudentHelpGuide } from "@/components/StudentHelpGuide";
 
 type StudentTab = "today" | "tracks" | "checkin" | "badges" | "trophies" | "library" | "tutor" | "profile" | "rewards";
 
@@ -33,6 +34,7 @@ const Index = () => {
   const [tab, setTab] = useState<StudentTab>("today");
   const [showAddStudent, setShowAddStudent] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
+  const [showHelpGuide, setShowHelpGuide] = useState(false);
 
   const role = profile?.role || "student";
   const studentId = role === "student" ? (profile?.studentId || null) : selectedStudentId;
@@ -84,6 +86,16 @@ const Index = () => {
           </div>
           <div className="flex items-center gap-2">
             <LanguageToggle variant="dark" />
+            {role === "student" && (
+              <button
+                onClick={() => setShowHelpGuide(true)}
+                className="text-primary-foreground/70 hover:text-primary-foreground p-1"
+                title={lang === "HT" ? "Gid" : "Help Guide"}
+                aria-label={lang === "HT" ? "Gid Elèv" : "Student Help Guide"}
+              >
+                <HelpCircle size={18} />
+              </button>
+            )}
             <button
               onClick={async () => { await supabase.auth.signOut(); navigate("/login"); }}
               className="text-primary-foreground/70 hover:text-primary-foreground p-1"
@@ -171,6 +183,9 @@ const Index = () => {
 
       {/* Add Student Dialog */}
       <AddStudentForm open={showAddStudent} onClose={() => setShowAddStudent(false)} />
+
+      {/* Student Help Guide */}
+      <StudentHelpGuide open={showHelpGuide} onClose={() => setShowHelpGuide(false)} />
     </div>
   );
 };

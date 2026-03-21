@@ -28,6 +28,7 @@ import { WeeklyProgressReport } from "@/components/WeeklyProgressReport";
 import { ScheduleTemplates as ScheduleTemplatesImport } from "@/components/ScheduleTemplates";
 import { MfaSettings } from "@/components/MfaSettings";
 import { DeleteAccountButton } from "@/components/DeleteAccountButton";
+import { AccountMergeRequest } from "@/components/AccountMergeRequest";
 
 const SUBJECTS = ["English", "ESL", "Math", "Science", "Social Studies", "Public Speaking", "Media Education"];
 
@@ -204,6 +205,7 @@ export function DadPanel({ onAddStudent }: Props) {
                   {lang === "HT" ? "Paramèt Kont" : "Account Settings"}
                 </p>
                 <MfaSettings />
+                <AccountMergeRequest />
                 <DeleteAccountButton />
               </div>
             </div>

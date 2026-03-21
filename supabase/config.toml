@@ -19,3 +19,5 @@ project_id = "wkvattbvybvgaeobtidl"
     verify_jwt = false
   [functions.hourly-monitor]
     verify_jwt = false
+  [functions.account-merge]
+    verify_jwt = false

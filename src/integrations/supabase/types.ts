@@ -423,6 +423,42 @@ export type Database = {
         }
         Relationships: []
       }
+      merge_requests: {
+        Row: {
+          admin_notes: string | null
+          created_at: string
+          id: string
+          reason: string | null
+          requester_id: string
+          resolved_at: string | null
+          source_email: string
+          status: string
+          target_email: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string
+          id?: string
+          reason?: string | null
+          requester_id: string
+          resolved_at?: string | null
+          source_email: string
+          status?: string
+          target_email: string
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string
+          id?: string
+          reason?: string | null
+          requester_id?: string
+          resolved_at?: string | null
+          source_email?: string
+          status?: string
+          target_email?: string
+        }
+        Relationships: []
+      }
       messages_log: {
         Row: {
           channel: string
