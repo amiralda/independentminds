@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { CoGuardiansPanel } from "@/components/CoGuardiansPanel";
+import { InboxPanel } from "@/components/InboxPanel";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertTriangle, BarChart3, Calendar, Plus, BookOpen, Trash2, Pencil, Upload, Award, Settings, Activity, Bell, FileText, UserCircle, Wrench, Bot, Coins, ClipboardList, Menu, UserPlus, GraduationCap, Check, ChevronRight } from "lucide-react";
+import { AlertTriangle, BarChart3, Calendar, Plus, BookOpen, Trash2, Pencil, Upload, Award, Settings, Activity, Bell, FileText, UserCircle, Wrench, Bot, Coins, ClipboardList, Menu, UserPlus, GraduationCap, Check, ChevronRight, Shield, Inbox } from "lucide-react";
 import { toast } from "sonner";
 import { useRef } from "react";
 import { SubjectIcon } from "@/components/SubjectIcon";
@@ -50,7 +52,7 @@ interface Props {
   onAddStudent: () => void;
 }
 
-type DadTab = "activity" | "profile" | "progress" | "schedule" | "tracks" | "tools" | "tutor" | "curriculum" | "weekly" | "certificates" | "records" | "rewards" | "telegram";
+type DadTab = "activity" | "profile" | "progress" | "schedule" | "tracks" | "tools" | "tutor" | "curriculum" | "weekly" | "certificates" | "records" | "rewards" | "telegram" | "guardians" | "inbox";
 
 interface NavItem {
   key: DadTab;
@@ -72,6 +74,8 @@ const NAV_ITEMS: NavItem[] = [
   { key: "certificates", icon: Award, label: "Certificates", labelHT: "Sètifika" },
   { key: "records", icon: FileText, label: "Records", labelHT: "Dosye" },
   { key: "rewards", icon: Coins, label: "Rewards", labelHT: "Rekonpans" },
+  { key: "guardians", icon: Shield, label: "Co-Guardians", labelHT: "Ko-gadyen" },
+  { key: "inbox", icon: Inbox, label: "Inbox", labelHT: "Bwat mesaj" },
   { key: "telegram", icon: Bell, label: "Notifications", labelHT: "Notifikasyon" },
 ];
 
@@ -220,6 +224,8 @@ export function DadPanel({ onAddStudent }: Props) {
           {activeTab === "certificates" && <CertificatesPanel studentId={studentId} />}
           {activeTab === "records" && <StudentRecords studentId={studentId} />}
           {activeTab === "rewards" && <RewardsManagement studentId={studentId} />}
+          {activeTab === "guardians" && <CoGuardiansPanel studentId={studentId} />}
+          {activeTab === "inbox" && <InboxPanel />}
           {activeTab === "telegram" && <TelegramSettings />}
         </>
       )}

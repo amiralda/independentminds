@@ -21,6 +21,7 @@ import AdminRewards from "./pages/admin/AdminRewards";
 import AdminSystem from "./pages/admin/AdminSystem";
 import AdminMessages from "./pages/admin/AdminMessages";
 import AdminUsers from "./pages/admin/AdminUsers";
+import AcceptInvite from "./pages/AcceptInvite";
 
 const queryClient = new QueryClient();
 
@@ -57,6 +58,7 @@ const App = () => (
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/terms" element={<TermsOfService />} />
+              <Route path="/accept-invite" element={<AcceptInvite />} />
               <Route path="/admin" element={<AuthGuard><AdminLayout /></AuthGuard>}>
                 <Route index element={<AdminOverview />} />
                 <Route path="students" element={<AdminStudents />} />
