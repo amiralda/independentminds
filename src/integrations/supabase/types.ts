@@ -234,6 +234,45 @@ export type Database = {
           },
         ]
       }
+      co_guardians: {
+        Row: {
+          can_approve_rewards: boolean | null
+          can_edit_lessons: boolean | null
+          can_receive_sos: boolean | null
+          can_view_progress: boolean | null
+          created_at: string | null
+          guardian_id: string
+          id: string
+          invited_by: string
+          is_full_access: boolean | null
+          student_id: string
+        }
+        Insert: {
+          can_approve_rewards?: boolean | null
+          can_edit_lessons?: boolean | null
+          can_receive_sos?: boolean | null
+          can_view_progress?: boolean | null
+          created_at?: string | null
+          guardian_id: string
+          id?: string
+          invited_by: string
+          is_full_access?: boolean | null
+          student_id: string
+        }
+        Update: {
+          can_approve_rewards?: boolean | null
+          can_edit_lessons?: boolean | null
+          can_receive_sos?: boolean | null
+          can_view_progress?: boolean | null
+          created_at?: string | null
+          guardian_id?: string
+          id?: string
+          invited_by?: string
+          is_full_access?: boolean | null
+          student_id?: string
+        }
+        Relationships: []
+      }
       curriculum_map: {
         Row: {
           created_at: string
@@ -381,6 +420,81 @@ export type Database = {
           id?: string
           input_length?: number | null
           student_id?: string | null
+        }
+        Relationships: []
+      }
+      guardian_invites: {
+        Row: {
+          accepted_at: string | null
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          invited_by: string
+          invitee_email: string
+          status: string
+          student_id: string
+          token: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          invited_by: string
+          invitee_email: string
+          status?: string
+          student_id: string
+          token?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          invited_by?: string
+          invitee_email?: string
+          status?: string
+          student_id?: string
+          token?: string
+        }
+        Relationships: []
+      }
+      inbox_messages: {
+        Row: {
+          body: string
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          message_type: string
+          parent_id: string
+          read_at: string | null
+          source_id: string | null
+          student_id: string
+          title: string
+        }
+        Insert: {
+          body: string
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message_type: string
+          parent_id: string
+          read_at?: string | null
+          source_id?: string | null
+          student_id: string
+          title: string
+        }
+        Update: {
+          body?: string
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message_type?: string
+          parent_id?: string
+          read_at?: string | null
+          source_id?: string | null
+          student_id?: string
+          title?: string
         }
         Relationships: []
       }
@@ -964,6 +1078,10 @@ export type Database = {
       get_points_balance: { Args: { _student_id: string }; Returns: number }
       get_student_id_by_parent: {
         Args: { _parent_id: string; _student_id: string }
+        Returns: boolean
+      }
+      has_guardian_permission: {
+        Args: { permission: string; sid: string; uid: string }
         Returns: boolean
       }
       has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
