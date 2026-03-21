@@ -50,7 +50,7 @@ export default function PrivacyPolicy() {
         ))}
 
         <div className="border-t pt-6 text-center text-xs text-muted-foreground">
-          <p>Independent Minds EDU — Built by Dany Augustin</p>
+          <p>Independent Minds EDU — Built with Love by KòdLabo</p>
           <div className="flex justify-center gap-4 mt-2">
             <Link to="/terms" className="hover:underline" style={{ color: "#D4A017" }}>
               {isHT ? "Kondisyon Sèvis" : "Terms of Service"}
