@@ -460,7 +460,7 @@ Tapping a card sends a `reward_suggestion` notification to the parent via Telegr
 
 ---
 
-## 7. AI Tutor — Mr A
+## 10. AI Tutor — Mr A
 
 ### Overview
 
@@ -499,7 +499,7 @@ Input sanitization:
 
 ---
 
-## 8. Weekly Analytics and Reporting
+## 11. Weekly Analytics and Reporting
 
 ### Dashboard Analytics
 
@@ -522,7 +522,7 @@ A "Download Report" button generates a professional PDF using jsPDF with:
 
 ---
 
-## 9. Notification System
+## 12. Notification System
 
 ### Multi-Channel Architecture (v4.0)
 
@@ -569,7 +569,7 @@ The `notifyParent()` function in `_shared/notify.ts`:
 
 ---
 
-## 10. Hourly Monitoring System
+## 13. Hourly Monitoring System
 
 ### How It Works
 
@@ -638,11 +638,11 @@ All features include translations across all 10 languages:
 
 ---
 
-## 12. Security Model
+## 15. Security Model
 
 ### Row-Level Security (RLS)
 
-Every table in the database has RLS enabled. All 19 tables have appropriate policies:
+Every table in the database has RLS enabled. All 25 tables have appropriate policies:
 
 | Table | SELECT | INSERT | UPDATE | DELETE |
 |-------|--------|--------|--------|--------|
@@ -664,6 +664,12 @@ Every table in the database has RLS enabled. All 19 tables have appropriate poli
 | schedule_templates | Own or builtin | Own only | Own only | Own only |
 | curriculum_map | Own only | Parent only | Parent only | Parent only |
 | activity_logs | Own student | Own student | Parent only | Parent only |
+| co_guardians | Primary parent + own | Via edge fn | Primary parent | Primary parent |
+| guardian_invites | Primary parent + admin | Via edge fn | Via edge fn | Blocked |
+| inbox_messages | Own + co-guardian SOS | Via edge fn | Own (mark read) | Blocked |
+| user_roles | Admin only | Admin only | Admin only | Admin only |
+| challenges | Own student | Parent only | Parent/student | Parent only |
+| merge_requests | Own only | Own only | Admin only | Blocked |
 | learning_tools | Own student | Parent only | Parent only | Parent only |
 
 ### Encryption (v4.0)
@@ -717,7 +723,7 @@ Implemented via the `increment_rate_limit()` SECURITY DEFINER RPC. The `rate_lim
 
 ---
 
-## 13. Data Privacy and COPPA/FERPA Compliance
+## 16. Data Privacy and COPPA/FERPA Compliance
 
 ### Privacy Policy
 
@@ -770,7 +776,7 @@ AI conversations are persisted for active tutoring continuity but:
 
 ---
 
-## 14. Database Schema
+## 17. Database Schema
 
 ### Tables (25 total)
 
@@ -795,6 +801,12 @@ AI conversations are persisted for active tutoring continuity but:
 | push_subscriptions | Web Push subscriptions (v4.0) | ✅ |
 | rate_limits | API rate limit counters (v4.0) | ✅ |
 | flagged_inputs | Suspicious AI input metadata (v4.0) | ✅ |
+| co_guardians | Co-guardian relationships & permissions (v4.1) | ✅ |
+| guardian_invites | Invite tokens for co-guardians (v4.1) | ✅ |
+| inbox_messages | Unified parent message inbox (v4.1) | ✅ |
+| user_roles | Role-based access control (v4.1) | ✅ |
+| challenges | Student challenge tracking (v4.1) | ✅ |
+| merge_requests | Account merge requests (v4.1) | ✅ |
 
 ### Key Database Functions
 
@@ -811,10 +823,15 @@ AI conversations are persisted for active tutoring continuity but:
 | `clear_ai_history(...)` | SECURITY DEFINER: deletes AI conversation for subject |
 | `delete_my_account()` | SECURITY DEFINER: deletes user from auth.users |
 | `update_updated_at_column()` | Trigger: auto-updates updated_at |
+| `has_role(_user_id, _role)` | SECURITY DEFINER: checks admin role |
+| `has_guardian_permission(uid, sid, permission)` | SECURITY DEFINER: checks co-guardian permission |
+| `set_user_role(target_uid, new_role)` | Assigns role to user |
+| `remove_user_role(target_uid, old_role)` | Removes role from user |
+| `get_student_id_by_parent(...)` | Validates parent-student relationship |
 
 ---
 
-## 15. Edge Functions Reference
+## 18. Edge Functions Reference
 
 ### Function Inventory
 
@@ -828,8 +845,10 @@ AI conversations are persisted for active tutoring continuity but:
 | daily-report | Cron (evening) | Cron secret | — | End-of-day summary |
 | weekly-report | Cron (weekly) | Cron secret | — | Weekly progress report |
 | weekly-badge | Cron (weekly) | Cron secret | — | Award weekly badges |
-| account-maintenance | Cron (monthly) | Cron secret | — | Data retention lifecycle |
-| auth-email-hook | Auth hook | Internal | — | Custom email templates |
+| account-merge | HTTP POST | JWT | — | Account merge processing |
+| auth-email-hook | Auth hook | Internal | — | Custom branded email templates |
+| send-guardian-invite | HTTP POST | JWT | — | Send co-guardian invite emails |
+| accept-guardian-invite | HTTP POST | JWT | — | Process co-guardian invite acceptance |
 
 ### Environment Secrets
 
@@ -851,7 +870,7 @@ AI conversations are persisted for active tutoring continuity but:
 
 ---
 
-## 16. Error Handling and Resilience
+## 19. Error Handling and Resilience
 
 ### Error Strategy
 
@@ -881,7 +900,7 @@ The sync manager in `src/lib/syncManager.ts`:
 
 ---
 
-## 17. Testing and Quality Assurance
+## 20. Testing and Quality Assurance
 
 ### Testing Stack
 
@@ -893,7 +912,7 @@ The sync manager in `src/lib/syncManager.ts`:
 
 ### Security Testing
 
-The 12-point security audit (Part 7) covers:
+The 12-point security audit (Section 15) covers:
 1. RLS completeness on all 19 tables
 2. Storage bucket privacy
 3. Edge function authentication
@@ -911,7 +930,7 @@ All 12 checks pass as of v4.0.
 
 ---
 
-## 18. Deployment and Infrastructure
+## 21. Deployment and Infrastructure
 
 ### Deployment Pipeline
 
@@ -933,7 +952,7 @@ All 12 checks pass as of v4.0.
 
 ---
 
-## 19. PWA and Mobile Experience
+## 22. PWA and Mobile Experience
 
 ### PWA Features
 
@@ -962,7 +981,7 @@ All 12 checks pass as of v4.0.
 
 ---
 
-## 20. Accessibility
+## 23. Accessibility
 
 ### WCAG 2.1 AA Compliance (v4.0)
 
@@ -977,16 +996,17 @@ All 12 checks pass as of v4.0.
 | Focus management | Modals trap and restore focus |
 | Color contrast | #475569 on #F0F4F8 (passes AA) |
 
-### Bilingual Accessibility
+### Multilingual Accessibility
 
-All accessibility labels are available in both English and Haitian Creole:
-- Skip to content: "Skip to main content" / "Ale nan kontni prensipal"
+All accessibility labels are available in all 10 supported languages:
+- Skip to content: localized via i18n
 - Stats bar: role="status" with aria-live
-- Student photos: "Photo of [name]" / "Foto [name]"
+- Student photos: "Photo of [name]" localized per language
+- RTL support for Arabic (AR) language
 
 ---
 
-## 21. Known Limitations and Roadmap
+## 24. Known Limitations and Roadmap
 
 ### Completed in v4.0
 
@@ -1003,6 +1023,18 @@ All accessibility labels are available in both English and Haitian Creole:
 - ✅ PDF report export
 - ✅ Rewards discovery system
 - ✅ Prompt injection hardening
+
+### Completed in v4.1
+
+- ✅ Admin panel with 7 sections and real-time refresh
+- ✅ Co-guardian system with invite flow and permission toggles
+- ✅ Unified message inbox with filter tabs and live unread badge
+- ✅ Extended i18n to 10 languages (150+ keys)
+- ✅ Guardian edge functions (send-invite, accept-invite)
+- ✅ Inbox-connected alerts (parent-alerts, weekly-badge, daily-report)
+- ✅ Branded auth email templates
+- ✅ Copy-to-clipboard for invite links
+- ✅ Co-Guardians repositioned above Students in sidebar
 
 ### Current Limitations
 
@@ -1026,10 +1058,15 @@ All accessibility labels are available in both English and Haitian Creole:
 
 ---
 
-## 22. Screenshots and Visual Reference
+## 25. Screenshots and Visual Reference
 
-Screenshots reflect v3.0 of the platform. The platform has been updated to v4.0 with new features visible in the live app at https://independentmindsedu.com. Key visual additions in v4.0 include:
+Screenshots reflect v4.1 of the platform. Key visual features include:
 
+- Parent dashboard with Co-Guardians above Students in sidebar
+- Admin panel with dark sidebar and 7 metric sections
+- 10-language dropdown selector (replacing previous flag toggle)
+- Unified Inbox with filter tabs and unread badges
+- Co-Guardian permission toggles with copy-to-clipboard invite links
 - Onboarding progress indicator with gold progress bar
 - MFA settings panel with QR code display
 - Offline indicator amber banner
@@ -1040,7 +1077,7 @@ Screenshots reflect v3.0 of the platform. The platform has been updated to v4.0 
 - Schedule template management buttons
 - PDF report download button
 
-For the most current visual reference, visit the live application.
+For the most current visual reference, visit the live application at https://independentminds.lovable.app.
 
 ---
 
