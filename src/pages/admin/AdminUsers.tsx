@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAutoRefresh } from "@/hooks/useAutoRefresh";
 import StatCard from "@/components/admin/StatCard";
 import { Users, UserCheck, GitMerge, Shield } from "lucide-react";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
@@ -11,6 +12,7 @@ export default function AdminUsers() {
   const [mergeRequests, setMergeRequests] = useState<any[]>([]);
   const [roles, setRoles] = useState<any[]>([]);
   const [stats, setStats] = useState({ parents: 0, admins: 0, pendingMerges: 0 });
+  const tick = useAutoRefresh();
 
   useEffect(() => {
     const load = async () => {
@@ -33,7 +35,7 @@ export default function AdminUsers() {
       });
     };
     load();
-  }, []);
+  }, [tick]);
 
   const handleMerge = async (id: string, action: "approved" | "denied") => {
     const { error } = await supabase

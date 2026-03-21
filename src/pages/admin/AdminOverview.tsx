@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAutoRefresh } from "@/hooks/useAutoRefresh";
 import StatCard from "@/components/admin/StatCard";
 import { Users, CheckCircle, Flame, Coins } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
@@ -7,6 +8,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGri
 export default function AdminOverview() {
   const [stats, setStats] = useState({ students: 0, activeLogs: 0, avgStreak: 0, pointsIssued: 0, pointsRedeemed: 0 });
   const [weeklyData, setWeeklyData] = useState<any[]>([]);
+  const tick = useAutoRefresh();
 
   useEffect(() => {
     const load = async () => {
@@ -44,7 +46,7 @@ export default function AdminOverview() {
       setWeeklyData(days);
     };
     load();
-  }, []);
+  }, [tick]);
 
   return (
     <div className="p-6 space-y-6">

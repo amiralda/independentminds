@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAutoRefresh } from "@/hooks/useAutoRefresh";
 import StatCard from "@/components/admin/StatCard";
 import { Activity, Shield, AlertOctagon, Gauge } from "lucide-react";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
@@ -13,6 +14,7 @@ const EDGE_FUNCTIONS = [
 export default function AdminSystem() {
   const [flagged, setFlagged] = useState<any[]>([]);
   const [rateLimits, setRateLimits] = useState<any[]>([]);
+  const tick = useAutoRefresh();
 
   useEffect(() => {
     Promise.all([
@@ -22,7 +24,7 @@ export default function AdminSystem() {
       setFlagged(flaggedRes.data || []);
       setRateLimits(rlRes.data || []);
     });
-  }, []);
+  }, [tick]);
 
   return (
     <div className="p-6 space-y-6">

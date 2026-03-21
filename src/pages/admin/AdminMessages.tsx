@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAutoRefresh } from "@/hooks/useAutoRefresh";
 import StatCard from "@/components/admin/StatCard";
 import { MessageSquare, Check, X, AlertTriangle } from "lucide-react";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
@@ -8,6 +9,7 @@ export default function AdminMessages() {
   const [stats, setStats] = useState({ total: 0, delivered: 0, failed: 0, sos: 0 });
   const [messages, setMessages] = useState<any[]>([]);
   const [filter, setFilter] = useState<string>("all");
+  const tick = useAutoRefresh();
 
   useEffect(() => {
     const load = async () => {
@@ -25,7 +27,7 @@ export default function AdminMessages() {
       });
     };
     load();
-  }, []);
+  }, [tick]);
 
   useEffect(() => {
     let query = supabase.from("messages_log").select("*").order("timestamp", { ascending: false }).limit(50);
@@ -33,7 +35,7 @@ export default function AdminMessages() {
     if (filter === "failed") query = query.eq("status", "Failed");
     if (filter === "sos") query = query.eq("type", "sos");
     query.then(({ data }) => setMessages(data || []));
-  }, [filter]);
+  }, [filter, tick]);
 
   const filters = ["all", "delivered", "failed", "sos"];
 

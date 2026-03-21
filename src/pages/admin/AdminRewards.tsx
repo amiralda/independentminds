@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAutoRefresh } from "@/hooks/useAutoRefresh";
 import StatCard from "@/components/admin/StatCard";
 import { Coins, Gift, Clock, Star } from "lucide-react";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
@@ -8,6 +9,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGri
 export default function AdminRewards() {
   const [stats, setStats] = useState({ issued: 0, redeemed: 0, pending: 0, catalogItems: 0 });
   const [pendingList, setPendingList] = useState<any[]>([]);
+  const tick = useAutoRefresh();
 
   useEffect(() => {
     const load = async () => {
@@ -28,7 +30,7 @@ export default function AdminRewards() {
       setPendingList(pendingListRes.data || []);
     };
     load();
-  }, []);
+  }, [tick]);
 
   return (
     <div className="p-6 space-y-6">

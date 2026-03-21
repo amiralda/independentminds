@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAutoRefresh } from "@/hooks/useAutoRefresh";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 
 interface StudentRow {
@@ -13,6 +14,7 @@ interface StudentRow {
 
 export default function AdminStudents() {
   const [students, setStudents] = useState<StudentRow[]>([]);
+  const tick = useAutoRefresh();
 
   useEffect(() => {
     supabase
@@ -20,7 +22,7 @@ export default function AdminStudents() {
       .select("student_id, display_name, grade_level, parent_id, created_at, updated_at")
       .order("display_name")
       .then(({ data }) => setStudents((data as StudentRow[]) || []));
-  }, []);
+  }, [tick]);
 
   return (
     <div className="p-6 space-y-6">

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAutoRefresh } from "@/hooks/useAutoRefresh";
 import StatCard from "@/components/admin/StatCard";
 import { TrendingUp, AlertTriangle, SmilePlus, Zap } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
@@ -7,6 +8,7 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianG
 export default function AdminEngagement() {
   const [stats, setStats] = useState({ checkInsToday: 0, sosThisWeek: 0, totalCheckIns: 0 });
   const [dailyData, setDailyData] = useState<any[]>([]);
+  const tick = useAutoRefresh();
 
   useEffect(() => {
     const load = async () => {
@@ -41,7 +43,7 @@ export default function AdminEngagement() {
       setDailyData(days);
     };
     load();
-  }, []);
+  }, [tick]);
 
   return (
     <div className="p-6 space-y-6">
