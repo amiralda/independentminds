@@ -14,6 +14,7 @@ interface StudentRow {
 
 export default function AdminStudents() {
   const [students, setStudents] = useState<StudentRow[]>([]);
+  const tick = useAutoRefresh();
 
   useEffect(() => {
     supabase
