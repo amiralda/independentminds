@@ -900,7 +900,7 @@ The sync manager in `src/lib/syncManager.ts`:
 
 ---
 
-## 17. Testing and Quality Assurance
+## 20. Testing and Quality Assurance
 
 ### Testing Stack
 
