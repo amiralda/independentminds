@@ -996,12 +996,13 @@ All 12 checks pass as of v4.0.
 | Focus management | Modals trap and restore focus |
 | Color contrast | #475569 on #F0F4F8 (passes AA) |
 
-### Bilingual Accessibility
+### Multilingual Accessibility
 
-All accessibility labels are available in both English and Haitian Creole:
-- Skip to content: "Skip to main content" / "Ale nan kontni prensipal"
+All accessibility labels are available in all 10 supported languages:
+- Skip to content: localized via i18n
 - Stats bar: role="status" with aria-live
-- Student photos: "Photo of [name]" / "Foto [name]"
+- Student photos: "Photo of [name]" localized per language
+- RTL support for Arabic (AR) language
 
 ---
 
