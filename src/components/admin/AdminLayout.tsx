@@ -102,6 +102,8 @@ export default function AdminLayout() {
             <img src={logo} alt="IM" className="w-7 h-7" />
             <span className="font-display font-bold text-white text-base">Admin</span>
           </div>
+          <div className="flex items-center gap-1">
+            <AdminNotifications />
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
               <button className="text-white/70 hover:text-white p-1.5">
