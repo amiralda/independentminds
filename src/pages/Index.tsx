@@ -40,9 +40,12 @@ const Index = () => {
   const [parentTab, setParentTab] = useState<string | undefined>(undefined);
   const [parentTabKey, setParentTabKey] = useState(0);
 
-  const role = profile?.role || "student";
-  const studentId = role === "student" ? (profile?.studentId || null) : selectedStudentId;
-  const displayName = profile?.displayName || "User";
+  const actualRole = profile?.role || "student";
+  // When parent is viewing as student, treat role as "student" for rendering
+  const role = (actualRole === "parent" && viewingAsStudent) ? "student" : actualRole;
+  const studentId = role === "student" && actualRole === "parent" ? selectedStudentId : (actualRole === "student" ? (profile?.studentId || null) : selectedStudentId);
+  const viewingStudent = viewingAsStudent ? students.find(s => s.student_id === selectedStudentId) : null;
+  const displayName = viewingAsStudent && viewingStudent ? viewingStudent.display_name : (profile?.displayName || "User");
 
   const { data: blocks = [], isLoading } = useDailyBlocks(studentId);
   const refreshBlocks = useRefreshBlocks();
