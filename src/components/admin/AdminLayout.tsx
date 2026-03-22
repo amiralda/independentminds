@@ -8,6 +8,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.svg";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { AdminNotifications } from "./AdminNotifications";
 
 const navItems = [
   { to: "/admin", icon: LayoutDashboard, label: "Overview", end: true },
