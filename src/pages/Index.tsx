@@ -193,6 +193,28 @@ const Index = () => {
         </div>
       </header>
 
+      {/* Back to Parent banner when viewing as student */}
+      {viewingAsStudent && actualRole === "parent" && (
+        <div className="bg-accent border-b border-accent-foreground/10 sticky top-[44px] sm:top-[52px] z-40">
+          <div className="container py-2 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <ArrowLeft size={16} className="text-accent-foreground flex-shrink-0" />
+              <span className="text-xs sm:text-sm font-medium text-accent-foreground truncate">
+                {lang === "HT"
+                  ? `Ou konekte kòm ${viewingStudent?.display_name || "elèv"}`
+                  : `Viewing as ${viewingStudent?.display_name || "student"}`}
+              </span>
+            </div>
+            <button
+              onClick={() => setViewingAsStudent(false)}
+              className="text-xs sm:text-sm font-display font-semibold bg-primary text-primary-foreground px-3 py-1 rounded-lg hover:bg-primary/90 transition-colors flex-shrink-0"
+            >
+              {lang === "HT" ? "Retounen" : "Back to Parent"}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Content */}
       <main id="main-content" className="container px-3 sm:px-4 pb-24">
         {role === "student" ? (
