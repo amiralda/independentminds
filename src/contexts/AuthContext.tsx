@@ -201,6 +201,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       session, user: session?.user ?? null, profile, loading,
       students, selectedStudentId, setSelectedStudentId,
       refreshStudents, updateProfile,
+      viewingAsStudent, setViewingAsStudent,
     }}>
       {children}
     </AuthContext.Provider>
