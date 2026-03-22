@@ -384,7 +384,7 @@ export function AddStudentFullForm({ open, onClose, onBack }: Props) {
                   </Button>
                 )}
                 {scheduleValidated && (
-                  <p className="text-xs text-green-600 flex items-center gap-1"><Check size={12} /> {lang === "HT" ? "Orè valide!" : "Schedule validated!"}</p>
+                  <p className="text-xs text-primary flex items-center gap-1"><Check size={12} /> {lang === "HT" ? "Orè valide!" : "Schedule validated!"}</p>
                 )}
               </div>
             )}
