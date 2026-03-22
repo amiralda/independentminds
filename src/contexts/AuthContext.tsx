@@ -29,6 +29,8 @@ interface AuthContextType {
   setSelectedStudentId: (id: string | null) => void;
   refreshStudents: () => void;
   updateProfile: (updates: Partial<{ language_pref: string; onboarding_complete: boolean }>) => Promise<void>;
+  viewingAsStudent: boolean;
+  setViewingAsStudent: (v: boolean) => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -41,6 +43,8 @@ const AuthContext = createContext<AuthContextType>({
   setSelectedStudentId: () => {},
   refreshStudents: () => {},
   updateProfile: async () => {},
+  viewingAsStudent: false,
+  setViewingAsStudent: () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
