@@ -285,65 +285,8 @@ export function DadPanel({ onAddStudent, initialTab }: Props) {
   );
 }
 
-/* ── Alert Banner (dismissible) ── */
-function AlertBanner({ studentId }: { studentId: string }) {
-  const { t } = useI18n();
-  const [dismissed, setDismissed] = useState<Set<string>>(new Set());
-  const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const { data: alerts = [] } = useQuery({
-    queryKey: ["dad_alerts", studentId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("check_ins").select("*").eq("student_id", studentId)
-        .eq("need_help", true).order("timestamp", { ascending: false }).limit(5);
-      if (error) throw error;
-      return data as CheckInRow[];
-    },
-  });
 
-  const visible = alerts.filter(a => !dismissed.has(a.id));
-  if (visible.length === 0) return null;
-
-  return (
-    <div className="space-y-2">
-      {visible.map(c => (
-        <div key={c.id} className="rounded-xl bg-destructive/10 border border-destructive/20 px-4 py-2.5 animate-slide-up">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 min-w-0 flex-1">
-              <AlertTriangle size={14} className="text-destructive flex-shrink-0" />
-              <span className="text-sm font-medium text-destructive truncate">
-                ⚠️ {t("helpNeeded")} — {c.mood} · {c.focus}
-              </span>
-            </div>
-            <div className="flex items-center gap-1 flex-shrink-0">
-              <button
-                onClick={() => setExpandedId(expandedId === c.id ? null : c.id)}
-                className="text-xs text-muted-foreground hover:text-foreground px-1.5 py-0.5 rounded"
-              >
-                {expandedId === c.id ? "▲" : "▼"}
-              </button>
-              <button
-                onClick={() => setDismissed(prev => new Set(prev).add(c.id))}
-                className="text-xs text-muted-foreground hover:text-foreground px-1.5 py-0.5 rounded"
-                title="Dismiss"
-              >
-                ✕
-              </button>
-            </div>
-          </div>
-          {expandedId === c.id && (
-            <div className="mt-2 pt-2 border-t border-destructive/10 text-sm space-y-1">
-              <p>Mood: <strong>{c.mood}</strong> · Focus: <strong>{c.focus}</strong> · {t("blocks.done")}: <strong>{c.blocks_done}</strong></p>
-              <p className="text-xs text-muted-foreground">{new Date(c.timestamp).toLocaleString()}</p>
-              {c.comment && <p className="text-xs text-muted-foreground italic">"{c.comment}"</p>}
-            </div>
-          )}
-        </div>
-      ))}
-    </div>
-  );
-}
 
 /* ── Today's Progress Tab ── */
 function TodayProgressTab({ studentId }: { studentId: string }) {
