@@ -29,6 +29,8 @@ interface AuthContextType {
   setSelectedStudentId: (id: string | null) => void;
   refreshStudents: () => void;
   updateProfile: (updates: Partial<{ language_pref: string; onboarding_complete: boolean }>) => Promise<void>;
+  viewingAsStudent: boolean;
+  setViewingAsStudent: (v: boolean) => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -41,6 +43,8 @@ const AuthContext = createContext<AuthContextType>({
   setSelectedStudentId: () => {},
   refreshStudents: () => {},
   updateProfile: async () => {},
+  viewingAsStudent: false,
+  setViewingAsStudent: () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -49,6 +53,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [students, setStudents] = useState<StudentRecord[]>([]);
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
+  const [viewingAsStudent, setViewingAsStudent] = useState(false);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -196,6 +201,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       session, user: session?.user ?? null, profile, loading,
       students, selectedStudentId, setSelectedStudentId,
       refreshStudents, updateProfile,
+      viewingAsStudent, setViewingAsStudent,
     }}>
       {children}
     </AuthContext.Provider>

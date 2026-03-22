@@ -19,7 +19,7 @@ import { WelcomeModal } from "@/components/WelcomeModal";
 import { useDailyBlocks, useRefreshBlocks } from "@/hooks/useDailyBlocks";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BlockReminderPopup } from "@/components/BlockReminderPopup";
-import { BookOpen, CheckSquare, Trophy, LogOut, Award, Target, Library, Bot, UserCircle, Coins, HelpCircle, Shield, Mail } from "lucide-react";
+import { BookOpen, CheckSquare, Trophy, LogOut, Award, Target, Library, Bot, UserCircle, Coins, HelpCircle, Shield, Mail, ArrowLeft } from "lucide-react";
 import logo from "@/assets/logo.svg";
 import { TutorChat } from "@/components/TutorChat";
 import { StudentProfileCard } from "@/components/StudentProfileCard";
@@ -31,7 +31,7 @@ type StudentTab = "today" | "tracks" | "checkin" | "badges" | "trophies" | "libr
 const Index = () => {
   const { t, lang } = useI18n();
   const navigate = useNavigate();
-  const { profile, selectedStudentId } = useAuth();
+  const { profile, selectedStudentId, viewingAsStudent, setViewingAsStudent, students } = useAuth();
   const { isAdmin } = useAdminAuth();
   const [tab, setTab] = useState<StudentTab>("today");
   const [showAddStudent, setShowAddStudent] = useState(false);
@@ -40,9 +40,12 @@ const Index = () => {
   const [parentTab, setParentTab] = useState<string | undefined>(undefined);
   const [parentTabKey, setParentTabKey] = useState(0);
 
-  const role = profile?.role || "student";
-  const studentId = role === "student" ? (profile?.studentId || null) : selectedStudentId;
-  const displayName = profile?.displayName || "User";
+  const actualRole = profile?.role || "student";
+  // When parent is viewing as student, treat role as "student" for rendering
+  const role = (actualRole === "parent" && viewingAsStudent) ? "student" : actualRole;
+  const studentId = role === "student" && actualRole === "parent" ? selectedStudentId : (actualRole === "student" ? (profile?.studentId || null) : selectedStudentId);
+  const viewingStudent = viewingAsStudent ? students.find(s => s.student_id === selectedStudentId) : null;
+  const displayName = viewingAsStudent && viewingStudent ? viewingStudent.display_name : (profile?.displayName || "User");
 
   const { data: blocks = [], isLoading } = useDailyBlocks(studentId);
   const refreshBlocks = useRefreshBlocks();
@@ -189,6 +192,28 @@ const Index = () => {
           </div>
         </div>
       </header>
+
+      {/* Back to Parent banner when viewing as student */}
+      {viewingAsStudent && actualRole === "parent" && (
+        <div className="bg-accent border-b border-accent-foreground/10 sticky top-[44px] sm:top-[52px] z-40">
+          <div className="container py-2 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <ArrowLeft size={16} className="text-accent-foreground flex-shrink-0" />
+              <span className="text-xs sm:text-sm font-medium text-accent-foreground truncate">
+                {lang === "HT"
+                  ? `Ou konekte kòm ${viewingStudent?.display_name || "elèv"}`
+                  : `Viewing as ${viewingStudent?.display_name || "student"}`}
+              </span>
+            </div>
+            <button
+              onClick={() => setViewingAsStudent(false)}
+              className="text-xs sm:text-sm font-display font-semibold bg-primary text-primary-foreground px-3 py-1 rounded-lg hover:bg-primary/90 transition-colors flex-shrink-0"
+            >
+              {lang === "HT" ? "Retounen" : "Back to Parent"}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Content */}
       <main id="main-content" className="container px-3 sm:px-4 pb-24">
