@@ -81,7 +81,7 @@ const NAV_ITEMS: NavItem[] = [
 
 export function DadPanel({ onAddStudent, initialTab }: Props) {
   const { t, lang } = useI18n();
-  const { students, selectedStudentId, setSelectedStudentId, setViewingAsStudent } = useAuth();
+  const { students, selectedStudentId, setSelectedStudentId, setViewingAsStudent, user } = useAuth();
   const studentId = selectedStudentId || "";
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<DadTab>(initialTab || "activity");
@@ -161,10 +161,17 @@ export function DadPanel({ onAddStudent, initialTab }: Props) {
                       )}
                     </button>
                     <button
-                      onClick={() => {
+                      onClick={async () => {
                         setSelectedStudentId(s.student_id);
                         setViewingAsStudent(true);
                         setMenuOpen(false);
+                        try {
+                          await supabase.from("impersonation_logs" as any).insert({
+                            parent_id: user?.id,
+                            student_id: s.student_id,
+                            action: "start",
+                          } as any);
+                        } catch {}
                       }}
                       className="p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-accent-foreground transition-colors flex-shrink-0"
                       title={lang === "HT" ? `Konekte kòm ${s.display_name}` : `Login as ${s.display_name}`}

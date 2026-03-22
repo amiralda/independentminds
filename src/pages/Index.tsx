@@ -31,7 +31,7 @@ type StudentTab = "today" | "tracks" | "checkin" | "badges" | "trophies" | "libr
 const Index = () => {
   const { t, lang } = useI18n();
   const navigate = useNavigate();
-  const { profile, selectedStudentId, viewingAsStudent, setViewingAsStudent, students } = useAuth();
+  const { profile, selectedStudentId, viewingAsStudent, setViewingAsStudent, students, user } = useAuth();
   const { isAdmin } = useAdminAuth();
   const [tab, setTab] = useState<StudentTab>("today");
   const [showAddStudent, setShowAddStudent] = useState(false);
@@ -206,8 +206,16 @@ const Index = () => {
               </span>
             </div>
             <button
-              onClick={() => setViewingAsStudent(false)}
-              className="text-xs sm:text-sm font-display font-semibold bg-primary text-primary-foreground px-3 py-1 rounded-lg hover:bg-primary/90 transition-colors flex-shrink-0"
+              onClick={async () => {
+                setViewingAsStudent(false);
+                try {
+                  await supabase.from("impersonation_logs" as any).insert({
+                    parent_id: user?.id,
+                    student_id: selectedStudentId,
+                    action: "end",
+                  } as any);
+                } catch {}
+              }}
             >
               {lang === "HT" ? "Retounen" : "Back to Parent"}
             </button>
