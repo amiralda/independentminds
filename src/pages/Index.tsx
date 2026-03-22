@@ -19,7 +19,7 @@ import { WelcomeModal } from "@/components/WelcomeModal";
 import { useDailyBlocks, useRefreshBlocks } from "@/hooks/useDailyBlocks";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BlockReminderPopup } from "@/components/BlockReminderPopup";
-import { BookOpen, CheckSquare, Trophy, LogOut, Award, Target, Library, Bot, UserCircle, Coins, HelpCircle, Shield, Mail } from "lucide-react";
+import { BookOpen, CheckSquare, Trophy, LogOut, Award, Target, Library, Bot, UserCircle, Coins, HelpCircle, Shield, Mail, ArrowLeft } from "lucide-react";
 import logo from "@/assets/logo.svg";
 import { TutorChat } from "@/components/TutorChat";
 import { StudentProfileCard } from "@/components/StudentProfileCard";
