@@ -31,7 +31,7 @@ type StudentTab = "today" | "tracks" | "checkin" | "badges" | "trophies" | "libr
 const Index = () => {
   const { t, lang } = useI18n();
   const navigate = useNavigate();
-  const { profile, selectedStudentId, viewingAsStudent, setViewingAsStudent, students } = useAuth();
+  const { profile, selectedStudentId, viewingAsStudent, setViewingAsStudent, students, user } = useAuth();
   const { isAdmin } = useAdminAuth();
   const [tab, setTab] = useState<StudentTab>("today");
   const [showAddStudent, setShowAddStudent] = useState(false);
