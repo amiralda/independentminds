@@ -234,8 +234,8 @@ export function DadPanel({ onAddStudent, initialTab }: Props) {
         </div>
       ) : (
         <>
-          {/* Alert Banner */}
-          <AlertBanner studentId={studentId} />
+
+
 
           {/* Active tab indicator */}
           {activeNavItem && (
