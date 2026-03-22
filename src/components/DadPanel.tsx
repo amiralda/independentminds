@@ -140,26 +140,38 @@ export function DadPanel({ onAddStudent, initialTab }: Props) {
                   {lang === "HT" ? "Elèv yo" : "Students"}
                 </p>
                 {students.map(s => (
-                  <button
-                    key={s.student_id}
-                    onClick={() => { setSelectedStudentId(s.student_id); setMenuOpen(false); }}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all ${
-                      selectedStudentId === s.student_id
-                        ? "bg-primary/10 text-primary border border-primary/20"
-                        : "hover:bg-muted text-foreground"
-                    }`}
-                  >
-                    <div className="w-9 h-9 rounded-full bg-secondary/20 flex items-center justify-center flex-shrink-0">
-                      <GraduationCap size={18} className={selectedStudentId === s.student_id ? "text-primary" : "text-muted-foreground"} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">{s.display_name}</p>
-                      <p className="text-[10px] text-muted-foreground">Grade {s.grade_level}</p>
-                    </div>
-                    {selectedStudentId === s.student_id && (
-                      <Check size={16} className="text-primary flex-shrink-0" />
-                    )}
-                  </button>
+                  <div key={s.student_id} className="flex items-center gap-1">
+                    <button
+                      onClick={() => { setSelectedStudentId(s.student_id); setMenuOpen(false); }}
+                      className={`flex-1 flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all ${
+                        selectedStudentId === s.student_id
+                          ? "bg-primary/10 text-primary border border-primary/20"
+                          : "hover:bg-muted text-foreground"
+                      }`}
+                    >
+                      <div className="w-9 h-9 rounded-full bg-secondary/20 flex items-center justify-center flex-shrink-0">
+                        <GraduationCap size={18} className={selectedStudentId === s.student_id ? "text-primary" : "text-muted-foreground"} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate">{s.display_name}</p>
+                        <p className="text-[10px] text-muted-foreground">Grade {s.grade_level}</p>
+                      </div>
+                      {selectedStudentId === s.student_id && (
+                        <Check size={16} className="text-primary flex-shrink-0" />
+                      )}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSelectedStudentId(s.student_id);
+                        setViewingAsStudent(true);
+                        setMenuOpen(false);
+                      }}
+                      className="p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-accent-foreground transition-colors flex-shrink-0"
+                      title={lang === "HT" ? `Konekte kòm ${s.display_name}` : `Login as ${s.display_name}`}
+                    >
+                      <Eye size={16} />
+                    </button>
+                  </div>
                 ))}
                 <button
                   onClick={() => { onAddStudent(); setMenuOpen(false); }}
