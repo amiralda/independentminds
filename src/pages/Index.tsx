@@ -206,8 +206,16 @@ const Index = () => {
               </span>
             </div>
             <button
-              onClick={() => setViewingAsStudent(false)}
-              className="text-xs sm:text-sm font-display font-semibold bg-primary text-primary-foreground px-3 py-1 rounded-lg hover:bg-primary/90 transition-colors flex-shrink-0"
+              onClick={async () => {
+                setViewingAsStudent(false);
+                try {
+                  await supabase.from("impersonation_logs" as any).insert({
+                    parent_id: session?.user?.id,
+                    student_id: selectedStudentId,
+                    action: "end",
+                  } as any);
+                } catch {}
+              }}
             >
               {lang === "HT" ? "Retounen" : "Back to Parent"}
             </button>
