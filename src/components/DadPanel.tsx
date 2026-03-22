@@ -81,7 +81,7 @@ const NAV_ITEMS: NavItem[] = [
 
 export function DadPanel({ onAddStudent, initialTab }: Props) {
   const { t, lang } = useI18n();
-  const { students, selectedStudentId, setSelectedStudentId } = useAuth();
+  const { students, selectedStudentId, setSelectedStudentId, setViewingAsStudent } = useAuth();
   const studentId = selectedStudentId || "";
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<DadTab>(initialTab || "activity");
