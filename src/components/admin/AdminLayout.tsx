@@ -17,6 +17,7 @@ const navItems = [
   { to: "/admin/system", icon: Activity, label: "System" },
   { to: "/admin/messages", icon: MessageSquare, label: "Messages" },
   { to: "/admin/users", icon: Shield, label: "Users" },
+  { to: "/admin/audit", icon: Eye, label: "Audit Logs" },
 ];
 
 function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
