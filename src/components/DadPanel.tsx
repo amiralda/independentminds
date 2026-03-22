@@ -161,10 +161,17 @@ export function DadPanel({ onAddStudent, initialTab }: Props) {
                       )}
                     </button>
                     <button
-                      onClick={() => {
+                      onClick={async () => {
                         setSelectedStudentId(s.student_id);
                         setViewingAsStudent(true);
                         setMenuOpen(false);
+                        try {
+                          await supabase.from("impersonation_logs" as any).insert({
+                            parent_id: session?.user?.id,
+                            student_id: s.student_id,
+                            action: "start",
+                          } as any);
+                        } catch {}
                       }}
                       className="p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-accent-foreground transition-colors flex-shrink-0"
                       title={lang === "HT" ? `Konekte kòm ${s.display_name}` : `Login as ${s.display_name}`}
