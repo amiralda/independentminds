@@ -109,6 +109,39 @@ export type Database = {
           },
         ]
       }
+      admin_notifications: {
+        Row: {
+          admin_id: string
+          body: string
+          created_at: string
+          id: string
+          is_read: boolean
+          metadata: Json | null
+          notification_type: string
+          title: string
+        }
+        Insert: {
+          admin_id: string
+          body: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          metadata?: Json | null
+          notification_type?: string
+          title: string
+        }
+        Update: {
+          admin_id?: string
+          body?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          metadata?: Json | null
+          notification_type?: string
+          title?: string
+        }
+        Relationships: []
+      }
       ai_conversations: {
         Row: {
           content: string

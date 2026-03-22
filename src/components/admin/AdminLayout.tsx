@@ -8,6 +8,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.svg";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { AdminNotifications } from "./AdminNotifications";
 
 const navItems = [
   { to: "/admin", icon: LayoutDashboard, label: "Overview", end: true },
@@ -84,9 +85,12 @@ export default function AdminLayout() {
     <div className="min-h-screen flex bg-[hsl(220,20%,12%)]">
       {/* Desktop Sidebar — hidden on mobile */}
       <aside className="hidden md:flex w-64 flex-shrink-0 bg-[hsl(220,20%,14%)] border-r border-white/10 flex-col">
-        <div className="p-5 flex items-center gap-3 border-b border-white/10">
-          <img src={logo} alt="IM" className="w-8 h-8" />
-          <span className="font-display font-bold text-white text-lg">Admin Panel</span>
+        <div className="p-5 flex items-center justify-between border-b border-white/10">
+          <div className="flex items-center gap-3">
+            <img src={logo} alt="IM" className="w-8 h-8" />
+            <span className="font-display font-bold text-white text-lg">Admin Panel</span>
+          </div>
+          <AdminNotifications />
         </div>
         <SidebarNav />
       </aside>
@@ -98,7 +102,9 @@ export default function AdminLayout() {
             <img src={logo} alt="IM" className="w-7 h-7" />
             <span className="font-display font-bold text-white text-base">Admin</span>
           </div>
-          <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+          <div className="flex items-center gap-1">
+            <AdminNotifications />
+            <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
               <button className="text-white/70 hover:text-white p-1.5">
                 <Menu size={22} />
@@ -112,6 +118,7 @@ export default function AdminLayout() {
               <SidebarNav onNavigate={() => setMobileOpen(false)} />
             </SheetContent>
           </Sheet>
+          </div>
         </div>
       </div>
 
