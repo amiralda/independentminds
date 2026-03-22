@@ -210,7 +210,7 @@ const Index = () => {
                 setViewingAsStudent(false);
                 try {
                   await supabase.from("impersonation_logs" as any).insert({
-                    parent_id: session?.user?.id,
+                    parent_id: user?.id,
                     student_id: selectedStudentId,
                     action: "end",
                   } as any);
