@@ -104,7 +104,7 @@ export default function AdminLayout() {
           </div>
           <div className="flex items-center gap-1">
             <AdminNotifications />
-          <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+            <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
               <button className="text-white/70 hover:text-white p-1.5">
                 <Menu size={22} />
