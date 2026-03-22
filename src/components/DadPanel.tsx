@@ -167,7 +167,7 @@ export function DadPanel({ onAddStudent, initialTab }: Props) {
                         setMenuOpen(false);
                         try {
                           await supabase.from("impersonation_logs" as any).insert({
-                            parent_id: session?.user?.id,
+                            parent_id: user?.id,
                             student_id: s.student_id,
                             action: "start",
                           } as any);
