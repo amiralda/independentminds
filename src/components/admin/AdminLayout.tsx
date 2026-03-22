@@ -118,6 +118,7 @@ export default function AdminLayout() {
               <SidebarNav onNavigate={() => setMobileOpen(false)} />
             </SheetContent>
           </Sheet>
+          </div>
         </div>
       </div>
 
