@@ -169,6 +169,422 @@ export type Database = {
         }
         Relationships: []
       }
+      beta_config: {
+        Row: {
+          beta_start_date: string | null
+          current_testers: number | null
+          id: number
+          max_testers: number | null
+          open_beta_date: string | null
+          phase: string
+          updated_at: string | null
+        }
+        Insert: {
+          beta_start_date?: string | null
+          current_testers?: number | null
+          id?: number
+          max_testers?: number | null
+          open_beta_date?: string | null
+          phase?: string
+          updated_at?: string | null
+        }
+        Update: {
+          beta_start_date?: string | null
+          current_testers?: number | null
+          id?: number
+          max_testers?: number | null
+          open_beta_date?: string | null
+          phase?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      beta_events: {
+        Row: {
+          created_at: string | null
+          duration_ms: number | null
+          element_selector: string | null
+          event_type: string
+          feature_name: string | null
+          id: string
+          metadata: Json | null
+          page_path: string | null
+          session_id: string | null
+          tester_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          duration_ms?: number | null
+          element_selector?: string | null
+          event_type: string
+          feature_name?: string | null
+          id?: string
+          metadata?: Json | null
+          page_path?: string | null
+          session_id?: string | null
+          tester_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          duration_ms?: number | null
+          element_selector?: string | null
+          event_type?: string
+          feature_name?: string | null
+          id?: string
+          metadata?: Json | null
+          page_path?: string | null
+          session_id?: string | null
+          tester_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "beta_events_tester_id_fkey"
+            columns: ["tester_id"]
+            isOneToOne: false
+            referencedRelation: "beta_testers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      beta_feedback: {
+        Row: {
+          browser_info: Json | null
+          comment: string | null
+          created_at: string | null
+          feature_area: string | null
+          feedback_type: string
+          id: string
+          nps_score: number | null
+          page_path: string | null
+          rating: number | null
+          screenshot_url: string | null
+          tester_id: string | null
+        }
+        Insert: {
+          browser_info?: Json | null
+          comment?: string | null
+          created_at?: string | null
+          feature_area?: string | null
+          feedback_type: string
+          id?: string
+          nps_score?: number | null
+          page_path?: string | null
+          rating?: number | null
+          screenshot_url?: string | null
+          tester_id?: string | null
+        }
+        Update: {
+          browser_info?: Json | null
+          comment?: string | null
+          created_at?: string | null
+          feature_area?: string | null
+          feedback_type?: string
+          id?: string
+          nps_score?: number | null
+          page_path?: string | null
+          rating?: number | null
+          screenshot_url?: string | null
+          tester_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "beta_feedback_tester_id_fkey"
+            columns: ["tester_id"]
+            isOneToOne: false
+            referencedRelation: "beta_testers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      beta_invite_logs: {
+        Row: {
+          channel: string
+          error_message: string | null
+          id: string
+          invite_id: string | null
+          sent_at: string | null
+          status: string
+        }
+        Insert: {
+          channel: string
+          error_message?: string | null
+          id?: string
+          invite_id?: string | null
+          sent_at?: string | null
+          status: string
+        }
+        Update: {
+          channel?: string
+          error_message?: string | null
+          id?: string
+          invite_id?: string | null
+          sent_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "beta_invite_logs_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "beta_invites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      beta_invites: {
+        Row: {
+          accepted_at: string | null
+          created_at: string | null
+          email: string
+          expires_at: string | null
+          id: string
+          invited_by: string | null
+          language: string | null
+          notes: string | null
+          status: string
+          telegram_chat_id: string | null
+          tester_type: string
+          token: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string | null
+          email: string
+          expires_at?: string | null
+          id?: string
+          invited_by?: string | null
+          language?: string | null
+          notes?: string | null
+          status?: string
+          telegram_chat_id?: string | null
+          tester_type: string
+          token?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string | null
+          email?: string
+          expires_at?: string | null
+          id?: string
+          invited_by?: string | null
+          language?: string | null
+          notes?: string | null
+          status?: string
+          telegram_chat_id?: string | null
+          tester_type?: string
+          token?: string
+        }
+        Relationships: []
+      }
+      beta_requests: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          language: string | null
+          motivation: string | null
+          name: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          tester_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id?: string
+          language?: string | null
+          motivation?: string | null
+          name: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          tester_type: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          language?: string | null
+          motivation?: string | null
+          name?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          tester_type?: string
+        }
+        Relationships: []
+      }
+      beta_sessions: {
+        Row: {
+          browser: string | null
+          device_type: string | null
+          duration_seconds: number | null
+          ended_at: string | null
+          event_count: number | null
+          id: string
+          language: string | null
+          page_count: number | null
+          recording_url: string | null
+          session_id: string
+          started_at: string | null
+          tester_id: string | null
+        }
+        Insert: {
+          browser?: string | null
+          device_type?: string | null
+          duration_seconds?: number | null
+          ended_at?: string | null
+          event_count?: number | null
+          id?: string
+          language?: string | null
+          page_count?: number | null
+          recording_url?: string | null
+          session_id: string
+          started_at?: string | null
+          tester_id?: string | null
+        }
+        Update: {
+          browser?: string | null
+          device_type?: string | null
+          duration_seconds?: number | null
+          ended_at?: string | null
+          event_count?: number | null
+          id?: string
+          language?: string | null
+          page_count?: number | null
+          recording_url?: string | null
+          session_id?: string
+          started_at?: string | null
+          tester_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "beta_sessions_tester_id_fkey"
+            columns: ["tester_id"]
+            isOneToOne: false
+            referencedRelation: "beta_testers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      beta_task_completions: {
+        Row: {
+          completed_at: string | null
+          id: string
+          started_at: string | null
+          status: string
+          task_id: string | null
+          tester_id: string | null
+          time_spent_seconds: number | null
+        }
+        Insert: {
+          completed_at?: string | null
+          id?: string
+          started_at?: string | null
+          status?: string
+          task_id?: string | null
+          tester_id?: string | null
+          time_spent_seconds?: number | null
+        }
+        Update: {
+          completed_at?: string | null
+          id?: string
+          started_at?: string | null
+          status?: string
+          task_id?: string | null
+          tester_id?: string | null
+          time_spent_seconds?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "beta_task_completions_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "beta_tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "beta_task_completions_tester_id_fkey"
+            columns: ["tester_id"]
+            isOneToOne: false
+            referencedRelation: "beta_testers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      beta_tasks: {
+        Row: {
+          description_key: string
+          feature_area: string
+          id: string
+          is_required: boolean | null
+          task_order: number
+          tester_type: string
+          title_key: string
+        }
+        Insert: {
+          description_key: string
+          feature_area: string
+          id?: string
+          is_required?: boolean | null
+          task_order: number
+          tester_type: string
+          title_key: string
+        }
+        Update: {
+          description_key?: string
+          feature_area?: string
+          id?: string
+          is_required?: boolean | null
+          task_order?: number
+          tester_type?: string
+          title_key?: string
+        }
+        Relationships: []
+      }
+      beta_testers: {
+        Row: {
+          beta_phase: string | null
+          id: string
+          joined_at: string | null
+          last_active_at: string | null
+          recording_consent: boolean | null
+          session_count: number | null
+          tasks_abandoned: number | null
+          tasks_completed: number | null
+          tasks_total: number | null
+          tester_type: string
+          user_id: string | null
+        }
+        Insert: {
+          beta_phase?: string | null
+          id?: string
+          joined_at?: string | null
+          last_active_at?: string | null
+          recording_consent?: boolean | null
+          session_count?: number | null
+          tasks_abandoned?: number | null
+          tasks_completed?: number | null
+          tasks_total?: number | null
+          tester_type: string
+          user_id?: string | null
+        }
+        Update: {
+          beta_phase?: string | null
+          id?: string
+          joined_at?: string | null
+          last_active_at?: string | null
+          recording_consent?: boolean | null
+          session_count?: number | null
+          tasks_abandoned?: number | null
+          tasks_completed?: number | null
+          tasks_total?: number | null
+          tester_type?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       challenges: {
         Row: {
           bonus_points: number
