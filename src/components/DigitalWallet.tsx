@@ -35,15 +35,10 @@ export function DigitalWallet() {
         currency_amount: parseFloat(converted.amount),
         currency_code: converted.code,
         currency_symbol: converted.symbol,
-        memo: lang === 'HT' ? 'Rekonpans edikasyon' : 'Education reward',
+        memo: t('check.memo'),
       },
       {
-        onSuccess: () =>
-          toast.success(
-            lang === 'HT'
-              ? 'Chèk dijital kreye!'
-              : 'Digital check issued! 🎉'
-          ),
+        onSuccess: () => toast.success(t('wallet.checkIssued')),
       }
     );
   };
