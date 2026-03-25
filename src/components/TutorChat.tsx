@@ -153,7 +153,7 @@ export function TutorChat() {
     if (!file) return;
 
     if (file.size > MAX_FILE_SIZE) {
-      toast.error(lang === 'HT' ? 'Fichye a twò gwo (maks 10MB)' : 'File too large (max 10MB)');
+      toast.error(t('file.tooLarge'));
       return;
     }
 
