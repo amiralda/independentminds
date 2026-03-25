@@ -104,7 +104,7 @@ export function DigitalWallet() {
         <div className="space-y-3">
           <h3 className="font-display font-bold text-sm flex items-center gap-1.5">
             <FileText size={14} className="text-primary" />
-            {lang === 'HT' ? 'Chèk Dijital' : 'Digital Checks'}
+            {t('check.title')}
           </h3>
           <div className="space-y-3">
             {checks.map(check => (
