@@ -200,7 +200,7 @@ export function TutorChat() {
 
     // For PDFs and other binary files, send as data URL
     const parts: ContentPart[] = [
-      { type: "text", text: text || (lang === 'HT' ? 'Analize dokiman sa a' : 'Analyze this document') },
+      { type: "text", text: text || t('file.analyzeDoc') },
       { type: "image_url", image_url: { url: file.dataUrl } },
     ];
     return parts;
