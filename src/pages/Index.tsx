@@ -248,7 +248,10 @@ const Index = () => {
                   <Skeleton className="h-24 w-full rounded-xl" />
                 </div>
               ) : (
-                <TodayBlocks blocks={blocks} onRefresh={refreshBlocks} />
+                <div className="space-y-6">
+                  <TodayBlocks blocks={blocks} onRefresh={refreshBlocks} />
+                  {studentId && <ActivityFeed studentId={studentId} />}
+                </div>
               )
             )}
             {tab === "tracks" && <CategoryCards />}
