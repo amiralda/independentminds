@@ -22,12 +22,7 @@ const LANGUAGES = [
   { code: 'ru', label: '🇷🇺 Русский' },
 ];
 
-const CHANNELS = [
-  { id: 'email', label: 'Email', icon: Mail },
-  { id: 'sms', label: 'SMS', icon: MessageSquare },
-  { id: 'whatsapp', label: 'WhatsApp', icon: Phone },
-  { id: 'telegram', label: 'Telegram', icon: Send },
-];
+
 
 interface AdminInvitePanelProps {
   open: boolean;
