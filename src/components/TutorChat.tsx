@@ -470,7 +470,7 @@ export function TutorChat() {
             className="h-11 w-11 flex-shrink-0"
             onClick={() => fileInputRef.current?.click()}
             disabled={isLoading}
-            aria-label={lang === 'HT' ? 'Ajoute fichye' : 'Attach file'}
+            aria-label={t('file.upload')}
           >
             <Paperclip size={18} />
           </Button>
