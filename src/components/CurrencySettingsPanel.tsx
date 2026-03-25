@@ -82,9 +82,7 @@ export function CurrencySettingsPanel() {
 
         <div>
           <Label className="text-xs">
-            {lang === 'HT'
-              ? 'Pwen pou 1 inite lajan'
-              : 'Points per 1 currency unit'}
+            {t('currency.pointsPerUnit')}
           </Label>
           <div className="flex items-center gap-2 mt-1">
             <Input
