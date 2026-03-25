@@ -22,6 +22,7 @@ import { BlockReminderPopup } from "@/components/BlockReminderPopup";
 import { BookOpen, CheckSquare, Trophy, LogOut, Award, Target, Library, Bot, UserCircle, Coins, HelpCircle, Shield, Mail, ArrowLeft } from "lucide-react";
 import logo from "@/assets/logo.svg";
 import { TutorChat } from "@/components/TutorChat";
+import { ActivityFeed } from "@/components/ActivityFeed";
 import { StudentProfileCard } from "@/components/StudentProfileCard";
 import { RewardsPanel } from "@/components/RewardsPanel";
 import { StudentHelpGuide } from "@/components/StudentHelpGuide";
