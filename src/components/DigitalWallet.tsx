@@ -94,9 +94,7 @@ export function DigitalWallet() {
             disabled={issueCheckMutation.isPending}
           >
             <Receipt size={14} className="mr-1" />
-            {lang === 'HT'
-              ? 'Kreye Chèk Dijital'
-              : 'Issue Digital Check'}
+            {t('wallet.issueCheck')}
           </Button>
         )}
       </div>
