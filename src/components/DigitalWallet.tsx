@@ -62,7 +62,7 @@ export function DigitalWallet() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              {lang === 'HT' ? 'Balans Dijital' : 'Digital Wallet'}
+              {t('wallet.title')}
             </p>
             <div className="flex items-baseline gap-1 mt-1">
               <span className="text-sm text-muted-foreground">
