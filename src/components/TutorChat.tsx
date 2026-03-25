@@ -406,7 +406,7 @@ export function TutorChat() {
                 {msg.role === "user" && hasFile && (
                   <div className="flex items-center gap-1 mb-1.5 text-[10px] opacity-80">
                     {hasImage ? <ImageIcon size={10} /> : <FileText size={10} />}
-                    <span>{lang === 'HT' ? 'Fichye ajoute' : 'File attached'}</span>
+                    <span>{t('file.attached')}</span>
                   </div>
                 )}
                 {msg.role === "assistant" ? (
