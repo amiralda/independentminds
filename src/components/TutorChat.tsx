@@ -194,7 +194,7 @@ export function TutorChat() {
 
     if (isTextBasedType(file.type) || file.name.endsWith('.txt') || file.name.endsWith('.md')) {
       const fileContent = file.dataUrl;
-      const prefix = text || (lang === 'HT' ? 'Analize fichye sa a' : 'Analyze this file');
+      const prefix = text || t('file.analyzeFile');
       return `${prefix}\n\n--- ${file.name} ---\n${fileContent}`;
     }
 
