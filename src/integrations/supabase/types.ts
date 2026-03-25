@@ -1166,6 +1166,7 @@ export type Database = {
           reengagement_sent_at: string | null
           role: string
           student_id: string | null
+          username: string
         }
         Insert: {
           adult_confirmed?: boolean
@@ -1181,6 +1182,7 @@ export type Database = {
           reengagement_sent_at?: string | null
           role?: string
           student_id?: string | null
+          username: string
         }
         Update: {
           adult_confirmed?: boolean
@@ -1196,6 +1198,7 @@ export type Database = {
           reengagement_sent_at?: string | null
           role?: string
           student_id?: string | null
+          username?: string
         }
         Relationships: [
           {
@@ -1549,6 +1552,7 @@ export type Database = {
         Returns: undefined
       }
       delete_my_account: { Args: never; Returns: undefined }
+      generate_username: { Args: { p_display_name: string }; Returns: string }
       get_my_role: { Args: never; Returns: string }
       get_my_student_id: { Args: never; Returns: string }
       get_points_balance: { Args: { _student_id: string }; Returns: number }
