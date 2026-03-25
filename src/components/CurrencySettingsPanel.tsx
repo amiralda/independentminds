@@ -94,7 +94,7 @@ export function CurrencySettingsPanel() {
               className="w-24"
             />
             <span className="text-xs text-muted-foreground">
-              {lang === 'HT' ? 'pwen' : 'pts'} = {selectedCurrency?.symbol}1
+              {t('currency.pts')} = {selectedCurrency?.symbol}1
             </span>
           </div>
           <p className="text-[10px] text-muted-foreground mt-1">
