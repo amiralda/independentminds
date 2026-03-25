@@ -14,6 +14,10 @@ interface Props {
 }
 
 export function StudentStatsBar({ studentId, todayDone, todayTotal }: Props) {
+  const { t } = useI18n();
+  const { data: balance = 0 } = usePointsBalance(studentId);
+  const { data: currencySettings } = useCurrencySettings(studentId);
+  const currency = convertPointsToCurrency(balance, currencySettings);
   // 7-day velocity
   const { data: velocity = { avg: 0, streak: 0 } } = useQuery({
     queryKey: ["student_velocity", studentId],
