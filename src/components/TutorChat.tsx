@@ -3,16 +3,36 @@ import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Bot, User, Sparkles, Loader2, BookOpen, Calculator, FlaskConical, Globe2, Languages, Trash2 } from "lucide-react";
+import { Send, Bot, User, Sparkles, Loader2, BookOpen, Calculator, FlaskConical, Globe2, Languages, Trash2, Paperclip, X, FileText, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
-type Msg = { role: "user" | "assistant"; content: string };
+type ContentPart =
+  | { type: "text"; text: string }
+  | { type: "image_url"; image_url: { url: string } };
+
+type Msg = { role: "user" | "assistant"; content: string | ContentPart[] };
 type SubjectMode = "general" | "math" | "science" | "english" | "social" | "esl";
 
+interface AttachedFile {
+  name: string;
+  type: string;
+  dataUrl: string;
+  size: number;
+}
+
 const TUTOR_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-tutor`;
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const ALLOWED_TYPES = [
+  'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+  'application/pdf',
+  'text/plain', 'text/csv', 'text/html', 'text/markdown',
+  'application/json',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+];
 
 const SUBJECT_MODES: { key: SubjectMode; icon: React.ElementType; en: string; ht: string; color: string }[] = [
   { key: "general", icon: Sparkles, en: "All Subjects", ht: "Tout Matyè", color: "bg-primary/10 text-primary" },
@@ -62,6 +82,22 @@ const quickPromptsByMode: Record<SubjectMode, { en: string; ht: string; emoji: s
   ],
 };
 
+function getDisplayContent(content: string | ContentPart[]): string {
+  if (typeof content === 'string') return content;
+  return content
+    .filter((p): p is { type: "text"; text: string } => p.type === "text")
+    .map(p => p.text)
+    .join('\n');
+}
+
+function isImageType(mimeType: string): boolean {
+  return mimeType.startsWith('image/');
+}
+
+function isTextBasedType(mimeType: string): boolean {
+  return mimeType.startsWith('text/') || mimeType === 'application/json';
+}
+
 export function TutorChat() {
   const { lang, t } = useI18n();
   const { profile } = useAuth();
@@ -72,9 +108,10 @@ export function TutorChat() {
   const [isLoading, setIsLoading] = useState(false);
   const [subjectMode, setSubjectMode] = useState<SubjectMode>("general");
   const [rateLimitInfo, setRateLimitInfo] = useState<{ resetAt: string; message: string } | null>(null);
+  const [attachedFile, setAttachedFile] = useState<AttachedFile | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Load conversation history from database
   const { data: savedHistory } = useQuery({
     queryKey: ["ai_history", studentId, subjectMode],
     queryFn: async () => {
@@ -91,7 +128,6 @@ export function TutorChat() {
     enabled: !!studentId,
   });
 
-  // Sync saved history into local messages when subject changes
   useEffect(() => {
     if (savedHistory && savedHistory.length > 0) {
       setMessages(savedHistory);
@@ -112,12 +148,73 @@ export function TutorChat() {
     toast.success(lang === "HT" ? "Istwa efase" : "History cleared");
   };
 
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error(lang === 'HT' ? 'Fichye a twò gwo (maks 10MB)' : 'File too large (max 10MB)');
+      return;
+    }
+
+    if (!ALLOWED_TYPES.includes(file.type) && !file.name.endsWith('.txt') && !file.name.endsWith('.md')) {
+      toast.error(lang === 'HT' ? 'Tip fichye sa a pa sipòte' : 'This file type is not supported');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setAttachedFile({
+        name: file.name,
+        type: file.type || 'application/octet-stream',
+        dataUrl: reader.result as string,
+        size: file.size,
+      });
+    };
+
+    if (isTextBasedType(file.type) || file.name.endsWith('.txt') || file.name.endsWith('.md') || file.name.endsWith('.csv')) {
+      reader.readAsText(file);
+    } else {
+      reader.readAsDataURL(file);
+    }
+
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const buildMessageContent = (text: string, file: AttachedFile | null): string | ContentPart[] => {
+    if (!file) return text;
+
+    if (isImageType(file.type)) {
+      const parts: ContentPart[] = [
+        { type: "text", text: text || (lang === 'HT' ? 'Analize imaj sa a' : 'Analyze this image') },
+        { type: "image_url", image_url: { url: file.dataUrl } },
+      ];
+      return parts;
+    }
+
+    if (isTextBasedType(file.type) || file.name.endsWith('.txt') || file.name.endsWith('.md')) {
+      const fileContent = file.dataUrl;
+      const prefix = text || (lang === 'HT' ? 'Analize fichye sa a' : 'Analyze this file');
+      return `${prefix}\n\n--- ${file.name} ---\n${fileContent}`;
+    }
+
+    // For PDFs and other binary files, send as data URL
+    const parts: ContentPart[] = [
+      { type: "text", text: text || (lang === 'HT' ? 'Analize dokiman sa a' : 'Analyze this document') },
+      { type: "image_url", image_url: { url: file.dataUrl } },
+    ];
+    return parts;
+  };
+
   const sendMessage = async (text: string) => {
-    if (!text.trim() || isLoading) return;
-    const userMsg: Msg = { role: "user", content: text.trim() };
+    if ((!text.trim() && !attachedFile) || isLoading) return;
+
+    const content = buildMessageContent(text.trim(), attachedFile);
+    const userMsg: Msg = { role: "user", content };
     const allMessages = [...messages, userMsg];
     setMessages(allMessages);
     setInput("");
+    setAttachedFile(null);
     setIsLoading(true);
     let assistantSoFar = "";
 
@@ -125,10 +222,16 @@ export function TutorChat() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) { toast.error("Please log in to use Mr A"); setIsLoading(false); return; }
 
+      // Serialize messages for the API - convert ContentPart[] to simple format
+      const serializedMessages = allMessages.map(m => ({
+        role: m.role,
+        content: m.content,
+      }));
+
       const resp = await fetch(TUTOR_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
-        body: JSON.stringify({ messages: allMessages, subjectMode, studentId }),
+        body: JSON.stringify({ messages: serializedMessages, subjectMode, studentId }),
       });
 
       if (!resp.ok) {
@@ -170,8 +273,8 @@ export function TutorChat() {
         if (jsonStr === "[DONE]") return true;
         try {
           const parsed = JSON.parse(jsonStr);
-          const content = parsed.choices?.[0]?.delta?.content as string | undefined;
-          if (content) processContent(content);
+          const c = parsed.choices?.[0]?.delta?.content as string | undefined;
+          if (c) processContent(c);
         } catch { return false; }
         return false;
       };
@@ -266,8 +369,8 @@ export function TutorChat() {
               </p>
               <p className="text-sm text-muted-foreground mt-1">
                 {lang === "HT"
-                  ? "M ka ede ou ak nenpòt matyè. Chwazi yon matyè oswa poze m yon kesyon!"
-                  : "I can help with any subject. Pick a topic or ask me anything!"}
+                  ? "M ka ede ou ak nenpòt matyè. Chwazi yon matyè, voye yon fichye, oswa poze m yon kesyon!"
+                  : "I can help with any subject. Pick a topic, upload a file, or ask me anything!"}
               </p>
             </div>
             <div className="grid grid-cols-2 gap-2 max-w-sm mx-auto">
@@ -285,31 +388,43 @@ export function TutorChat() {
           </div>
         )}
 
-        {messages.map((msg, i) => (
-          <div key={i} className={`flex gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-            {msg.role === "assistant" && (
-              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-secondary flex-shrink-0 flex items-center justify-center mt-1">
-                <Bot size={14} className="text-primary-foreground" />
-              </div>
-            )}
-            <div className={`rounded-2xl px-4 py-3 max-w-[85%] ${
-              msg.role === "user" ? "bg-primary text-primary-foreground rounded-br-md" : "bg-card border shadow-sm rounded-bl-md"
-            }`}>
-              {msg.role === "assistant" ? (
-                <div className="prose prose-sm dark:prose-invert max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
-                  <ReactMarkdown>{msg.content}</ReactMarkdown>
+        {messages.map((msg, i) => {
+          const displayText = getDisplayContent(msg.content);
+          const hasImage = Array.isArray(msg.content) && msg.content.some(p => p.type === 'image_url');
+          const hasFile = Array.isArray(msg.content);
+
+          return (
+            <div key={i} className={`flex gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+              {msg.role === "assistant" && (
+                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-secondary flex-shrink-0 flex items-center justify-center mt-1">
+                  <Bot size={14} className="text-primary-foreground" />
                 </div>
-              ) : (
-                <p className="text-sm">{msg.content}</p>
+              )}
+              <div className={`rounded-2xl px-4 py-3 max-w-[85%] ${
+                msg.role === "user" ? "bg-primary text-primary-foreground rounded-br-md" : "bg-card border shadow-sm rounded-bl-md"
+              }`}>
+                {msg.role === "user" && hasFile && (
+                  <div className="flex items-center gap-1 mb-1.5 text-[10px] opacity-80">
+                    {hasImage ? <ImageIcon size={10} /> : <FileText size={10} />}
+                    <span>{lang === 'HT' ? 'Fichye ajoute' : 'File attached'}</span>
+                  </div>
+                )}
+                {msg.role === "assistant" ? (
+                  <div className="prose prose-sm dark:prose-invert max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+                    <ReactMarkdown>{displayText}</ReactMarkdown>
+                  </div>
+                ) : (
+                  <p className="text-sm">{displayText}</p>
+                )}
+              </div>
+              {msg.role === "user" && (
+                <div className="w-7 h-7 rounded-full bg-secondary flex-shrink-0 flex items-center justify-center mt-1">
+                  <User size={14} className="text-secondary-foreground" />
+                </div>
               )}
             </div>
-            {msg.role === "user" && (
-              <div className="w-7 h-7 rounded-full bg-secondary flex-shrink-0 flex items-center justify-center mt-1">
-                <User size={14} className="text-secondary-foreground" />
-              </div>
-            )}
-          </div>
-        ))}
+          );
+        })}
 
         {isLoading && messages[messages.length - 1]?.role !== "assistant" && (
           <div className="flex gap-2">
@@ -323,9 +438,42 @@ export function TutorChat() {
         )}
       </div>
 
+      {/* Attached file preview */}
+      {attachedFile && (
+        <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 rounded-lg border border-dashed mx-1 mb-1">
+          {isImageType(attachedFile.type) ? <ImageIcon size={14} className="text-info" /> : <FileText size={14} className="text-primary" />}
+          <span className="text-xs font-medium truncate flex-1">{attachedFile.name}</span>
+          <span className="text-[10px] text-muted-foreground">{(attachedFile.size / 1024).toFixed(0)}KB</span>
+          <button
+            onClick={() => setAttachedFile(null)}
+            className="p-0.5 rounded hover:bg-muted"
+            aria-label={lang === 'HT' ? 'Retire fichye' : 'Remove file'}
+          >
+            <X size={12} />
+          </button>
+        </div>
+      )}
+
       {/* Input */}
       <div className="pt-3 border-t mt-auto">
         <div className="flex gap-2">
+          <input
+            ref={fileInputRef}
+            type="file"
+            className="hidden"
+            accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.txt,.csv,.json,.md,.html,.docx,.xlsx"
+            onChange={handleFileSelect}
+          />
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-11 w-11 flex-shrink-0"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isLoading}
+            aria-label={lang === 'HT' ? 'Ajoute fichye' : 'Attach file'}
+          >
+            <Paperclip size={18} />
+          </Button>
           <Textarea
             value={input}
             onChange={e => setInput(e.target.value)}
@@ -335,7 +483,13 @@ export function TutorChat() {
             className="resize-none min-h-[44px] max-h-24"
             disabled={isLoading}
           />
-          <Button size="icon" onClick={() => sendMessage(input)} disabled={!input.trim() || isLoading} className="h-11 w-11 flex-shrink-0" aria-label="Send">
+          <Button
+            size="icon"
+            onClick={() => sendMessage(input)}
+            disabled={(!input.trim() && !attachedFile) || isLoading}
+            className="h-11 w-11 flex-shrink-0"
+            aria-label="Send"
+          >
             <Send size={18} />
           </Button>
         </div>

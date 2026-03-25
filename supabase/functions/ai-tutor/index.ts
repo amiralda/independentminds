@@ -36,11 +36,22 @@ function sanitizeInput(input: string): { text: string; flagged: boolean; reason:
   return { text, flagged, reason };
 }
 
+// Extract text content from a message (handles both string and multimodal content)
+function getTextContent(content: any): string {
+  if (typeof content === 'string') return content;
+  if (Array.isArray(content)) {
+    return content
+      .filter((p: any) => p.type === 'text')
+      .map((p: any) => p.text)
+      .join('\n');
+  }
+  return '';
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    // v2: fixed service client auth for persistence
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized: missing token" }), {
@@ -102,7 +113,6 @@ serve(async (req) => {
     const remaining = rateData ? Math.max(0, 30 - rateData.count) : 30;
     const { messages, subjectMode, studentId: reqStudentId } = await req.json();
 
-    // Determine the student ID for conversation persistence
     const effectiveStudentId = reqStudentId || profile.student_id || userId;
     const subject = subjectMode || "general";
 
@@ -117,11 +127,13 @@ serve(async (req) => {
 
     const history = (historyRows || []).reverse() as { role: string; content: string }[];
 
-    // Sanitize the latest user message
+    // Get the latest user message (may be multimodal with file content)
     const lastMsg = messages[messages.length - 1];
+    const lastMsgTextContent = getTextContent(lastMsg?.content);
+
+    // Sanitize text content
     if (lastMsg?.role === "user") {
-      const { text, flagged, reason } = sanitizeInput(lastMsg.content);
-      lastMsg.content = text;
+      const { text, flagged, reason } = sanitizeInput(lastMsgTextContent);
       if (flagged) {
         await serviceClient.from("flagged_inputs").insert({
           student_id: effectiveStudentId, flag_reason: reason, input_length: text.length,
@@ -129,11 +141,11 @@ serve(async (req) => {
       }
     }
 
-    // Save user message to history
-    if (lastMsg?.role === "user") {
-      console.log("Saving user message for student:", effectiveStudentId, "subject:", subject);
+    // Save user message text to history (not file data)
+    if (lastMsg?.role === "user" && lastMsgTextContent) {
+      const saveContent = lastMsgTextContent.slice(0, 5000); // Cap saved content
       const { error: insertErr } = await serviceClient.from("ai_conversations").insert({
-        student_id: effectiveStudentId, subject, role: "user", content: lastMsg.content,
+        student_id: effectiveStudentId, subject, role: "user", content: saveContent,
       });
       if (insertErr) console.error("Failed to save user message:", insertErr);
     }
@@ -159,23 +171,32 @@ STRICT RULES:
 10. Format responses with markdown for clarity (headers, bold, lists).
 11. Keep answers concise but thorough.
 12. Use emojis sparingly to keep things fun.
+13. When a student uploads a file (image, PDF, document), analyze it carefully and provide helpful educational feedback. For homework photos, help them understand the problems. For documents, summarize and explain key concepts.
 
 Student grade: ${grade}. Subject focus: ${subject}. Language: ${language}.`;
 
-    // Build messages: use history for context + current messages
+    // Build messages for AI - include history + current message with potential file content
     const contextMessages = history.length > 0 ? history : [];
-    // Only use current user message (not full client messages array) to avoid duplication with history
-    const aiMessages = [
+    const aiMessages: any[] = [
       { role: "system", content: systemPrompt },
       ...contextMessages.map(m => ({ role: m.role, content: m.content })),
-      // If history doesn't include the latest message, add it
-      ...(contextMessages.length === 0 ? messages : [lastMsg]),
     ];
+
+    // Add current message - preserve multimodal content (images/files)
+    if (contextMessages.length === 0) {
+      // No history, include all client messages
+      for (const m of messages) {
+        aiMessages.push({ role: m.role, content: m.content });
+      }
+    } else {
+      // Has history, only add the latest message
+      aiMessages.push({ role: lastMsg.role, content: lastMsg.content });
+    }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ model: "google/gemini-3-flash-preview", messages: aiMessages, stream: true }),
+      body: JSON.stringify({ model: "google/gemini-2.5-flash", messages: aiMessages, stream: true }),
     });
 
     if (!response.ok) {
@@ -211,7 +232,6 @@ Student grade: ${grade}. Subject focus: ${subject}. Language: ${language}.`;
           const chunk = decoder.decode(value, { stream: true });
           await writer.write(new TextEncoder().encode(chunk));
 
-          // Parse SSE to capture content
           const lines = chunk.split("\n");
           for (const line of lines) {
             if (!line.startsWith("data: ")) continue;
@@ -225,15 +245,12 @@ Student grade: ${grade}. Subject focus: ${subject}. Language: ${language}.`;
           }
         }
       } finally {
-        // Save assistant response to history
         if (fullAssistantContent) {
-          console.log("Saving assistant message, length:", fullAssistantContent.length);
           const { error: saveErr } = await serviceClient.from("ai_conversations").insert({
             student_id: effectiveStudentId, subject, role: "assistant", content: fullAssistantContent,
           });
           if (saveErr) console.error("Failed to save assistant message:", saveErr);
 
-          // Clean up old messages (keep max 100 per student per subject)
           const { data: countData } = await serviceClient
             .from("ai_conversations")
             .select("id, created_at")
@@ -246,7 +263,6 @@ Student grade: ${grade}. Subject focus: ${subject}. Language: ${language}.`;
             await serviceClient.from("ai_conversations").delete().in("id", toDelete);
           }
 
-          // Delete messages older than 90 days
           const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
           await serviceClient.from("ai_conversations").delete()
             .eq("student_id", effectiveStudentId).eq("subject", subject)

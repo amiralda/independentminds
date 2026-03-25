@@ -10,6 +10,7 @@ import { Plus, Pencil, Trash2, Gift, Coins, CheckCircle, X } from "lucide-react"
 import { toast } from "sonner";
 import { PointSettingsPanel } from "@/components/PointSettingsPanel";
 import { ChallengesPanel } from "@/components/ChallengesPanel";
+import { CurrencySettingsPanel } from "@/components/CurrencySettingsPanel";
 
 const EMOJI_OPTIONS = ["🎁", "🎮", "📱", "🍕", "🍦", "🎬", "⚽", "🎨", "📚", "🏖️", "🎵", "🧸", "🎂", "🛍️", "✨", "🎯"];
 
@@ -249,6 +250,9 @@ export function RewardsManagement({ studentId }: Props) {
           </div>
         </DialogContent>
       </Dialog>
+      {/* Currency Settings */}
+      <CurrencySettingsPanel />
+
       {/* Point Settings */}
       <PointSettingsPanel studentId={studentId} />
 
