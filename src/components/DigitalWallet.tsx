@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 import { DigitalCheckCard } from '@/components/DigitalCheckCard';
 
 export function DigitalWallet() {
-  const { lang } = useI18n();
+  const { lang, t } = useI18n();
   const { profile, selectedStudentId } = useAuth();
   const studentId =
     profile?.role === 'student' ? profile.studentId : selectedStudentId;
