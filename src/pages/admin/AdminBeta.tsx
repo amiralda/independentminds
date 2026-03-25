@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
-import { StatCard } from '@/components/admin/StatCard';
+import StatCard from '@/components/admin/StatCard';
 import { AdminInvitePanel } from '@/components/beta/AdminInvitePanel';
 import { toast } from 'sonner';
 import {
