@@ -1,5 +1,6 @@
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/contexts/AuthContext';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { usePointsBalance } from '@/hooks/useRewards';
 import {
   useCurrencySettings,
