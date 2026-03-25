@@ -1655,6 +1655,10 @@ export type Database = {
         Args: { old_role: string; target_uid: string }
         Returns: undefined
       }
+      request_check: {
+        Args: { _memo?: string; _points: number; _student_id: string }
+        Returns: string
+      }
       set_user_role: {
         Args: { new_role: string; target_uid: string }
         Returns: undefined
