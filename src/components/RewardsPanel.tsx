@@ -96,8 +96,11 @@ export function RewardsPanel() {
       {/* Active Challenges */}
       <ChallengesPanel studentId={studentId || ""} />
 
-      <Tabs defaultValue="shop">
-        <TabsList className="w-full grid grid-cols-3">
+      <Tabs defaultValue="wallet">
+        <TabsList className="w-full grid grid-cols-4">
+          <TabsTrigger value="wallet" className="font-display text-xs">
+            <Wallet size={12} className="mr-1" /> {lang === "HT" ? "Pòtfèy" : "Wallet"}
+          </TabsTrigger>
           <TabsTrigger value="shop" className="font-display text-xs">
             <ShoppingCart size={12} className="mr-1" /> {lang === "HT" ? "Boutik" : "Shop"}
           </TabsTrigger>
@@ -108,6 +111,11 @@ export function RewardsPanel() {
             <Gift size={12} className="mr-1" /> {lang === "HT" ? "Reklame" : "Redeemed"}
           </TabsTrigger>
         </TabsList>
+
+        {/* Digital Wallet */}
+        <TabsContent value="wallet" className="mt-3">
+          <DigitalWallet />
+        </TabsContent>
 
         {/* Rewards Shop */}
         <TabsContent value="shop" className="mt-3">

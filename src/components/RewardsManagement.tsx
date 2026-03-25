@@ -250,6 +250,9 @@ export function RewardsManagement({ studentId }: Props) {
           </div>
         </DialogContent>
       </Dialog>
+      {/* Currency Settings */}
+      <CurrencySettingsPanel />
+
       {/* Point Settings */}
       <PointSettingsPanel studentId={studentId} />
 
