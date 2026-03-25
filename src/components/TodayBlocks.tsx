@@ -60,6 +60,52 @@ export function TodayBlocks({ blocks, onRefresh }: Props) {
   const [score, setScore] = useState("");
   const [notes, setNotes] = useState("");
 
+  // Map daily_plan subjects to the best matching subject_track
+  const findTrackForSubject = async (subject: string, sid: string): Promise<string | null> => {
+    // 1. Try exact name match first
+    const { data: exact } = await supabase
+      .from("subject_tracks")
+      .select("id")
+      .eq("student_id", sid)
+      .ilike("name", subject)
+      .eq("enabled", true)
+      .limit(1);
+    if (exact && exact.length > 0) return exact[0].id;
+
+    // 2. Try partial name match (subject contained in track name or vice versa)
+    const { data: allTracks } = await supabase
+      .from("subject_tracks")
+      .select("id, name, category")
+      .eq("student_id", sid)
+      .eq("enabled", true);
+    if (!allTracks || allTracks.length === 0) return null;
+
+    const subjectLower = subject.toLowerCase();
+
+    // Partial match: track name contains subject or subject contains track name
+    const partial = allTracks.find(
+      t => t.name.toLowerCase().includes(subjectLower) || subjectLower.includes(t.name.toLowerCase())
+    );
+    if (partial) return partial.id;
+
+    // 3. Category-based mapping
+    const SUBJECT_CATEGORY_MAP: Record<string, string[]> = {
+      'core academics': ['english', 'math', 'science', 'social studies', 'public speaking', 'media education', 'english support'],
+      'language lab': ['esl', 'language arts', 'languages', 'french', 'spanish', 'kreyòl'],
+      'creative arts': ['art', 'music', 'special projects', 'drama'],
+    };
+
+    for (const [category, subjects] of Object.entries(SUBJECT_CATEGORY_MAP)) {
+      if (subjects.includes(subjectLower)) {
+        const match = allTracks.find(t => t.category.toLowerCase() === category);
+        if (match) return match.id;
+      }
+    }
+
+    // 4. Fall back to first enabled track
+    return allTracks[0].id;
+  };
+
   const handleStart = async (block: Block) => {
     const now = new Date().toISOString();
     await supabase.from("daily_plan").update({
@@ -67,21 +113,16 @@ export function TodayBlocks({ blocks, onRefresh }: Props) {
       actual_start: now,
     }).eq("id", block.id);
 
-    // Also log to activity_logs if a matching track exists
     const studentId = profile?.studentId;
     if (studentId) {
-      const { data: tracks } = await supabase
-        .from("subject_tracks")
-        .select("id")
-        .eq("student_id", studentId)
-        .ilike("name", block.subject)
-        .limit(1);
-      if (tracks && tracks.length > 0) {
+      const trackId = await findTrackForSubject(block.subject, studentId);
+      if (trackId) {
         await supabase.from("activity_logs").insert({
           student_id: studentId,
-          track_id: tracks[0].id,
+          track_id: trackId,
           status: "In Progress",
           started_at: now,
+          notes: block.subject,
         } as any);
       }
     }
@@ -109,45 +150,37 @@ export function TodayBlocks({ blocks, onRefresh }: Props) {
       notes: notes || null,
     }).eq("id", completingBlock.id);
 
-    // Also log to activity_logs if a matching track exists
+    // Also log to activity_logs
     const studentId = profile?.studentId;
     if (studentId) {
-      const { data: tracks } = await supabase
-        .from("subject_tracks")
-        .select("id")
-        .eq("student_id", studentId)
-        .ilike("name", completingBlock.subject)
-        .limit(1);
-      if (tracks && tracks.length > 0) {
+      const trackId = await findTrackForSubject(completingBlock.subject, studentId);
+      if (trackId) {
         const today = new Date().toISOString().split("T")[0];
-        // Check if there's an existing "In Progress" log for this track today
         const { data: existing } = await supabase
           .from("activity_logs")
           .select("id")
           .eq("student_id", studentId)
-          .eq("track_id", tracks[0].id)
+          .eq("track_id", trackId)
           .eq("log_date", today)
           .eq("status", "In Progress")
           .limit(1);
 
         if (existing && existing.length > 0) {
-          // Update the existing entry
           await supabase.from("activity_logs").update({
             status: "Done",
             completed_at: now,
             score: score ? parseInt(score) : null,
-            notes: notes || null,
+            notes: completingBlock.subject + (notes ? ` — ${notes}` : ''),
           } as any).eq("id", existing[0].id);
         } else {
-          // Insert a new completed entry
           await supabase.from("activity_logs").insert({
             student_id: studentId,
-            track_id: tracks[0].id,
+            track_id: trackId,
             status: "Done",
             started_at: completingBlock.actual_start || now,
             completed_at: now,
             score: score ? parseInt(score) : null,
-            notes: notes || null,
+            notes: completingBlock.subject + (notes ? ` — ${notes}` : ''),
           } as any);
         }
       }
