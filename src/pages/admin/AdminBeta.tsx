@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
-import { StatCard } from '@/components/admin/StatCard';
+import StatCard from '@/components/admin/StatCard';
 import { AdminInvitePanel } from '@/components/beta/AdminInvitePanel';
 import { toast } from 'sonner';
 import {
@@ -84,7 +84,8 @@ export default function AdminBeta() {
   }, []);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
-  useAutoRefresh(fetchAll, 60_000);
+  const tick = useAutoRefresh(60_000);
+  useEffect(() => { fetchAll(); }, [tick]);
 
   const switchPhase = async (newPhase: string) => {
     if (!confirm(`Switch beta phase to "${newPhase}"?`)) return;
@@ -164,14 +165,14 @@ export default function AdminBeta() {
         <TabsContent value="overview" className="space-y-4 mt-4">
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             <StatCard
-              title="Total Testers"
+              label="Total Testers"
               value={`${config?.current_testers ?? 0} / ${config?.max_testers ?? 50}`}
-              icon={<Users size={16} />}
+              icon={Users}
             />
-            <StatCard title="Active Today" value={stats.activeToday} icon={<Activity size={16} />} />
-            <StatCard title="Avg NPS" value={stats.avgNps} icon={<BarChart3 size={16} />} />
-            <StatCard title="Bug Reports" value={stats.bugReports} icon={<Bug size={16} />} />
-            <StatCard title="Feedback (24h)" value={stats.feedbackToday} icon={<MessageSquare size={16} />} />
+            <StatCard label="Active Today" value={stats.activeToday} icon={Activity} />
+            <StatCard label="Avg NPS" value={stats.avgNps} icon={BarChart3} />
+            <StatCard label="Bug Reports" value={stats.bugReports} icon={Bug} />
+            <StatCard label="Feedback (24h)" value={stats.feedbackToday} icon={MessageSquare} />
           </div>
 
           <div className="rounded-lg bg-white/5 border border-white/10 p-4 space-y-3">

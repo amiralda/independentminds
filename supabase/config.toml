@@ -21,3 +21,15 @@ project_id = "wkvattbvybvgaeobtidl"
     verify_jwt = false
   [functions.account-merge]
     verify_jwt = false
+  [functions.send-beta-invite]
+    verify_jwt = false
+  [functions.accept-beta-invite]
+    verify_jwt = false
+  [functions.beta-track]
+    verify_jwt = false
+  [functions.beta-daily-digest]
+    verify_jwt = false
+  [functions.approve-beta-request]
+    verify_jwt = false
+  [functions.beta-telegram-webhook]
+    verify_jwt = false

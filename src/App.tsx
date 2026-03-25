@@ -22,7 +22,10 @@ import AdminSystem from "./pages/admin/AdminSystem";
 import AdminMessages from "./pages/admin/AdminMessages";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminAuditLogs from "./pages/admin/AdminAuditLogs";
+import AdminBeta from "./pages/admin/AdminBeta";
 import AcceptInvite from "./pages/AcceptInvite";
+import BetaRequest from "./pages/BetaRequest";
+import BetaAccept from "./pages/BetaAccept";
 
 const queryClient = new QueryClient();
 
@@ -60,6 +63,8 @@ const App = () => (
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/terms" element={<TermsOfService />} />
               <Route path="/accept-invite" element={<AcceptInvite />} />
+              <Route path="/beta" element={<BetaRequest />} />
+              <Route path="/beta/accept" element={<BetaAccept />} />
               <Route path="/admin" element={<AuthGuard><AdminLayout /></AuthGuard>}>
                 <Route index element={<AdminOverview />} />
                 <Route path="students" element={<AdminStudents />} />
@@ -69,6 +74,7 @@ const App = () => (
                 <Route path="messages" element={<AdminMessages />} />
                 <Route path="users" element={<AdminUsers />} />
                 <Route path="audit" element={<AdminAuditLogs />} />
+                <Route path="beta" element={<AdminBeta />} />
               </Route>
               <Route path="/" element={<AuthGuard><Index /></AuthGuard>} />
               <Route path="*" element={<NotFound />} />
