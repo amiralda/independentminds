@@ -47,10 +47,7 @@ export function CurrencySettingsPanel() {
         points_per_unit: pointsPerUnit,
       },
       {
-        onSuccess: () =>
-          toast.success(
-            lang === 'HT' ? 'Paramèt lajan sove!' : 'Currency settings saved!'
-          ),
+        onSuccess: () => toast.success(t('currency.saved')),
       }
     );
   };
