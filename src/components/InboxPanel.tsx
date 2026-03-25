@@ -60,7 +60,7 @@ export function InboxPanel() {
     const channel = supabase
       .channel("inbox_realtime")
       .on("postgres_changes", {
-        event: "INSERT",
+        event: "*",
         schema: "public",
         table: "inbox_messages",
         filter: `parent_id=eq.${user.id}`,

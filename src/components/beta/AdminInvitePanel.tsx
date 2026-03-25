@@ -147,7 +147,11 @@ export function AdminInvitePanel({ open, onClose, prefill }: AdminInvitePanelPro
             <Label>{t('invite_panel.tester_type')}</Label>
             <select
               value={testerType}
-              onChange={(e) => setTesterType(e.target.value)}
+              onChange={(e) => {
+                const newType = e.target.value;
+                setTesterType(newType);
+                setNotes(NOTE_TEMPLATES[newType] || '');
+              }}
               className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
             >
               <option value="parent">Parent</option>
