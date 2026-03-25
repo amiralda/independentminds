@@ -57,7 +57,7 @@ export function CurrencySettingsPanel() {
       <div className="flex items-center gap-2">
         <Coins size={18} className="text-secondary" />
         <h3 className="font-display font-bold text-sm">
-          {lang === 'HT' ? 'Paramèt Lajan' : 'Currency Settings'}
+          {t('currency.title')}
         </h3>
       </div>
 
