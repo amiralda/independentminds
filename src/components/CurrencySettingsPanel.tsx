@@ -109,7 +109,7 @@ export function CurrencySettingsPanel() {
           className="w-full text-xs font-display"
         >
           <Save size={14} className="mr-1" />
-          {lang === 'HT' ? 'Anrejistre' : 'Save Settings'}
+          {t('currency.saveBtn')}
         </Button>
       </div>
     </div>
