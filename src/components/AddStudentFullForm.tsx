@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { ArrowLeft, ArrowRight, Camera, Upload, FileText, Check, X, Loader2 } from "lucide-react";
+import { generateStudentId } from "@/lib/generateStudentId";
 
 const DEFAULT_TRACKS = [
   { name: "Core Academics", category: "Core Academics", daily_target: 10, unit_type: "lessons", icon: "BookOpen", color: "secondary" },
