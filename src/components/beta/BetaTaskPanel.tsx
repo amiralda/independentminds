@@ -4,7 +4,8 @@ import { useBetaTester } from '@/hooks/useBetaTester';
 import { useI18n } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { CheckCircle, Circle, Minus, ChevronRight, ChevronLeft, X } from 'lucide-react';
+import { CheckCircle, Circle, Minus, ChevronLeft, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface TaskCompletion {
   id: string;
