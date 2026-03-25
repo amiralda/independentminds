@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { ArrowLeft, Copy, Check, Mail, MessageSquare, Loader2 } from "lucide-react";
+import { generateStudentId } from "@/lib/generateStudentId";
 
 const DEFAULT_TRACKS = [
   { name: "Core Academics", category: "Core Academics", daily_target: 10, unit_type: "lessons", icon: "BookOpen", color: "secondary" },
@@ -31,6 +32,19 @@ export function AddStudentQuickCreate({ open, onClose, onBack }: Props) {
   const [saving, setSaving] = useState(false);
   const [created, setCreated] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  // Auto-generate student ID from name
+  useEffect(() => {
+    if (!name.trim() || name.trim().length < 2) {
+      setStudentId("");
+      return;
+    }
+    let cancelled = false;
+    generateStudentId(name).then(id => {
+      if (!cancelled) setStudentId(id);
+    });
+    return () => { cancelled = true; };
+  }, [name]);
 
   const appUrl = window.location.origin;
   const parentName = user?.user_metadata?.display_name || user?.email || "Parent";
@@ -139,8 +153,11 @@ export function AddStudentQuickCreate({ open, onClose, onBack }: Props) {
               <Input value={name} onChange={e => setName(e.target.value)} placeholder="e.g., Christian" className="mt-1" />
             </div>
             <div>
-              <label className="text-sm font-medium">{t("student.id")} *</label>
-              <Input value={studentId} onChange={e => setStudentId(e.target.value)} placeholder="e.g., CHRIS" className="mt-1" />
+              <label className="text-sm font-medium">{t("student.id")}</label>
+              <Input value={studentId} readOnly className="mt-1 bg-muted cursor-not-allowed" />
+              <p className="text-[10px] text-muted-foreground mt-1">
+                {lang === "HT" ? "Otomatikman jenere" : "Auto-generated from name"}
+              </p>
             </div>
             <div>
               <label className="text-sm font-medium">{t("student.grade")}</label>
