@@ -66,6 +66,32 @@ export function useIssueCheck() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['digital_checks'] });
+      qc.invalidateQueries({ queryKey: ['points_balance'] });
+      qc.invalidateQueries({ queryKey: ['points_history'] });
+    },
+  });
+}
+
+export function useRequestCheck() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (params: {
+      student_id: string;
+      points: number;
+      memo?: string;
+    }) => {
+      const { data, error } = await supabase.rpc('request_check', {
+        _student_id: params.student_id,
+        _points: params.points,
+        _memo: params.memo || 'Education reward',
+      });
+      if (error) throw error;
+      return data as string;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['digital_checks'] });
+      qc.invalidateQueries({ queryKey: ['points_balance'] });
+      qc.invalidateQueries({ queryKey: ['points_history'] });
     },
   });
 }
