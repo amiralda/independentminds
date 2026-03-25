@@ -288,10 +288,10 @@ export function AddStudentFullForm({ open, onClose, onBack }: Props) {
               <Input value={name} onChange={e => setName(e.target.value)} placeholder="e.g., Christian" className="mt-1" />
             </div>
             <div>
-              <label className="text-sm font-medium">{t("student.id")} *</label>
-              <Input value={studentId} onChange={e => setStudentId(e.target.value)} placeholder="e.g., CHRIS" className="mt-1" />
+              <label className="text-sm font-medium">{t("student.id")}</label>
+              <Input value={studentId} readOnly className="mt-1 bg-muted cursor-not-allowed" />
               <p className="text-[10px] text-muted-foreground mt-1">
-                {lang === "HT" ? "Idantifyan inik pou elèv sa a" : "Unique identifier for this student"}
+                {lang === "HT" ? "Otomatikman jenere" : "Auto-generated from name & date of birth"}
               </p>
             </div>
             <div className="grid grid-cols-2 gap-3">

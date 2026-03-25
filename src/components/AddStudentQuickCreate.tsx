@@ -33,6 +33,19 @@ export function AddStudentQuickCreate({ open, onClose, onBack }: Props) {
   const [created, setCreated] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  // Auto-generate student ID from name
+  useEffect(() => {
+    if (!name.trim() || name.trim().length < 2) {
+      setStudentId("");
+      return;
+    }
+    let cancelled = false;
+    generateStudentId(name).then(id => {
+      if (!cancelled) setStudentId(id);
+    });
+    return () => { cancelled = true; };
+  }, [name]);
+
   const appUrl = window.location.origin;
   const parentName = user?.user_metadata?.display_name || user?.email || "Parent";
 
