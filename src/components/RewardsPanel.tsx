@@ -10,11 +10,12 @@ import {
   POINT_VALUES,
 } from "@/hooks/useRewards";
 import { Button } from "@/components/ui/button";
-import { Coins, Gift, History, Star, Zap, Trophy, ShoppingCart, Sparkles, Send } from "lucide-react";
+import { Coins, Gift, History, Star, Zap, Trophy, ShoppingCart, Sparkles, Send, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { ChallengesPanel } from "@/components/ChallengesPanel";
+import { DigitalWallet } from "@/components/DigitalWallet";
 
 const SUGGESTED_REWARDS = [
   { key: "movieNight", icon: "🎬", points: 200 },
