@@ -64,7 +64,7 @@ export function CurrencySettingsPanel() {
       <div className="space-y-3">
         <div>
           <Label className="text-xs">
-            {lang === 'HT' ? 'Lajan' : 'Currency'}
+            {t('currency.label')}
           </Label>
           <Select value={currencyCode} onValueChange={setCurrencyCode}>
             <SelectTrigger className="mt-1">
