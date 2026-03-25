@@ -447,7 +447,7 @@ export function TutorChat() {
           <button
             onClick={() => setAttachedFile(null)}
             className="p-0.5 rounded hover:bg-muted"
-            aria-label={lang === 'HT' ? 'Retire fichye' : 'Remove file'}
+            aria-label={t('file.remove')}
           >
             <X size={12} />
           </button>
