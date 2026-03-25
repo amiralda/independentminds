@@ -722,6 +722,36 @@ export type Database = {
         }
         Relationships: []
       }
+      currency_settings: {
+        Row: {
+          created_at: string
+          currency_code: string
+          currency_symbol: string
+          id: string
+          points_per_unit: number
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          currency_code?: string
+          currency_symbol?: string
+          id?: string
+          points_per_unit?: number
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          currency_code?: string
+          currency_symbol?: string
+          id?: string
+          points_per_unit?: number
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       curriculum_map: {
         Row: {
           created_at: string
@@ -847,6 +877,48 @@ export type Database = {
             referencedColumns: ["student_id"]
           },
         ]
+      }
+      digital_checks: {
+        Row: {
+          amount_points: number
+          check_number: string
+          currency_amount: number
+          currency_code: string
+          currency_symbol: string
+          id: string
+          issued_at: string
+          memo: string | null
+          redeemed_at: string | null
+          status: string
+          student_id: string
+        }
+        Insert: {
+          amount_points: number
+          check_number: string
+          currency_amount: number
+          currency_code?: string
+          currency_symbol?: string
+          id?: string
+          issued_at?: string
+          memo?: string | null
+          redeemed_at?: string | null
+          status?: string
+          student_id: string
+        }
+        Update: {
+          amount_points?: number
+          check_number?: string
+          currency_amount?: number
+          currency_code?: string
+          currency_symbol?: string
+          id?: string
+          issued_at?: string
+          memo?: string | null
+          redeemed_at?: string | null
+          status?: string
+          student_id?: string
+        }
+        Relationships: []
       }
       flagged_inputs: {
         Row: {
