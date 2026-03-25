@@ -6,6 +6,7 @@ type Role = "student" | "parent";
 
 interface Profile {
   displayName: string;
+  username: string;
   role: Role;
   studentId: string | null;
   languagePref: string;
