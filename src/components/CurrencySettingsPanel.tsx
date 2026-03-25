@@ -98,9 +98,7 @@ export function CurrencySettingsPanel() {
             </span>
           </div>
           <p className="text-[10px] text-muted-foreground mt-1">
-            {lang === 'HT'
-              ? `Egzanp: 500 pwen = ${selectedCurrency?.symbol}${(500 / pointsPerUnit).toFixed(2)}`
-              : `Example: 500 points = ${selectedCurrency?.symbol}${(500 / pointsPerUnit).toFixed(2)}`}
+            {t('currency.example')} = {selectedCurrency?.symbol}{(500 / pointsPerUnit).toFixed(2)}
           </p>
         </div>
 
