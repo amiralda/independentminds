@@ -65,8 +65,11 @@ Deno.serve(async (req) => {
       .single();
     if (invErr) throw invErr;
 
-    const inviteUrl =
+    const baseUrl =
       `https://independentmindsedu.com/beta/accept?token=${invite.token}`;
+    const inviteUrl = notes
+      ? `${baseUrl}&msg=${encodeURIComponent(notes)}`
+      : baseUrl;
 
     await db.from('beta_invite_logs').insert({
       invite_id: invite.id, channel: 'copy', status: 'copied',
