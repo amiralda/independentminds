@@ -232,7 +232,7 @@ export function AddStudentFullForm({ open, onClose, onBack }: Props) {
     onClose();
   };
 
-  const canProceedStep1 = name.trim() && studentId.trim();
+  const canProceedStep1 = name.trim().length >= 2 && studentId.trim();
 
   return (
     <Dialog open={open} onOpenChange={v => { if (!v) resetAndClose(); }}>
