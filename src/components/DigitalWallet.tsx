@@ -1,5 +1,6 @@
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/contexts/AuthContext';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { usePointsBalance } from '@/hooks/useRewards';
 import {
   useCurrencySettings,
@@ -12,7 +13,7 @@ import { toast } from 'sonner';
 import { DigitalCheckCard } from '@/components/DigitalCheckCard';
 
 export function DigitalWallet() {
-  const { lang } = useI18n();
+  const { lang, t } = useI18n();
   const { profile, selectedStudentId } = useAuth();
   const studentId =
     profile?.role === 'student' ? profile.studentId : selectedStudentId;
@@ -35,15 +36,10 @@ export function DigitalWallet() {
         currency_amount: parseFloat(converted.amount),
         currency_code: converted.code,
         currency_symbol: converted.symbol,
-        memo: lang === 'HT' ? 'Rekonpans edikasyon' : 'Education reward',
+        memo: t('check.memo'),
       },
       {
-        onSuccess: () =>
-          toast.success(
-            lang === 'HT'
-              ? 'Chèk dijital kreye!'
-              : 'Digital check issued! 🎉'
-          ),
+        onSuccess: () => toast.success(t('wallet.checkIssued')),
       }
     );
   };
@@ -51,11 +47,9 @@ export function DigitalWallet() {
   if (!currencySettings) {
     return (
       <div className="rounded-xl border border-dashed p-4 text-center">
-        <Wallet size={24} className="mx-auto mb-2 text-muted-foreground" />
+      <Wallet size={24} className="mx-auto mb-2 text-muted-foreground" />
         <p className="text-sm text-muted-foreground">
-          {lang === 'HT'
-            ? 'Paran ou poko konfigire lajan. Mande yo pou fè sa!'
-            : 'Currency not set up yet. Ask your parent to configure it!'}
+          {t('currency.notConfigured')}
         </p>
       </div>
     );
@@ -68,7 +62,7 @@ export function DigitalWallet() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              {lang === 'HT' ? 'Balans Dijital' : 'Digital Wallet'}
+              {t('wallet.title')}
             </p>
             <div className="flex items-baseline gap-1 mt-1">
               <span className="text-sm text-muted-foreground">
@@ -82,10 +76,9 @@ export function DigitalWallet() {
               </span>
             </div>
             <p className="text-[10px] text-muted-foreground mt-1">
-              {balance} {lang === 'HT' ? 'pwen' : 'points'} ×{' '}
+              {balance} {t('wallet.points')} ×{' '}
               {currencySettings.points_per_unit}{' '}
-              {lang === 'HT' ? 'pwen/' : 'pts/'}
-              {currency.symbol}1
+              {t('currency.pts')}/{currency.symbol}1
             </p>
           </div>
           <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center">
@@ -101,9 +94,7 @@ export function DigitalWallet() {
             disabled={issueCheckMutation.isPending}
           >
             <Receipt size={14} className="mr-1" />
-            {lang === 'HT'
-              ? 'Kreye Chèk Dijital'
-              : 'Issue Digital Check'}
+            {t('wallet.issueCheck')}
           </Button>
         )}
       </div>
@@ -113,7 +104,7 @@ export function DigitalWallet() {
         <div className="space-y-3">
           <h3 className="font-display font-bold text-sm flex items-center gap-1.5">
             <FileText size={14} className="text-primary" />
-            {lang === 'HT' ? 'Chèk Dijital' : 'Digital Checks'}
+            {t('check.title')}
           </h3>
           <div className="space-y-3">
             {checks.map(check => (

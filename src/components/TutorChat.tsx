@@ -153,12 +153,12 @@ export function TutorChat() {
     if (!file) return;
 
     if (file.size > MAX_FILE_SIZE) {
-      toast.error(lang === 'HT' ? 'Fichye a twò gwo (maks 10MB)' : 'File too large (max 10MB)');
+      toast.error(t('file.tooLarge'));
       return;
     }
 
     if (!ALLOWED_TYPES.includes(file.type) && !file.name.endsWith('.txt') && !file.name.endsWith('.md')) {
-      toast.error(lang === 'HT' ? 'Tip fichye sa a pa sipòte' : 'This file type is not supported');
+      toast.error(t('file.unsupported'));
       return;
     }
 
@@ -186,7 +186,7 @@ export function TutorChat() {
 
     if (isImageType(file.type)) {
       const parts: ContentPart[] = [
-        { type: "text", text: text || (lang === 'HT' ? 'Analize imaj sa a' : 'Analyze this image') },
+        { type: "text", text: text || t('file.analyzeImage') },
         { type: "image_url", image_url: { url: file.dataUrl } },
       ];
       return parts;
@@ -194,13 +194,13 @@ export function TutorChat() {
 
     if (isTextBasedType(file.type) || file.name.endsWith('.txt') || file.name.endsWith('.md')) {
       const fileContent = file.dataUrl;
-      const prefix = text || (lang === 'HT' ? 'Analize fichye sa a' : 'Analyze this file');
+      const prefix = text || t('file.analyzeFile');
       return `${prefix}\n\n--- ${file.name} ---\n${fileContent}`;
     }
 
     // For PDFs and other binary files, send as data URL
     const parts: ContentPart[] = [
-      { type: "text", text: text || (lang === 'HT' ? 'Analize dokiman sa a' : 'Analyze this document') },
+      { type: "text", text: text || t('file.analyzeDoc') },
       { type: "image_url", image_url: { url: file.dataUrl } },
     ];
     return parts;
@@ -406,7 +406,7 @@ export function TutorChat() {
                 {msg.role === "user" && hasFile && (
                   <div className="flex items-center gap-1 mb-1.5 text-[10px] opacity-80">
                     {hasImage ? <ImageIcon size={10} /> : <FileText size={10} />}
-                    <span>{lang === 'HT' ? 'Fichye ajoute' : 'File attached'}</span>
+                    <span>{t('file.attached')}</span>
                   </div>
                 )}
                 {msg.role === "assistant" ? (
@@ -447,7 +447,7 @@ export function TutorChat() {
           <button
             onClick={() => setAttachedFile(null)}
             className="p-0.5 rounded hover:bg-muted"
-            aria-label={lang === 'HT' ? 'Retire fichye' : 'Remove file'}
+            aria-label={t('file.remove')}
           >
             <X size={12} />
           </button>
@@ -470,7 +470,7 @@ export function TutorChat() {
             className="h-11 w-11 flex-shrink-0"
             onClick={() => fileInputRef.current?.click()}
             disabled={isLoading}
-            aria-label={lang === 'HT' ? 'Ajoute fichye' : 'Attach file'}
+            aria-label={t('file.upload')}
           >
             <Paperclip size={18} />
           </Button>

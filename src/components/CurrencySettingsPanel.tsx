@@ -47,10 +47,7 @@ export function CurrencySettingsPanel() {
         points_per_unit: pointsPerUnit,
       },
       {
-        onSuccess: () =>
-          toast.success(
-            lang === 'HT' ? 'Paramèt lajan sove!' : 'Currency settings saved!'
-          ),
+        onSuccess: () => toast.success(t('currency.saved')),
       }
     );
   };
@@ -60,14 +57,14 @@ export function CurrencySettingsPanel() {
       <div className="flex items-center gap-2">
         <Coins size={18} className="text-secondary" />
         <h3 className="font-display font-bold text-sm">
-          {lang === 'HT' ? 'Paramèt Lajan' : 'Currency Settings'}
+          {t('currency.title')}
         </h3>
       </div>
 
       <div className="space-y-3">
         <div>
           <Label className="text-xs">
-            {lang === 'HT' ? 'Lajan' : 'Currency'}
+            {t('currency.label')}
           </Label>
           <Select value={currencyCode} onValueChange={setCurrencyCode}>
             <SelectTrigger className="mt-1">
@@ -85,9 +82,7 @@ export function CurrencySettingsPanel() {
 
         <div>
           <Label className="text-xs">
-            {lang === 'HT'
-              ? 'Pwen pou 1 inite lajan'
-              : 'Points per 1 currency unit'}
+            {t('currency.pointsPerUnit')}
           </Label>
           <div className="flex items-center gap-2 mt-1">
             <Input
@@ -99,13 +94,11 @@ export function CurrencySettingsPanel() {
               className="w-24"
             />
             <span className="text-xs text-muted-foreground">
-              {lang === 'HT' ? 'pwen' : 'pts'} = {selectedCurrency?.symbol}1
+              {t('currency.pts')} = {selectedCurrency?.symbol}1
             </span>
           </div>
           <p className="text-[10px] text-muted-foreground mt-1">
-            {lang === 'HT'
-              ? `Egzanp: 500 pwen = ${selectedCurrency?.symbol}${(500 / pointsPerUnit).toFixed(2)}`
-              : `Example: 500 points = ${selectedCurrency?.symbol}${(500 / pointsPerUnit).toFixed(2)}`}
+            {t('currency.example')} = {selectedCurrency?.symbol}{(500 / pointsPerUnit).toFixed(2)}
           </p>
         </div>
 
@@ -116,7 +109,7 @@ export function CurrencySettingsPanel() {
           className="w-full text-xs font-display"
         >
           <Save size={14} className="mr-1" />
-          {lang === 'HT' ? 'Anrejistre' : 'Save Settings'}
+          {t('currency.saveBtn')}
         </Button>
       </div>
     </div>

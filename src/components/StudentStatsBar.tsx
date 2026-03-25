@@ -1,6 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Flame, GraduationCap, TrendingUp, Zap } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
+import { usePointsBalance } from "@/hooks/useRewards";
+import { useCurrencySettings, convertPointsToCurrency } from "@/hooks/useCurrencySettings";
+import { Flame, GraduationCap, TrendingUp, Zap, Coins } from "lucide-react";
 
 const GRADUATION_DATE = new Date("2026-07-03T00:00:00");
 
@@ -11,6 +14,10 @@ interface Props {
 }
 
 export function StudentStatsBar({ studentId, todayDone, todayTotal }: Props) {
+  const { t } = useI18n();
+  const { data: balance = 0 } = usePointsBalance(studentId);
+  const { data: currencySettings } = useCurrencySettings(studentId);
+  const currency = convertPointsToCurrency(balance, currencySettings);
   // 7-day velocity
   const { data: velocity = { avg: 0, streak: 0 } } = useQuery({
     queryKey: ["student_velocity", studentId],
@@ -101,7 +108,7 @@ export function StudentStatsBar({ studentId, todayDone, todayTotal }: Props) {
       </div>
 
       {/* Stats cards row */}
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-4 gap-2">
         <div className="rounded-xl bg-card border p-3 text-center shadow-sm">
           <GraduationCap size={18} className="mx-auto text-primary mb-1" />
           <p className="font-display text-xl font-bold text-primary">{daysLeft}</p>
@@ -116,6 +123,22 @@ export function StudentStatsBar({ studentId, todayDone, todayTotal }: Props) {
           <Zap size={18} className="mx-auto text-accent mb-1" />
           <p className="font-display text-xl font-bold text-accent">{velocity.avg}</p>
           <p className="text-[9px] text-muted-foreground leading-tight">Avg/Day (7d)</p>
+        </div>
+        <div className="rounded-xl bg-card border p-3 text-center shadow-sm">
+          <Coins size={18} className="mx-auto text-secondary mb-1" />
+          {currencySettings ? (
+            <>
+              <p className="font-display text-lg font-bold text-secondary">
+                {currency.symbol}{currency.amount}
+              </p>
+              <p className="text-[9px] text-muted-foreground leading-tight">{currency.code}</p>
+            </>
+          ) : (
+            <>
+              <p className="font-display text-xl font-bold text-secondary">{balance}</p>
+              <p className="text-[9px] text-muted-foreground leading-tight">{t('currency.pts')}</p>
+            </>
+          )}
         </div>
       </div>
     </div>
