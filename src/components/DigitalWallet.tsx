@@ -76,10 +76,9 @@ export function DigitalWallet() {
               </span>
             </div>
             <p className="text-[10px] text-muted-foreground mt-1">
-              {balance} {lang === 'HT' ? 'pwen' : 'points'} ×{' '}
+              {balance} {t('wallet.points')} ×{' '}
               {currencySettings.points_per_unit}{' '}
-              {lang === 'HT' ? 'pwen/' : 'pts/'}
-              {currency.symbol}1
+              {t('currency.pts')}/{currency.symbol}1
             </p>
           </div>
           <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center">
