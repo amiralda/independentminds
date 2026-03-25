@@ -1,6 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Flame, GraduationCap, TrendingUp, Zap } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
+import { usePointsBalance } from "@/hooks/useRewards";
+import { useCurrencySettings, convertPointsToCurrency } from "@/hooks/useCurrencySettings";
+import { Flame, GraduationCap, TrendingUp, Zap, Coins } from "lucide-react";
 
 const GRADUATION_DATE = new Date("2026-07-03T00:00:00");
 
