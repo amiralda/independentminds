@@ -186,7 +186,7 @@ export function TutorChat() {
 
     if (isImageType(file.type)) {
       const parts: ContentPart[] = [
-        { type: "text", text: text || (lang === 'HT' ? 'Analize imaj sa a' : 'Analyze this image') },
+        { type: "text", text: text || t('file.analyzeImage') },
         { type: "image_url", image_url: { url: file.dataUrl } },
       ];
       return parts;
