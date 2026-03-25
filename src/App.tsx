@@ -74,6 +74,7 @@ const App = () => (
                 <Route path="messages" element={<AdminMessages />} />
                 <Route path="users" element={<AdminUsers />} />
                 <Route path="audit" element={<AdminAuditLogs />} />
+                <Route path="beta" element={<AdminBeta />} />
               </Route>
               <Route path="/" element={<AuthGuard><Index /></AuthGuard>} />
               <Route path="*" element={<NotFound />} />

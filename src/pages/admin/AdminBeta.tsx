@@ -84,7 +84,8 @@ export default function AdminBeta() {
   }, []);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
-  useAutoRefresh(fetchAll, 60_000);
+  const tick = useAutoRefresh(60_000);
+  useEffect(() => { fetchAll(); }, [tick]);
 
   const switchPhase = async (newPhase: string) => {
     if (!confirm(`Switch beta phase to "${newPhase}"?`)) return;
