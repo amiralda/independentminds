@@ -158,7 +158,7 @@ export function TutorChat() {
     }
 
     if (!ALLOWED_TYPES.includes(file.type) && !file.name.endsWith('.txt') && !file.name.endsWith('.md')) {
-      toast.error(lang === 'HT' ? 'Tip fichye sa a pa sipòte' : 'This file type is not supported');
+      toast.error(t('file.unsupported'));
       return;
     }
 
