@@ -56,6 +56,19 @@ export function AddStudentFullForm({ open, onClose, onBack }: Props) {
   const [extracting, setExtracting] = useState(false);
   const [scheduleValidated, setScheduleValidated] = useState(false);
 
+  // Auto-generate student ID from name + DOB
+  useEffect(() => {
+    if (!name.trim() || name.trim().length < 2) {
+      setStudentId("");
+      return;
+    }
+    let cancelled = false;
+    generateStudentId(name, dob || undefined).then(id => {
+      if (!cancelled) setStudentId(id);
+    });
+    return () => { cancelled = true; };
+  }, [name, dob]);
+
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
