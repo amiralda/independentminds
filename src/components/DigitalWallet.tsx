@@ -47,11 +47,9 @@ export function DigitalWallet() {
   if (!currencySettings) {
     return (
       <div className="rounded-xl border border-dashed p-4 text-center">
-        <Wallet size={24} className="mx-auto mb-2 text-muted-foreground" />
+      <Wallet size={24} className="mx-auto mb-2 text-muted-foreground" />
         <p className="text-sm text-muted-foreground">
-          {lang === 'HT'
-            ? 'Paran ou poko konfigire lajan. Mande yo pou fè sa!'
-            : 'Currency not set up yet. Ask your parent to configure it!'}
+          {t('currency.notConfigured')}
         </p>
       </div>
     );
