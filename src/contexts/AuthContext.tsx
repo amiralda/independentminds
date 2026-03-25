@@ -6,6 +6,7 @@ type Role = "student" | "parent";
 
 interface Profile {
   displayName: string;
+  username: string;
   role: Role;
   studentId: string | null;
   languagePref: string;
@@ -89,13 +90,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const fetchProfile = async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("display_name, role, student_id, language_pref, onboarding_complete")
+        .select("display_name, username, role, student_id, language_pref, onboarding_complete")
         .eq("id", session.user.id)
         .single();
 
       if (data) {
         setProfile({
           displayName: data.display_name,
+          username: (data as any).username || data.display_name,
           role: (data.role as Role) || "student",
           studentId: data.student_id,
           languagePref: (data as any).language_pref || "EN",

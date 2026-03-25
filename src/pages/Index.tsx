@@ -46,7 +46,7 @@ const Index = () => {
   const role = (actualRole === "parent" && viewingAsStudent) ? "student" : actualRole;
   const studentId = role === "student" && actualRole === "parent" ? selectedStudentId : (actualRole === "student" ? (profile?.studentId || null) : selectedStudentId);
   const viewingStudent = viewingAsStudent ? students.find(s => s.student_id === selectedStudentId) : null;
-  const displayName = viewingAsStudent && viewingStudent ? viewingStudent.display_name : (profile?.displayName || "User");
+  const displayName = viewingAsStudent && viewingStudent ? viewingStudent.display_name : (profile?.username || profile?.displayName || "User");
 
   const { data: blocks = [], isLoading } = useDailyBlocks(studentId);
   const refreshBlocks = useRefreshBlocks();
