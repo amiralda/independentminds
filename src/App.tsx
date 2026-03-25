@@ -63,6 +63,8 @@ const App = () => (
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/terms" element={<TermsOfService />} />
               <Route path="/accept-invite" element={<AcceptInvite />} />
+              <Route path="/beta" element={<BetaRequest />} />
+              <Route path="/beta/accept" element={<BetaAccept />} />
               <Route path="/admin" element={<AuthGuard><AdminLayout /></AuthGuard>}>
                 <Route index element={<AdminOverview />} />
                 <Route path="students" element={<AdminStudents />} />
