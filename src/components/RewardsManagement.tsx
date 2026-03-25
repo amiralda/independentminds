@@ -10,6 +10,7 @@ import { Plus, Pencil, Trash2, Gift, Coins, CheckCircle, X } from "lucide-react"
 import { toast } from "sonner";
 import { PointSettingsPanel } from "@/components/PointSettingsPanel";
 import { ChallengesPanel } from "@/components/ChallengesPanel";
+import { CurrencySettingsPanel } from "@/components/CurrencySettingsPanel";
 
 const EMOJI_OPTIONS = ["🎁", "🎮", "📱", "🍕", "🍦", "🎬", "⚽", "🎨", "📚", "🏖️", "🎵", "🧸", "🎂", "🛍️", "✨", "🎯"];
 
