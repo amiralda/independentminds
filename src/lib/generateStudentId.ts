@@ -1,8 +1,8 @@
 import { supabase } from '@/integrations/supabase/client';
 
 /**
- * Generate a unique student ID from first name + YYMM + sequence.
- * Format: XX2503-01 (first 2 letters uppercase + year/month + dash + sequence)
+ * Generate a unique student ID from first name + YYMM + random 5-digit sequence.
+ * Format: XX2503-48271 (first 2 letters uppercase + year/month + dash + 5 random digits)
  *
  * If DOB is not provided, uses current date for YYMM.
  * Checks for existing IDs to avoid collisions.
@@ -20,19 +20,24 @@ export async function generateStudentId(
   const mm = String(dateRef.getMonth() + 1).padStart(2, '0');
   const base = `${prefix}${yy}${mm}`;
 
-  // Find existing IDs with same base to determine next sequence
+  // Find existing IDs with same base to avoid collisions
   const { data: existing } = await supabase
     .from('students')
     .select('student_id')
     .ilike('student_id', `${base}-%`);
 
-  const usedSeqs = (existing || []).map(row => {
-    const parts = row.student_id.split('-');
-    return parseInt(parts[parts.length - 1]) || 0;
-  });
+  const usedSeqs = new Set(
+    (existing || []).map(row => {
+      const parts = row.student_id.split('-');
+      return parts[parts.length - 1];
+    }),
+  );
 
-  const nextSeq = usedSeqs.length > 0 ? Math.max(...usedSeqs) + 1 : 1;
-  const seqStr = String(nextSeq).padStart(2, '0');
+  // Generate random 5-digit sequence, retry on collision
+  let seq: string;
+  do {
+    seq = String(Math.floor(10000 + Math.random() * 90000));
+  } while (usedSeqs.has(seq));
 
-  return `${base}-${seqStr}`;
+  return `${base}-${seq}`;
 }
