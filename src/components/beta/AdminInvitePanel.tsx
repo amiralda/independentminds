@@ -39,7 +39,13 @@ export function AdminInvitePanel({ open, onClose, prefill }: AdminInvitePanelPro
   const [email, setEmail] = useState(prefill?.email ?? '');
   const [testerType, setTesterType] = useState(prefill?.tester_type ?? 'parent');
   const [language, setLanguage] = useState(prefill?.language ?? lang);
-  const [notes, setNotes] = useState('');
+  const NOTE_TEMPLATES: Record<string, string> = {
+    parent: 'Welcome! We\'d love your feedback on managing your child\'s daily schedule and tracking progress.',
+    student: 'Hey! Try logging lessons, earning points, and chatting with Mr A.',
+    co_guardian: 'You\'ve been invited to help monitor a student\'s learning journey.',
+    educator: 'We value your professional perspective on our homeschool tools.',
+  };
+  const [notes, setNotes] = useState(NOTE_TEMPLATES[testerType] || '');
   const [sending, setSending] = useState(false);
   const [inviteUrl, setInviteUrl] = useState('');
   const [bulkEmails, setBulkEmails] = useState('');
@@ -141,7 +147,11 @@ export function AdminInvitePanel({ open, onClose, prefill }: AdminInvitePanelPro
             <Label>{t('invite_panel.tester_type')}</Label>
             <select
               value={testerType}
-              onChange={(e) => setTesterType(e.target.value)}
+              onChange={(e) => {
+                const newType = e.target.value;
+                setTesterType(newType);
+                setNotes(NOTE_TEMPLATES[newType] || '');
+              }}
               className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
             >
               <option value="parent">Parent</option>
