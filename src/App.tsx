@@ -22,7 +22,10 @@ import AdminSystem from "./pages/admin/AdminSystem";
 import AdminMessages from "./pages/admin/AdminMessages";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminAuditLogs from "./pages/admin/AdminAuditLogs";
+import AdminBeta from "./pages/admin/AdminBeta";
 import AcceptInvite from "./pages/AcceptInvite";
+import BetaRequest from "./pages/BetaRequest";
+import BetaAccept from "./pages/BetaAccept";
 
 const queryClient = new QueryClient();
 
