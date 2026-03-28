@@ -137,11 +137,11 @@ export default function AdminBeta() {
 
   const statusColor = (s: string) => {
     switch (s) {
-      case 'accepted': return 'badge-accepted';
-      case 'pending': return 'badge-pending';
-      case 'expired': return 'badge-expired';
-      case 'revoked': return 'badge-revoked';
-      default: return 'bg-muted text-muted-foreground';
+      case 'accepted': return 'bg-green-500/20 text-green-400';
+      case 'pending': return 'bg-amber-500/20 text-amber-400';
+      case 'expired': return 'bg-white/10 text-white/50';
+      case 'revoked': return 'bg-red-500/20 text-red-400';
+      default: return 'bg-white/10 text-white/50';
     }
   };
 
