@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Camera, GraduationCap, Calendar, MapPin, Users, BookOpen, Award, TrendingUp, Pencil, Save, X } from "lucide-react";
+import { Camera, GraduationCap, Calendar, MapPin, Users, BookOpen, Award, TrendingUp, Pencil, Save, X, Globe } from "lucide-react";
+import { StudentCoGuardiansSection } from "@/components/StudentCoGuardiansSection";
 import { toast } from "sonner";
 
 interface StudentData {
