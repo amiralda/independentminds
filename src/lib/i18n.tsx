@@ -618,6 +618,16 @@ const translations: Translations = {
   "wallet.confirmCashOut": { EN: "Convert to Check", HT: "Konvèti an Chèk", FR: "Convertir en chèque", ES: "Convertir a cheque", PT: "Converter em cheque", AR: "تحويل إلى شيك", ZH: "转换为支票", DE: "In Scheck umwandeln", JA: "小切手に変換", RU: "Конвертировать в чек" },
   "wallet.cancel": { EN: "Cancel", HT: "Anile", FR: "Annuler", ES: "Cancelar", PT: "Cancelar", AR: "إلغاء", ZH: "取消", DE: "Abbrechen", JA: "キャンセル", RU: "Отмена" },
   "wallet.allPoints": { EN: "All points", HT: "Tout pwen", FR: "Tous les points", ES: "Todos los puntos", PT: "Todos os pontos", AR: "كل النقاط", ZH: "全部积分", DE: "Alle Punkte", JA: "全ポイント", RU: "Все очки" },
+
+  // ── Password fields ──
+  "auth.showPassword": { EN: "Show password", HT: "Montre modpas", FR: "Afficher le mot de passe", ES: "Mostrar contraseña", PT: "Mostrar senha", AR: "إظهار كلمة المرور", ZH: "显示密码", DE: "Passwort anzeigen", JA: "パスワードを表示", RU: "Показать пароль" },
+  "auth.hidePassword": { EN: "Hide password", HT: "Kache modpas", FR: "Masquer le mot de passe", ES: "Ocultar contraseña", PT: "Ocultar senha", AR: "إخفاء كلمة المرور", ZH: "隐藏密码", DE: "Passwort ausblenden", JA: "パスワードを非表示", RU: "Скрыть пароль" },
+
+  // ── Student preferred language ──
+  "student.preferredLanguage": { EN: "Preferred Language", HT: "Lang Prefere", FR: "Langue préférée", ES: "Idioma preferido", PT: "Idioma preferido", AR: "اللغة المفضلة", ZH: "首选语言", DE: "Bevorzugte Sprache", JA: "希望言語", RU: "Предпочтительный язык" },
+
+  // ── Co-guardians on student profile ──
+  "student.co_guardians": { EN: "Co-Guardians", HT: "Ko-Gadyen", FR: "Co-tuteurs", ES: "Co-tutores", PT: "Co-responsáveis", AR: "أولياء مشاركون", ZH: "共同监护人", DE: "Mit-Erziehungsberechtigte", JA: "共同保護者", RU: "Со-опекуны" },
 };
 
 interface I18nContextType {
