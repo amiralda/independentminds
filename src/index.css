@@ -6,7 +6,7 @@
 
 @layer base {
   :root {
-    --background: 40 33% 98%;
+    --background: 0 0% 100%;
     --foreground: 220 25% 15%;
 
     --card: 0 0% 100%;
@@ -15,11 +15,11 @@
     --popover: 0 0% 100%;
     --popover-foreground: 220 25% 15%;
 
-    --primary: 221 57% 29%;
+    --primary: 160 68% 37%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 43 89% 61%;
-    --secondary-foreground: 221 57% 29%;
+    --secondary-foreground: 160 68% 20%;
 
     --muted: 40 20% 93%;
     --muted-foreground: 220 10% 45%;
@@ -32,28 +32,34 @@
 
     --border: 220 15% 88%;
     --input: 220 15% 88%;
-    --ring: 221 57% 29%;
+    --ring: 160 68% 37%;
 
     --radius: 0.75rem;
 
-    --success: 145 45% 45%;
+    --success: 160 68% 37%;
     --success-foreground: 0 0% 100%;
     --warning: 35 90% 55%;
     --warning-foreground: 0 0% 100%;
     --info: 221 57% 29%;
     --info-foreground: 0 0% 100%;
 
-    --sidebar-background: 221 57% 29%;
+    --sidebar-background: 160 68% 37%;
     --sidebar-foreground: 0 0% 100%;
     --sidebar-primary: 0 0% 100%;
-    --sidebar-primary-foreground: 221 57% 29%;
-    --sidebar-accent: 221 57% 24%;
+    --sidebar-primary-foreground: 160 68% 20%;
+    --sidebar-accent: 160 68% 30%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 221 50% 40%;
+    --sidebar-border: 160 50% 50%;
     --sidebar-ring: 0 0% 100%;
 
     --font-display: 'Fredoka', sans-serif;
     --font-body: 'Inter', sans-serif;
+
+    /* Role-based accent colors */
+    --role-parent: 160 68% 37%;
+    --role-student: 247 52% 67%;
+    --role-parent-tint: 160 40% 98%;
+    --role-student-tint: 247 40% 98%;
   }
 }
 
