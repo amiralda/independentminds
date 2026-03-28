@@ -208,7 +208,7 @@ export default function Login() {
             {isSignUp ? t("auth.hasAccount") : t("auth.noAccount")}{" "}
             <button
               type="button"
-              onClick={() => { setIsSignUp(!isSignUp); setAdultConfirmed(false); setFullName(""); }}
+              onClick={() => { setIsSignUp(!isSignUp); setAdultConfirmed(false); setFullName(""); setConfirmPassword(""); setPasswordError(""); }}
               className="text-primary font-semibold hover:underline"
             >
               {isSignUp ? t("action.signIn") : t("action.signUp")}
