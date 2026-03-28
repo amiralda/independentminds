@@ -46,6 +46,7 @@ export function AddStudentFullForm({ open, onClose, onBack }: Props) {
   const [grade, setGrade] = useState("7");
   const [dob, setDob] = useState("");
   const [nationality, setNationality] = useState("");
+  const [languagePref, setLanguagePref] = useState(lang);
   const [address, setAddress] = useState("");
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
