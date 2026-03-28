@@ -163,7 +163,7 @@ export default function Login() {
           <Button
             type="submit"
             className="w-full font-display bg-secondary text-secondary-foreground hover:bg-secondary/90"
-            disabled={loading || (isSignUp && !adultConfirmed)}
+            disabled={loading || (isSignUp && (!adultConfirmed || !fullName.trim()))}
           >
             {isSignUp ? (
               <><UserPlus size={16} className="mr-2" /> {loading ? t("auth.creatingAccount") : t("action.signUp")}</>
