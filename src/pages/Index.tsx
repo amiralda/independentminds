@@ -125,7 +125,7 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background" data-role={role}>
       {/* Skip to content link */}
       <a
         href="#main-content"
