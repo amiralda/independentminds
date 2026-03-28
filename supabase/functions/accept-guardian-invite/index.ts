@@ -48,12 +48,16 @@ Deno.serve(async (req) => {
       auth: { persistSession: false },
     });
 
-    // Look up invite
+    // Hash incoming token to match stored hash
+    const hashBuffer = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(token));
+    const tokenHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, "0")).join("");
+
+    // Look up invite by hash (supports both new hashed and legacy plaintext tokens)
     const { data: invite, error: lookupErr } = await admin
       .from("guardian_invites")
       .select("*")
-      .eq("token", token)
       .eq("status", "pending")
+      .or(`token_hash.eq.${tokenHash},token.eq.${token}`)
       .single();
 
     if (lookupErr || !invite) {

@@ -170,7 +170,7 @@ Deno.serve(async (req) => {
       data: {
         invite_type: "co_guardian",
         student_id,
-        invite_token: invite.token,
+        invite_token: rawToken,
         display_name: email.split("@")[0],
         role: "parent",
       },
