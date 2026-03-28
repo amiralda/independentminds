@@ -15,7 +15,7 @@ export default function Login() {
   const { t, lang } = useI18n();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [displayName, setDisplayName] = useState("");
+  const [fullName, setFullName] = useState("");
   const [adultConfirmed, setAdultConfirmed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
@@ -35,6 +35,10 @@ export default function Login() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!fullName.trim()) {
+      toast.error(lang === "HT" ? "Tanpri antre non konplè ou" : "Please enter your full name");
+      return;
+    }
     if (!adultConfirmed) {
       toast.error(lang === "HT" ? "Ou dwe konfime ke ou gen 18 an oswa plis" : "You must confirm you are 18 or older");
       return;
@@ -45,7 +49,7 @@ export default function Login() {
       password,
       options: {
         data: {
-          display_name: displayName || email.split("@")[0],
+          display_name: fullName.trim(),
           adult_confirmed: true,
           adult_confirmed_at: new Date().toISOString(),
         },
