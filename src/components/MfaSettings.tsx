@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useI18n } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/PasswordInput";
 import { Shield, ShieldCheck, QrCode, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -14,10 +15,10 @@ export function MfaSettings() {
   const [verifyCode, setVerifyCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [mfaEnabled, setMfaEnabled] = useState(false);
-  const [challengeId, setChallengeId] = useState<string | null>(null);
+  const [disableMode, setDisableMode] = useState(false);
+  const [disablePassword, setDisablePassword] = useState("");
 
-  // Check MFA status on mount
-  useState(() => {
+  useEffect(() => {
     (async () => {
       const { data } = await supabase.auth.mfa.listFactors();
       if (data?.totp && data.totp.length > 0) {
@@ -28,7 +29,7 @@ export function MfaSettings() {
         }
       }
     })();
-  });
+  }, []);
 
   const handleEnroll = async () => {
     setLoading(true);
@@ -70,14 +71,29 @@ export function MfaSettings() {
   };
 
   const handleDisable = async () => {
-    if (!factorId) return;
-    if (!confirm(lang === "HT" ? "Dezaktive otantifikasyon de faktè?" : "Disable two-factor authentication?")) return;
+    if (!factorId || !disablePassword) return;
     setLoading(true);
     try {
+      // Re-authenticate with password before unenrolling
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.email) throw new Error("No email found");
+
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: disablePassword,
+      });
+      if (signInError) {
+        toast.error(lang === "HT" ? "Modpas pa kòrèk" : "Incorrect password");
+        setLoading(false);
+        return;
+      }
+
       const { error } = await supabase.auth.mfa.unenroll({ factorId });
       if (error) throw error;
       setMfaEnabled(false);
       setFactorId(null);
+      setDisableMode(false);
+      setDisablePassword("");
       toast.success(lang === "HT" ? "MFA dezaktive" : "MFA disabled");
     } catch (e: any) {
       toast.error(e.message || "Failed to disable MFA");
@@ -86,6 +102,60 @@ export function MfaSettings() {
   };
 
   if (mfaEnabled) {
+    if (disableMode) {
+      return (
+        <div className="rounded-xl bg-card border p-4 space-y-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-destructive/10 flex items-center justify-center">
+              <Shield size={20} className="text-destructive" />
+            </div>
+            <div className="flex-1">
+              <p className="font-display font-semibold text-sm">
+                {lang === "HT" ? "Konfime modpas ou" : "Confirm your password"}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {lang === "HT"
+                  ? "Antre modpas ou pou dezaktive MFA"
+                  : "Enter your password to disable MFA"}
+              </p>
+            </div>
+          </div>
+          <div>
+            <label htmlFor="mfa-disable-password" className="text-sm font-medium">
+              {lang === "HT" ? "Modpas" : "Password"}
+            </label>
+            <PasswordInput
+              id="mfa-disable-password"
+              value={disablePassword}
+              onChange={e => setDisablePassword(e.target.value)}
+              placeholder="••••••••"
+              required
+            />
+          </div>
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={handleDisable}
+              disabled={!disablePassword || loading}
+              className="flex-1 text-xs"
+            >
+              {loading ? <Loader2 size={14} className="animate-spin mr-1" /> : null}
+              {t("mfa.disable")}
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => { setDisableMode(false); setDisablePassword(""); }}
+              className="text-xs"
+            >
+              {lang === "HT" ? "Anile" : "Cancel"}
+            </Button>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="rounded-xl bg-card border p-4 space-y-3">
         <div className="flex items-center gap-3">
@@ -97,8 +167,7 @@ export function MfaSettings() {
             <p className="text-xs text-muted-foreground">{t("mfa.enabled")}</p>
           </div>
         </div>
-        <Button size="sm" variant="outline" onClick={handleDisable} disabled={loading} className="w-full text-xs">
-          {loading ? <Loader2 size={14} className="animate-spin mr-1" /> : null}
+        <Button size="sm" variant="outline" onClick={() => setDisableMode(true)} disabled={loading} className="w-full text-xs">
           {t("mfa.disable")}
         </Button>
       </div>

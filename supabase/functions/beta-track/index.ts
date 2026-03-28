@@ -76,7 +76,7 @@ Deno.serve(async (req) => {
 
     // Upsert session if provided
     if (session_data) {
-      await db.from('beta_sessions').upsert({
+      const sessionRow: Record<string, any> = {
         tester_id: tester.id,
         session_id: session_data.session_id,
         device_type: session_data.device_type ?? null,
@@ -86,7 +86,11 @@ Deno.serve(async (req) => {
         event_count: session_data.event_count ?? 0,
         duration_seconds: session_data.duration_seconds ?? null,
         ended_at: session_data.ended ? new Date().toISOString() : null,
-      }, { onConflict: 'session_id' });
+      };
+      if (session_data.recording_url) {
+        sessionRow.recording_url = session_data.recording_url;
+      }
+      await db.from('beta_sessions').upsert(sessionRow, { onConflict: 'session_id' });
     }
 
     return new Response(JSON.stringify({ ok: true }), {
