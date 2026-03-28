@@ -125,6 +125,7 @@ const translations: Translations = {
   "auth.email": { EN: "Email", HT: "Imèl", FR: "Courriel", ES: "Correo", PT: "E-mail", AR: "بريد إلكتروني", ZH: "电子邮件", DE: "E-Mail", JA: "メール", RU: "Электронная почта" },
   "auth.password": { EN: "Password", HT: "Modpas", FR: "Mot de passe", ES: "Contraseña", PT: "Senha", AR: "كلمة المرور", ZH: "密码", DE: "Passwort", JA: "パスワード", RU: "Пароль" },
   "auth.displayName": { EN: "Display Name", HT: "Non Afichaj", FR: "Nom d'affichage", ES: "Nombre", PT: "Nome de exibição", AR: "اسم العرض", ZH: "显示名称", DE: "Anzeigename", JA: "表示名", RU: "Отображаемое имя" },
+  "auth.fullName": { EN: "Full Name", HT: "Non Konplè", FR: "Nom complet", ES: "Nombre completo", PT: "Nome completo", AR: "الاسم الكامل", ZH: "全名", DE: "Vollständiger Name", JA: "氏名", RU: "Полное имя" },
   "auth.signingIn": { EN: "Signing in...", HT: "Ap konekte..." },
   "auth.creatingAccount": { EN: "Creating account...", HT: "Ap kreye kont..." },
   "auth.noAccount": { EN: "Don't have an account?", HT: "Ou pa gen kont?" },
