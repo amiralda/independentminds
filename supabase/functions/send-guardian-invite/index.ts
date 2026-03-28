@@ -126,7 +126,7 @@ Deno.serve(async (req) => {
 
     // Build invite link
     const siteUrl = "https://independentminds.lovable.app";
-    const inviteLink = `${siteUrl}/accept-invite?token=${invite.token}`;
+    const inviteLink = `${siteUrl}/accept-invite?token=${rawToken}`;
 
     const parentName = user.user_metadata?.display_name || "A parent";
     const studentName = escapeHtml(student.display_name);
