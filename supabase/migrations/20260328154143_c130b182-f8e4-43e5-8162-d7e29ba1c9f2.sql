@@ -1,0 +1,1 @@
+ALTER TABLE public.co_guardians ADD CONSTRAINT co_guardians_view_progress_always_true CHECK (can_view_progress = true);
