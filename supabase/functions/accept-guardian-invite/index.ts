@@ -52,12 +52,12 @@ Deno.serve(async (req) => {
     const hashBuffer = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(token));
     const tokenHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, "0")).join("");
 
-    // Look up invite by hash (supports both new hashed and legacy plaintext tokens)
+    // Look up invite by hash only (plaintext tokens no longer stored)
     const { data: invite, error: lookupErr } = await admin
       .from("guardian_invites")
       .select("*")
       .eq("status", "pending")
-      .or(`token_hash.eq.${tokenHash},token.eq.${token}`)
+      .eq("token_hash", tokenHash)
       .single();
 
     if (lookupErr || !invite) {
