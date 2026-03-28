@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { LogIn, UserPlus } from "lucide-react";
+import { PasswordInput } from "@/components/PasswordInput";
 import logo from "@/assets/logo.svg";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
@@ -15,6 +16,8 @@ export default function Login() {
   const { t, lang } = useI18n();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
   const [fullName, setFullName] = useState("");
   const [adultConfirmed, setAdultConfirmed] = useState(false);
   const [loading, setLoading] = useState(false);
