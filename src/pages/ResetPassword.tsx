@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
@@ -18,7 +17,6 @@ export default function ResetPassword() {
   const [isRecovery, setIsRecovery] = useState(false);
 
   useEffect(() => {
-    // Check for recovery token in URL hash
     const hash = window.location.hash;
     if (hash.includes("type=recovery")) {
       setIsRecovery(true);
@@ -84,25 +82,15 @@ export default function ResetPassword() {
         <form onSubmit={handleReset} className="space-y-4 rounded-2xl bg-card p-6 border shadow-xl">
           <div>
             <label className="text-sm font-medium">{t("auth.newPassword")}</label>
-            <Input
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-              className="mt-1"
-            />
+            <div className="mt-1">
+              <PasswordInput value={password} onChange={e => setPassword(e.target.value)} required />
+            </div>
           </div>
           <div>
             <label className="text-sm font-medium">{t("auth.confirmPassword")}</label>
-            <Input
-              type="password"
-              value={confirmPassword}
-              onChange={e => setConfirmPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-              className="mt-1"
-            />
+            <div className="mt-1">
+              <PasswordInput value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required />
+            </div>
           </div>
           <Button type="submit" className="w-full font-display bg-secondary text-secondary-foreground hover:bg-secondary/90" disabled={loading}>
             <KeyRound size={16} className="mr-2" />

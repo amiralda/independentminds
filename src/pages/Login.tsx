@@ -38,8 +38,13 @@ export default function Login() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    setPasswordError("");
     if (!fullName.trim()) {
       toast.error(lang === "HT" ? "Tanpri antre non konplè ou" : "Please enter your full name");
+      return;
+    }
+    if (password !== confirmPassword) {
+      setPasswordError(t("auth.passwordMismatch"));
       return;
     }
     if (!adultConfirmed) {
@@ -134,7 +139,11 @@ export default function Login() {
             <div>
               <label className="text-sm font-medium">{t("auth.confirmPassword")}</label>
               <div className="mt-1">
-                <PasswordInput value={confirmPassword} onChange={e => { setConfirmPassword(e.target.value); setPasswordError(""); }} required />
+                <PasswordInput
+                  value={confirmPassword}
+                  onChange={e => { setConfirmPassword(e.target.value); setPasswordError(""); }}
+                  required
+                />
               </div>
               {passwordError && (
                 <p className="text-xs text-destructive mt-1">{passwordError}</p>
