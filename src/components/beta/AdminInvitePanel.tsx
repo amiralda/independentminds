@@ -151,10 +151,68 @@ export function AdminInvitePanel({
     : (Array.from(channels) as Channel[]);
   const previewChannels = activeChannels.length > 0 ? activeChannels : (['email'] as Channel[]);
 
+  const generateHexToken = (bytes = 32): string => {
+    const arr = crypto.getRandomValues(new Uint8Array(bytes));
+    return Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('');
+  };
+
+  const handleCopyOnly = async () => {
+    setSending(true);
+    setInviteUrl('');
+    try {
+      const token = generateHexToken(32);
+      const inviteEmail =
+        email || `${name.toLowerCase().replace(/\s+/g, '.')}@pending`;
+
+      const { data: invite, error: insertErr } = await supabase
+        .from('beta_invites')
+        .insert({
+          email: inviteEmail,
+          tester_type: testerType,
+          language,
+          notes: notes || null,
+          token,
+          status: 'pending',
+        })
+        .select('id, token')
+        .single();
+
+      if (insertErr) throw insertErr;
+
+      const url =
+        `https://independentmindsedu.com/beta/accept?token=${invite.token}`;
+      const msgParam = notes
+        ? `&msg=${encodeURIComponent(notes.slice(0, 200))}`
+        : '';
+      const fullUrl = url + msgParam;
+
+      await navigator.clipboard.writeText(fullUrl);
+      setInviteUrl(fullUrl);
+
+      // Log as 'copied' in beta_invite_logs
+      await supabase.from('beta_invite_logs').insert({
+        invite_id: invite.id,
+        channel: 'copy',
+        status: 'copied',
+      } as any);
+
+      toast.success(t('invite_panel.success_copy'));
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to create invite');
+    } finally {
+      setSending(false);
+    }
+  };
+
   const handleSend = async () => {
     if (!canSubmit) return;
 
-    if (!copyOnly && channels.size === 0) {
+    // Copy-only: handle entirely client-side
+    if (copyOnly) {
+      return handleCopyOnly();
+    }
+
+    if (channels.size === 0) {
       toast.error(t('invite_panel.error_no_channel'));
       return;
     }
@@ -178,7 +236,7 @@ export function AdminInvitePanel({
             language,
             notes: notes || undefined,
             channels: Array.from(channels),
-            copy_only: copyOnly,
+            copy_only: false,
           },
         },
       );
@@ -188,30 +246,24 @@ export function AdminInvitePanel({
 
       if (data?.invite_url) {
         setInviteUrl(data.invite_url);
-        if (copyOnly) {
-          await navigator.clipboard.writeText(data.invite_url);
-          toast.success(t('invite_panel.success_copy'));
-        }
       }
       if (data?.telegram_deep_link) {
         setTelegramDeepLink(data.telegram_deep_link);
       }
 
-      if (!copyOnly) {
-        const failed = data?.channels_failed ?? [];
-        const sent = data?.channels_sent ?? [];
-        if (failed.length > 0 && sent.length > 0) {
-          toast.warning(
-            `Sent via ${sent.join(', ')}. ${failed.join(', ')} failed.`,
-          );
-        } else if (failed.length > 0) {
-          toast.error(`Failed: ${failed.join(', ')}`);
-        } else {
-          toast.success(
-            t('invite_panel.success').replace('{{name}}', name),
-          );
-          setTimeout(onClose, 2000);
-        }
+      const failed = data?.channels_failed ?? [];
+      const sent = data?.channels_sent ?? [];
+      if (failed.length > 0 && sent.length > 0) {
+        toast.warning(
+          `Sent via ${sent.join(', ')}. ${failed.join(', ')} failed.`,
+        );
+      } else if (failed.length > 0) {
+        toast.error(`Failed: ${failed.join(', ')}`);
+      } else {
+        toast.success(
+          t('invite_panel.success').replace('{{name}}', name),
+        );
+        setTimeout(onClose, 2000);
       }
     } catch (err: any) {
       toast.error(err.message);
