@@ -246,12 +246,12 @@ export default function AdminBeta() {
           </div>
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>Email</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Expires</TableHead>
-                <TableHead>Actions</TableHead>
+              <TableRow className="bg-muted/50">
+                <TableHead className="font-medium text-foreground/70">Email</TableHead>
+                <TableHead className="font-medium text-foreground/70">Type</TableHead>
+                <TableHead className="font-medium text-foreground/70">Status</TableHead>
+                <TableHead className="font-medium text-foreground/70">Expires</TableHead>
+                <TableHead className="font-medium text-foreground/70">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
