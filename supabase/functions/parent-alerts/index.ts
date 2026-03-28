@@ -44,7 +44,26 @@ Deno.serve(async (req) => {
     const callingUserId = user.id;
 
     // Use service role client for data operations
-    const supabase = createClient(supabaseUrl, serviceKey);
+    const supabase = createClient(supabaseUrl, serviceKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+
+    // Rate limiting: 10 requests/hour/parent
+    const now = new Date();
+    const windowStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours()).toISOString();
+    const { data: rateResult } = await supabase.rpc("increment_rate_limit", {
+      p_user_id: callingUserId,
+      p_function_name: "parent-alerts",
+      p_window_start: windowStart,
+      p_limit: 10,
+    });
+    const rateData = rateResult as { count: number; allowed: boolean } | null;
+    if (rateData && !rateData.allowed) {
+      return new Response(
+        JSON.stringify({ error: "Rate limit exceeded. Max 10 alerts per hour." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
 
     const body = await req.json().catch(() => ({}));
     const alertType = body.type;
