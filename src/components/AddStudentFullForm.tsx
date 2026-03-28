@@ -173,7 +173,7 @@ export function AddStudentFullForm({ open, onClose, onBack }: Props) {
         parent_name: user.user_metadata?.display_name || user.email,
         parent_email: user.email,
         date_of_birth: dob || null,
-        nationality: nationality || null,
+        language_pref: languagePref,
         address: address || null,
         profile_photo_url: photoUrl,
       } as any);
