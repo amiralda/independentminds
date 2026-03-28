@@ -29,9 +29,9 @@ type Translations = Record<string, Partial<Record<Lang, string>>>;
 
 const translations: Translations = {
   // App
-  "app.title": { EN: "Independent Minds", HT: "Independent Minds", FR: "Independent Minds", ES: "Independent Minds", PT: "Independent Minds", AR: "Independent Minds", ZH: "Independent Minds", DE: "Independent Minds", JA: "Independent Minds", RU: "Independent Minds" },
-  "app.subtitle": { EN: "Learn Smart. Grow Every Day.", HT: "Aprann Enpòtan. Grandi Chak Jou.", FR: "Apprenez intelligemment. Grandissez chaque jour.", ES: "Aprende inteligente. Crece cada día.", PT: "Aprenda de forma inteligente. Cresça todos os dias.", AR: "تعلم بذكاء. انمُ كل يوم.", ZH: "聪明学习，每天成长。", DE: "Lerne klug. Wachse jeden Tag.", JA: "賢く学ぼう。毎日成長しよう。", RU: "Учись умно. Расти каждый день." },
-  "app.version": { EN: "Independent Minds EDU v2.0", HT: "Independent Minds EDU v2.0" },
+  "app.title": { EN: "Independent Minds EDU", HT: "Independent Minds EDU", FR: "Independent Minds EDU", ES: "Independent Minds EDU", PT: "Independent Minds EDU", AR: "Independent Minds EDU", ZH: "Independent Minds EDU", DE: "Independent Minds EDU", JA: "Independent Minds EDU", RU: "Independent Minds EDU" },
+  "app.subtitle": { EN: "Homeschool management for families worldwide", HT: "Jesyon edikasyon lakay pou fanmi toupatou nan mond lan", FR: "Gestion de l'école à domicile pour les familles du monde entier", ES: "Gestión de educación en casa para familias de todo el mundo", PT: "Gestão de ensino domiciliar para famílias em todo o mundo", AR: "إدارة التعليم المنزلي للعائلات في جميع أنحاء العالم", ZH: "面向全球家庭的家庭教育管理", DE: "Homeschool-Verwaltung für Familien weltweit", JA: "世界中の家族のためのホームスクール管理", RU: "Управление домашним обучением для семей по всему миру" },
+  "app.version": { EN: "Independent Minds EDU v4.1", HT: "Independent Minds EDU v4.1" },
 
   // Nav
   "nav.today": { EN: "Today", HT: "Jodi a", FR: "Aujourd'hui", ES: "Hoy", PT: "Hoje", AR: "اليوم", ZH: "今天", DE: "Heute", JA: "今日", RU: "Сегодня" },
