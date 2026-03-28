@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { LogIn, UserPlus } from "lucide-react";
+import { PasswordInput } from "@/components/PasswordInput";
 import logo from "@/assets/logo.svg";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
@@ -15,6 +16,8 @@ export default function Login() {
   const { t, lang } = useI18n();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
   const [fullName, setFullName] = useState("");
   const [adultConfirmed, setAdultConfirmed] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -35,8 +38,13 @@ export default function Login() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    setPasswordError("");
     if (!fullName.trim()) {
       toast.error(lang === "HT" ? "Tanpri antre non konplè ou" : "Please enter your full name");
+      return;
+    }
+    if (password !== confirmPassword) {
+      setPasswordError(t("auth.passwordMismatch"));
       return;
     }
     if (!adultConfirmed) {
@@ -122,15 +130,26 @@ export default function Login() {
           </div>
           <div>
             <label className="text-sm font-medium">{t("auth.password")}</label>
-            <Input
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-              className="mt-1"
-            />
+            <div className="mt-1">
+              <PasswordInput value={password} onChange={e => setPassword(e.target.value)} required />
+            </div>
           </div>
+
+          {isSignUp && (
+            <div>
+              <label className="text-sm font-medium">{t("auth.confirmPassword")}</label>
+              <div className="mt-1">
+                <PasswordInput
+                  value={confirmPassword}
+                  onChange={e => { setConfirmPassword(e.target.value); setPasswordError(""); }}
+                  required
+                />
+              </div>
+              {passwordError && (
+                <p className="text-xs text-destructive mt-1">{passwordError}</p>
+              )}
+            </div>
+          )}
 
           {/* Adult confirmation for sign-up */}
           {isSignUp && (
@@ -201,7 +220,7 @@ export default function Login() {
             {isSignUp ? t("auth.hasAccount") : t("auth.noAccount")}{" "}
             <button
               type="button"
-              onClick={() => { setIsSignUp(!isSignUp); setAdultConfirmed(false); setFullName(""); }}
+              onClick={() => { setIsSignUp(!isSignUp); setAdultConfirmed(false); setFullName(""); setConfirmPassword(""); setPasswordError(""); }}
               className="text-primary font-semibold hover:underline"
             >
               {isSignUp ? t("action.signIn") : t("action.signUp")}

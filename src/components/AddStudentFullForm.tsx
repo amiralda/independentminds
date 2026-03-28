@@ -46,6 +46,7 @@ export function AddStudentFullForm({ open, onClose, onBack }: Props) {
   const [grade, setGrade] = useState("7");
   const [dob, setDob] = useState("");
   const [nationality, setNationality] = useState("");
+  const [languagePref, setLanguagePref] = useState<string>(lang);
   const [address, setAddress] = useState("");
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -172,7 +173,7 @@ export function AddStudentFullForm({ open, onClose, onBack }: Props) {
         parent_name: user.user_metadata?.display_name || user.email,
         parent_email: user.email,
         date_of_birth: dob || null,
-        nationality: nationality || null,
+        language_pref: languagePref,
         address: address || null,
         profile_photo_url: photoUrl,
       } as any);
@@ -223,6 +224,7 @@ export function AddStudentFullForm({ open, onClose, onBack }: Props) {
     setGrade("7");
     setDob("");
     setNationality("");
+    setLanguagePref(lang);
     setAddress("");
     setPhotoFile(null);
     setPhotoPreview(null);
@@ -312,8 +314,26 @@ export function AddStudentFullForm({ open, onClose, onBack }: Props) {
               </div>
             </div>
             <div>
-              <label className="text-sm font-medium">{lang === "HT" ? "Nasyonalite" : "Nationality"}</label>
-              <Input value={nationality} onChange={e => setNationality(e.target.value)} placeholder="e.g., Haitian" className="mt-1" />
+              <label className="text-sm font-medium">{t("student.preferredLanguage")}</label>
+              <Select value={languagePref} onValueChange={setLanguagePref}>
+                <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {[
+                    { code: "EN", label: "🇺🇸 English" },
+                    { code: "HT", label: "🇭🇹 Kreyòl ayisyen" },
+                    { code: "FR", label: "🇫🇷 Français" },
+                    { code: "ES", label: "🇪🇸 Español" },
+                    { code: "PT", label: "🇧🇷 Português" },
+                    { code: "AR", label: "🇸🇦 العربية" },
+                    { code: "ZH", label: "🇨🇳 中文" },
+                    { code: "DE", label: "🇩🇪 Deutsch" },
+                    { code: "JA", label: "🇯🇵 日本語" },
+                    { code: "RU", label: "🇷🇺 Русский" },
+                  ].map(l => (
+                    <SelectItem key={l.code} value={l.code}>{l.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <label className="text-sm font-medium">{lang === "HT" ? "Adrès" : "Address"}</label>
