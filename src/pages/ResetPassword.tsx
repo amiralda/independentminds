@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
 import logo from "@/assets/logo.svg";
 import { KeyRound, ArrowLeft } from "lucide-react";
+import { PasswordInput } from "@/components/PasswordInput";
 
 export default function ResetPassword() {
   const { t } = useI18n();
