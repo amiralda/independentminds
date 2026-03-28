@@ -100,7 +100,13 @@ Deno.serve(async (req) => {
       perms.can_edit_lessons = true;
     }
 
-    // Insert invite with permissions
+    // Generate token and compute SHA-256 hash
+    const tokenBytes = crypto.getRandomValues(new Uint8Array(32));
+    const rawToken = Array.from(tokenBytes).map(b => b.toString(16).padStart(2, "0")).join("");
+    const hashBuffer = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(rawToken));
+    const tokenHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, "0")).join("");
+
+    // Insert invite with hashed token (raw token never stored)
     const { data: invite, error: insertErr } = await admin
       .from("guardian_invites")
       .insert({
@@ -108,8 +114,10 @@ Deno.serve(async (req) => {
         invited_by: user.id,
         invitee_email: email,
         permissions: perms,
+        token: "REDACTED",
+        token_hash: tokenHash,
       } as any)
-      .select("token, id")
+      .select("id")
       .single();
 
     if (insertErr) {
@@ -118,7 +126,7 @@ Deno.serve(async (req) => {
 
     // Build invite link
     const siteUrl = "https://independentminds.lovable.app";
-    const inviteLink = `${siteUrl}/accept-invite?token=${invite.token}`;
+    const inviteLink = `${siteUrl}/accept-invite?token=${rawToken}`;
 
     const parentName = user.user_metadata?.display_name || "A parent";
     const studentName = escapeHtml(student.display_name);
@@ -162,7 +170,7 @@ Deno.serve(async (req) => {
       data: {
         invite_type: "co_guardian",
         student_id,
-        invite_token: invite.token,
+        invite_token: rawToken,
         display_name: email.split("@")[0],
         role: "parent",
       },
