@@ -65,11 +65,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSelectedStudentId(null);
         setLoading(false);
       }
-      // Update last_active_at on sign-in
+      // Update last_active_at on sign-in & fix Google OAuth display name
       if (_event === "SIGNED_IN" && session?.user) {
+        const meta = session.user.user_metadata;
+        const googleName = meta?.full_name || meta?.name;
+        const updates: Record<string, any> = { last_active_at: new Date().toISOString() };
+        // If display_name is generic "User..." pattern, update with Google name
+        if (googleName) {
+          updates.display_name = googleName;
+          updates.username = googleName;
+        }
         supabase
           .from("profiles")
-          .update({ last_active_at: new Date().toISOString() } as any)
+          .update(updates as any)
           .eq("id", session.user.id)
           .then(() => {});
       }

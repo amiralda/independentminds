@@ -15,7 +15,7 @@ export default function Login() {
   const { t, lang } = useI18n();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [displayName, setDisplayName] = useState("");
+  const [fullName, setFullName] = useState("");
   const [adultConfirmed, setAdultConfirmed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
@@ -35,6 +35,10 @@ export default function Login() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!fullName.trim()) {
+      toast.error(lang === "HT" ? "Tanpri antre non konplè ou" : "Please enter your full name");
+      return;
+    }
     if (!adultConfirmed) {
       toast.error(lang === "HT" ? "Ou dwe konfime ke ou gen 18 an oswa plis" : "You must confirm you are 18 or older");
       return;
@@ -45,7 +49,7 @@ export default function Login() {
       password,
       options: {
         data: {
-          display_name: displayName || email.split("@")[0],
+          display_name: fullName.trim(),
           adult_confirmed: true,
           adult_confirmed_at: new Date().toISOString(),
         },
@@ -95,11 +99,12 @@ export default function Login() {
         >
           {isSignUp && (
             <div>
-              <label className="text-sm font-medium">{t("auth.displayName")}</label>
+              <label className="text-sm font-medium">{t("auth.fullName")}</label>
               <Input
-                value={displayName}
-                onChange={e => setDisplayName(e.target.value)}
-                placeholder="Your Name"
+                value={fullName}
+                onChange={e => setFullName(e.target.value)}
+                placeholder="Marie Joseph"
+                required
                 className="mt-1"
               />
             </div>
@@ -158,7 +163,7 @@ export default function Login() {
           <Button
             type="submit"
             className="w-full font-display bg-secondary text-secondary-foreground hover:bg-secondary/90"
-            disabled={loading || (isSignUp && !adultConfirmed)}
+            disabled={loading || (isSignUp && (!adultConfirmed || !fullName.trim()))}
           >
             {isSignUp ? (
               <><UserPlus size={16} className="mr-2" /> {loading ? t("auth.creatingAccount") : t("action.signUp")}</>
@@ -196,7 +201,7 @@ export default function Login() {
             {isSignUp ? t("auth.hasAccount") : t("auth.noAccount")}{" "}
             <button
               type="button"
-              onClick={() => { setIsSignUp(!isSignUp); setAdultConfirmed(false); }}
+              onClick={() => { setIsSignUp(!isSignUp); setAdultConfirmed(false); setFullName(""); }}
               className="text-primary font-semibold hover:underline"
             >
               {isSignUp ? t("action.signIn") : t("action.signUp")}
@@ -219,6 +224,7 @@ export default function Login() {
           </p>
         </div>
       </div>
+      <style>{`[data-lovable-badge], .lovable-badge { display: none !important; }`}</style>
     </div>
   );
 }

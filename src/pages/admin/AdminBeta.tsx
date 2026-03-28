@@ -137,10 +137,10 @@ export default function AdminBeta() {
 
   const statusColor = (s: string) => {
     switch (s) {
-      case 'accepted': return 'bg-green-500/15 text-green-600';
-      case 'pending': return 'bg-amber-500/15 text-amber-600';
-      case 'expired': return 'bg-muted text-muted-foreground';
-      case 'revoked': return 'bg-destructive/15 text-destructive';
+      case 'accepted': return 'badge-accepted';
+      case 'pending': return 'badge-pending';
+      case 'expired': return 'badge-expired';
+      case 'revoked': return 'badge-revoked';
       default: return 'bg-muted text-muted-foreground';
     }
   };
@@ -246,25 +246,25 @@ export default function AdminBeta() {
           </div>
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>Email</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Expires</TableHead>
-                <TableHead>Actions</TableHead>
+              <TableRow className="bg-muted/50">
+                <TableHead className="font-medium text-foreground/70">Email</TableHead>
+                <TableHead className="font-medium text-foreground/70">Type</TableHead>
+                <TableHead className="font-medium text-foreground/70">Status</TableHead>
+                <TableHead className="font-medium text-foreground/70">Expires</TableHead>
+                <TableHead className="font-medium text-foreground/70">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {invites.map((inv: any) => (
-                <TableRow key={inv.id}>
-                  <TableCell className="text-sm">{inv.email}</TableCell>
-                  <TableCell><Badge variant="outline">{inv.tester_type}</Badge></TableCell>
+                <TableRow key={inv.id} className="hover:bg-muted/30">
+                  <TableCell className="text-sm text-foreground">{inv.email}</TableCell>
+                  <TableCell><Badge variant="outline" className="text-foreground">{inv.tester_type}</Badge></TableCell>
                   <TableCell>
                     <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusColor(inv.status)}`}>
                       {inv.status}
                     </span>
                   </TableCell>
-                  <TableCell className="text-xs">
+                  <TableCell className="text-xs text-foreground/60">
                     {inv.expires_at ? new Date(inv.expires_at).toLocaleDateString() : '—'}
                   </TableCell>
                   <TableCell>

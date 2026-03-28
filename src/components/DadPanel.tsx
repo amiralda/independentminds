@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { StudentSwitcherDropdown } from "@/components/StudentSwitcherDropdown";
 import { CoGuardiansPanel } from "@/components/CoGuardiansPanel";
 import { InboxPanel } from "@/components/InboxPanel";
 import { useI18n } from "@/lib/i18n";
@@ -216,12 +217,12 @@ export function DadPanel({ onAddStudent, initialTab }: Props) {
           </SheetContent>
         </Sheet>
 
-        <div className="flex-1 min-w-0">
-          <h2 className="font-display text-xl font-bold leading-tight">{t("nav.dadPanel")}</h2>
+        <div className="flex-1 min-w-0 flex items-center gap-3">
+          <div>
+            <h2 className="font-display text-xl font-bold leading-tight">{t("nav.dadPanel")}</h2>
+          </div>
           {selectedStudent && (
-            <p className="text-sm text-muted-foreground truncate">
-              {selectedStudent.display_name} · Grade {selectedStudent.grade_level}
-            </p>
+            <StudentSwitcherDropdown />
           )}
         </div>
       </div>
