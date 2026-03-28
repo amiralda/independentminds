@@ -1,0 +1,1 @@
+ALTER TABLE public.guardian_invites ADD COLUMN token_hash text;
