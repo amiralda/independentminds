@@ -256,15 +256,15 @@ export default function AdminBeta() {
             </TableHeader>
             <TableBody>
               {invites.map((inv: any) => (
-                <TableRow key={inv.id} className="hover:bg-muted/30">
-                  <TableCell className="text-sm text-foreground">{inv.email}</TableCell>
-                  <TableCell><Badge variant="outline" className="text-foreground">{inv.tester_type}</Badge></TableCell>
+                <TableRow key={inv.id} className="hover:bg-white/5 border-white/10">
+                  <TableCell className="text-sm text-white">{inv.email}</TableCell>
+                  <TableCell><Badge variant="outline" className="text-white border-white/30">{inv.tester_type}</Badge></TableCell>
                   <TableCell>
                     <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusColor(inv.status)}`}>
                       {inv.status}
                     </span>
                   </TableCell>
-                  <TableCell className="text-xs text-foreground/60">
+                  <TableCell className="text-xs text-white/70">
                     {inv.expires_at ? new Date(inv.expires_at).toLocaleDateString() : '—'}
                   </TableCell>
                   <TableCell>
