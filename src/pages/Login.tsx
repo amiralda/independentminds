@@ -99,11 +99,12 @@ export default function Login() {
         >
           {isSignUp && (
             <div>
-              <label className="text-sm font-medium">{t("auth.displayName")}</label>
+              <label className="text-sm font-medium">{t("auth.fullName")}</label>
               <Input
-                value={displayName}
-                onChange={e => setDisplayName(e.target.value)}
-                placeholder="Your Name"
+                value={fullName}
+                onChange={e => setFullName(e.target.value)}
+                placeholder="Marie Joseph"
+                required
                 className="mt-1"
               />
             </div>
