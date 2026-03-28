@@ -282,6 +282,9 @@ export function StudentProfileCard({ studentId }: Props) {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Co-Guardians Section */}
+      {isParent && <StudentCoGuardiansSection studentId={studentId} />}
     </div>
   );
 }
