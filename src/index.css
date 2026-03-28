@@ -84,3 +84,19 @@
     font-family: var(--font-body);
   }
 }
+
+/* Role-based dashboard theming */
+[data-role="student"] {
+  --primary: 247 52% 67%;
+  --primary-foreground: 0 0% 100%;
+  --ring: 247 52% 67%;
+  --sidebar-background: 247 52% 67%;
+  --sidebar-accent: 247 52% 55%;
+  --sidebar-border: 247 40% 75%;
+}
+
+/* Admin table high-contrast status badges */
+.badge-pending { background-color: #FAEEDA; color: #854F0B; }
+.badge-accepted { background-color: #EAF3DE; color: #3B6D11; }
+.badge-expired { background-color: #F1EFE8; color: #5F5E5A; }
+.badge-revoked { background-color: #FCEBEB; color: #A32D2D; }
