@@ -122,15 +122,22 @@ export default function Login() {
           </div>
           <div>
             <label className="text-sm font-medium">{t("auth.password")}</label>
-            <Input
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-              className="mt-1"
-            />
+            <div className="mt-1">
+              <PasswordInput value={password} onChange={e => setPassword(e.target.value)} required />
+            </div>
           </div>
+
+          {isSignUp && (
+            <div>
+              <label className="text-sm font-medium">{t("auth.confirmPassword")}</label>
+              <div className="mt-1">
+                <PasswordInput value={confirmPassword} onChange={e => { setConfirmPassword(e.target.value); setPasswordError(""); }} required />
+              </div>
+              {passwordError && (
+                <p className="text-xs text-destructive mt-1">{passwordError}</p>
+              )}
+            </div>
+          )}
 
           {/* Adult confirmation for sign-up */}
           {isSignUp && (
