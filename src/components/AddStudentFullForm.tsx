@@ -224,6 +224,7 @@ export function AddStudentFullForm({ open, onClose, onBack }: Props) {
     setGrade("7");
     setDob("");
     setNationality("");
+    setLanguagePref(lang);
     setAddress("");
     setPhotoFile(null);
     setPhotoPreview(null);
