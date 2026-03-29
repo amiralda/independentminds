@@ -1,7 +1,7 @@
 // Trigger: Admin beta requests panel
 // Auth: JWT required, admin role
 // Rate limit: none
-// Side effects: Updates request, creates invite, optionally sends email
+// Side effects: Updates request, creates invite, optionally sends email, tracks referral
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -82,6 +82,24 @@ Deno.serve(async (req) => {
       invited_by: user.id,
       language: request.language ?? 'en',
     }).select().single();
+
+    // Track referral if applicable
+    if (request.referred_by_code) {
+      const { data: referrer } = await db
+        .from('beta_testers')
+        .select('id')
+        .eq('referral_code', request.referred_by_code)
+        .maybeSingle();
+
+      if (referrer) {
+        await db.from('beta_referrals').insert({
+          referrer_tester_id: referrer.id,
+          referred_request_id: request.id,
+          points_awarded: 50,
+          status: 'pending',
+        });
+      }
+    }
 
     // Send email if possible
     const resendKey = Deno.env.get('RESEND_API_KEY');

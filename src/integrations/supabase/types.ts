@@ -376,6 +376,61 @@ export type Database = {
         }
         Relationships: []
       }
+      beta_referrals: {
+        Row: {
+          awarded_at: string | null
+          created_at: string
+          id: string
+          points_awarded: number
+          referred_request_id: string | null
+          referred_tester_id: string | null
+          referrer_tester_id: string
+          status: string
+        }
+        Insert: {
+          awarded_at?: string | null
+          created_at?: string
+          id?: string
+          points_awarded?: number
+          referred_request_id?: string | null
+          referred_tester_id?: string | null
+          referrer_tester_id: string
+          status?: string
+        }
+        Update: {
+          awarded_at?: string | null
+          created_at?: string
+          id?: string
+          points_awarded?: number
+          referred_request_id?: string | null
+          referred_tester_id?: string | null
+          referrer_tester_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "beta_referrals_referred_request_id_fkey"
+            columns: ["referred_request_id"]
+            isOneToOne: false
+            referencedRelation: "beta_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "beta_referrals_referred_tester_id_fkey"
+            columns: ["referred_tester_id"]
+            isOneToOne: false
+            referencedRelation: "beta_testers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "beta_referrals_referrer_tester_id_fkey"
+            columns: ["referrer_tester_id"]
+            isOneToOne: false
+            referencedRelation: "beta_testers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       beta_requests: {
         Row: {
           created_at: string | null
@@ -384,6 +439,7 @@ export type Database = {
           language: string | null
           motivation: string | null
           name: string
+          referred_by_code: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           status: string
@@ -396,6 +452,7 @@ export type Database = {
           language?: string | null
           motivation?: string | null
           name: string
+          referred_by_code?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string
@@ -408,6 +465,7 @@ export type Database = {
           language?: string | null
           motivation?: string | null
           name?: string
+          referred_by_code?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string
@@ -550,6 +608,7 @@ export type Database = {
           joined_at: string | null
           last_active_at: string | null
           recording_consent: boolean | null
+          referral_code: string | null
           session_count: number | null
           tasks_abandoned: number | null
           tasks_completed: number | null
@@ -563,6 +622,7 @@ export type Database = {
           joined_at?: string | null
           last_active_at?: string | null
           recording_consent?: boolean | null
+          referral_code?: string | null
           session_count?: number | null
           tasks_abandoned?: number | null
           tasks_completed?: number | null
@@ -576,6 +636,7 @@ export type Database = {
           joined_at?: string | null
           last_active_at?: string | null
           recording_consent?: boolean | null
+          referral_code?: string | null
           session_count?: number | null
           tasks_abandoned?: number | null
           tasks_completed?: number | null

@@ -147,6 +147,59 @@ Deno.serve(async (req) => {
         .eq('id', 1);
     }
 
+    // Award referral points: find pending referrals for this invite's email
+    const { data: pendingReferrals } = await db
+      .from('beta_referrals')
+      .select('id, referrer_tester_id, points_awarded')
+      .eq('status', 'pending')
+      .eq('referred_tester_id', tester.id);
+
+    // Also check by request that led to this invite
+    const { data: requestReferrals } = await db
+      .from('beta_referrals')
+      .select('id, referrer_tester_id, points_awarded')
+      .eq('status', 'pending')
+      .is('referred_tester_id', null);
+
+    // Link referrals to new tester and award points
+    for (const ref of [...(pendingReferrals ?? []), ...(requestReferrals ?? [])]) {
+      // Get the referrer's user_id to find their student
+      const { data: referrerTester } = await db
+        .from('beta_testers')
+        .select('user_id')
+        .eq('id', ref.referrer_tester_id)
+        .maybeSingle();
+
+      if (referrerTester?.user_id) {
+        // Find referrer's student to award points
+        const { data: referrerStudent } = await db
+          .from('students')
+          .select('student_id')
+          .eq('parent_id', referrerTester.user_id)
+          .limit(1)
+          .maybeSingle();
+
+        if (referrerStudent) {
+          // Award points via direct insert (service role bypasses RLS)
+          await db.from('reward_points').insert({
+            student_id: referrerStudent.student_id,
+            points: ref.points_awarded,
+            reason: 'Beta referral reward',
+            source: 'referral',
+          });
+        }
+      }
+
+      // Update referral status
+      await db.from('beta_referrals')
+        .update({
+          referred_tester_id: tester.id,
+          status: 'awarded',
+          awarded_at: new Date().toISOString(),
+        })
+        .eq('id', ref.id);
+    }
+
     return new Response(JSON.stringify({
       success: true, tester_type: invite.tester_type,
     }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });

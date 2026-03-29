@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useI18n } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
@@ -7,12 +7,14 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { LanguageToggle } from '@/components/LanguageToggle';
-import { CheckCircle, Loader2 } from 'lucide-react';
+import { CheckCircle, Loader2, Users } from 'lucide-react';
 import logo from '@/assets/logo.svg';
 
 export default function BetaRequest() {
   const { t } = useI18n();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const referralCode = searchParams.get('ref');
   const [phase, setPhase] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState('');
@@ -21,6 +23,7 @@ export default function BetaRequest() {
   const [motivation, setMotivation] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [referrerName, setReferrerName] = useState<string | null>(null);
 
   useEffect(() => {
     const checkPhase = async () => {
@@ -35,6 +38,29 @@ export default function BetaRequest() {
     checkPhase();
   }, []);
 
+  // Look up referrer display info
+  useEffect(() => {
+    if (!referralCode) return;
+    const lookupReferrer = async () => {
+      const { data } = await (supabase as any)
+        .from('beta_testers')
+        .select('user_id')
+        .eq('referral_code', referralCode)
+        .maybeSingle();
+      if (data?.user_id) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('display_name')
+          .eq('id', data.user_id)
+          .maybeSingle();
+        if (profile?.display_name) {
+          setReferrerName(profile.display_name);
+        }
+      }
+    };
+    lookupReferrer();
+  }, [referralCode]);
+
   useEffect(() => {
     if (!loading && phase !== 'open') {
       navigate('/login');
@@ -44,13 +70,13 @@ export default function BetaRequest() {
   const handleSubmit = async () => {
     if (!name || !email || !testerType) return;
     setSubmitting(true);
-    // Use anon insert (public RLS policy)
     const { error } = await supabase.from('beta_requests').insert({
       name,
       email,
       tester_type: testerType,
       motivation: motivation || null,
       language: 'en',
+      referred_by_code: referralCode || null,
     } as any);
     setSubmitting(false);
     if (!error) setSubmitted(true);
@@ -73,6 +99,13 @@ export default function BetaRequest() {
         </div>
 
         <h1 className="font-display text-2xl font-medium">{t('beta.request_title')}</h1>
+
+        {referrerName && (
+          <div className="flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 p-3 text-sm">
+            <Users size={16} className="text-primary shrink-0" />
+            <span>{t('beta.referred_by_label')}: <strong>{referrerName}</strong></span>
+          </div>
+        )}
 
         {submitted ? (
           <div className="text-center space-y-4 py-8">
