@@ -133,6 +133,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       fetchStudents();
     } else if (profile.studentId) {
       setSelectedStudentId(profile.studentId);
+      // Fetch student record via PII-filtered security definer function
+      fetchStudentOwnRecord(profile.studentId);
     }
   }, [session?.user?.id, profile?.role]);
 
