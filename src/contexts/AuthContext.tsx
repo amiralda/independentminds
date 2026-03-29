@@ -133,8 +133,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       fetchStudents();
     } else if (profile.studentId) {
       setSelectedStudentId(profile.studentId);
+      // Fetch student record via PII-filtered security definer function
+      fetchStudentOwnRecord(profile.studentId);
     }
   }, [session?.user?.id, profile?.role]);
+
+  const fetchStudentOwnRecord = async (studentId: string) => {
+    const { data } = await supabase.rpc('get_my_student_record' as any);
+    if (data && Array.isArray(data) && data.length > 0) {
+      const rec = data[0] as any;
+      setStudents([{
+        student_id: rec.student_id,
+        display_name: rec.display_name,
+        grade_level: rec.grade_level,
+        parent_id: null,
+      }]);
+    }
+  };
 
   const fetchStudents = async () => {
     if (!session?.user) return;
