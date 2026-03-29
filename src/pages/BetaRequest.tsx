@@ -42,17 +42,16 @@ export default function BetaRequest() {
   useEffect(() => {
     if (!referralCode) return;
     const lookupReferrer = async () => {
-      const { data } = await supabase
+      const { data } = await (supabase as any)
         .from('beta_testers')
         .select('user_id')
-        .eq('referral_code' as any, referralCode)
+        .eq('referral_code', referralCode)
         .maybeSingle();
-      const row = data as { user_id: string } | null;
-      if (row?.user_id) {
+      if (data?.user_id) {
         const { data: profile } = await supabase
           .from('profiles')
           .select('display_name')
-          .eq('id', row.user_id)
+          .eq('id', data.user_id)
           .maybeSingle();
         if (profile?.display_name) {
           setReferrerName(profile.display_name);
