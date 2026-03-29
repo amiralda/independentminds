@@ -146,30 +146,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .eq("parent_id", session.user.id)
       .order("display_name");
 
-    // Fetch students where user is a co-guardian
-    const { data: coGuardianLinks } = await supabase
-      .from("co_guardians")
-      .select("student_id")
-      .eq("guardian_id", session.user.id);
+    // Fetch co-guardian students via security definer function (PII-filtered)
+    const { data: coStudents } = await supabase
+      .rpc('get_co_guardian_students', { _guardian_id: session.user.id } as any);
 
     let allStudents = (ownStudents || []) as StudentRecord[];
 
-    if (coGuardianLinks && coGuardianLinks.length > 0) {
-      const coStudentIds = coGuardianLinks
-        .map(cg => cg.student_id)
-        .filter(id => !allStudents.some(s => s.student_id === id));
-
-      if (coStudentIds.length > 0) {
-        const { data: coStudents } = await supabase
-          .from("students")
-          .select("student_id, display_name, grade_level, parent_id")
-          .in("student_id", coStudentIds)
-          .order("display_name");
-
-        if (coStudents) {
-          allStudents = [...allStudents, ...(coStudents as StudentRecord[])];
-        }
-      }
+    if (coStudents && coStudents.length > 0) {
+      const filtered = (coStudents as any[])
+        .filter((cs: any) => !allStudents.some(s => s.student_id === cs.student_id))
+        .map((cs: any) => ({
+          student_id: cs.student_id,
+          display_name: cs.display_name,
+          grade_level: cs.grade_level,
+          parent_id: cs.parent_id,
+        }));
+      allStudents = [...allStudents, ...filtered];
     }
 
     setStudents(allStudents);
