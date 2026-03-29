@@ -30,7 +30,7 @@ export function CoGuardiansPanel({ studentId }: Props) {
     is_full_access: false,
   });
 
-  const siteUrl = "https://independentminds.lovable.app";
+  const siteUrl = "https://independentmindsedu.com";
 
   const copyInviteLink = async (token: string, id: string) => {
     const link = `${siteUrl}/accept-invite?token=${token}`;
