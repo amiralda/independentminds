@@ -1689,6 +1689,30 @@ export type Database = {
       }
       delete_my_account: { Args: never; Returns: undefined }
       generate_username: { Args: { p_display_name: string }; Returns: string }
+      get_co_guardian_students: {
+        Args: { _guardian_id: string }
+        Returns: {
+          academic_year: string
+          address: string
+          created_at: string
+          date_of_birth: string
+          display_name: string
+          enrollment_date: string
+          grade_level: number
+          language_pref: string
+          monitoring_enabled: boolean
+          nationality: string
+          parent_email: string
+          parent_id: string
+          parent_name: string
+          parent_whatsapp: string
+          profile_photo_url: string
+          student_id: string
+          student_whatsapp: string
+          timezone: string
+          updated_at: string
+        }[]
+      }
       get_my_role: { Args: never; Returns: string }
       get_my_student_id: { Args: never; Returns: string }
       get_points_balance: { Args: { _student_id: string }; Returns: number }
