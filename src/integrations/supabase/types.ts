@@ -1715,6 +1715,21 @@ export type Database = {
       }
       get_my_role: { Args: never; Returns: string }
       get_my_student_id: { Args: never; Returns: string }
+      get_my_student_record: {
+        Args: never
+        Returns: {
+          academic_year: string
+          created_at: string
+          display_name: string
+          grade_level: number
+          language_pref: string
+          monitoring_enabled: boolean
+          profile_photo_url: string
+          student_id: string
+          timezone: string
+          updated_at: string
+        }[]
+      }
       get_points_balance: { Args: { _student_id: string }; Returns: number }
       get_student_id_by_parent: {
         Args: { _parent_id: string; _student_id: string }
