@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,19 +9,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { Bell, Save, Send, Eye, MessageSquare } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { TelegramSetupWizard } from "@/components/TelegramSetupWizard";
 
 export function TelegramSettings() {
-  const { lang } = useI18n();
+  const { t, lang } = useI18n();
   const { user, selectedStudentId } = useAuth();
   const queryClient = useQueryClient();
-  const [botToken, setBotToken] = useState("");
-  const [chatId, setChatId] = useState("");
   const [whatsappNumber, setWhatsappNumber] = useState("");
   const [whatsappEnabled, setWhatsappEnabled] = useState(false);
   const [notificationChannel, setNotificationChannel] = useState("telegram");
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [telegramLinked, setTelegramLinked] = useState(false);
 
   const isHT = lang === "HT";
 
@@ -34,11 +34,10 @@ export function TelegramSettings() {
         .eq("user_id", user.id)
         .single();
       if (data) {
-        setBotToken((data as any).telegram_bot_token || "");
-        setChatId((data as any).telegram_chat_id || "");
         setWhatsappNumber((data as any).whatsapp_number || "");
         setWhatsappEnabled((data as any).whatsapp_enabled || false);
         setNotificationChannel((data as any).notification_channel || "telegram");
+        setTelegramLinked(!!(data as any).telegram_chat_id);
       }
       setLoaded(true);
     };
@@ -88,8 +87,6 @@ export function TelegramSettings() {
         .from("parent_settings")
         .upsert({
           user_id: user.id,
-          telegram_bot_token: botToken || null,
-          telegram_chat_id: chatId || null,
           whatsapp_number: whatsappNumber || null,
           whatsapp_enabled: whatsappEnabled,
           notification_channel: notificationChannel,
@@ -117,6 +114,10 @@ export function TelegramSettings() {
       setTesting(false);
     }
   };
+
+  const handleWizardComplete = useCallback(() => {
+    setTelegramLinked(true);
+  }, []);
 
   if (!loaded) return null;
 
@@ -171,31 +172,12 @@ export function TelegramSettings() {
         </div>
       )}
 
-      {/* Telegram Settings */}
+      {/* Telegram Setup Wizard */}
       {(notificationChannel === "telegram" || notificationChannel === "both") && (
-        <div className="space-y-3 rounded-xl bg-card border p-4">
-          <h4 className="text-sm font-semibold flex items-center gap-2">
-            <Send size={14} /> Telegram
-          </h4>
-          <div>
-            <label className="text-sm font-medium">{isHT ? "Token Bot" : "Bot Token"}</label>
-            <Input
-              value={botToken}
-              onChange={e => setBotToken(e.target.value)}
-              placeholder="123456789:ABCdefGhIjKlMnOpQrStUvWxYz"
-              className="mt-1 font-mono text-xs"
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium">{isHT ? "ID Chat" : "Chat ID"}</label>
-            <Input
-              value={chatId}
-              onChange={e => setChatId(e.target.value)}
-              placeholder="696848510"
-              className="mt-1 font-mono text-xs"
-            />
-          </div>
-        </div>
+        <TelegramSetupWizard
+          onComplete={handleWizardComplete}
+          isAlreadyLinked={telegramLinked}
+        />
       )}
 
       {/* WhatsApp Settings */}
@@ -234,9 +216,11 @@ export function TelegramSettings() {
         <Button onClick={handleSave} disabled={saving} className="flex-1 font-display">
           <Save size={14} className="mr-1" /> {saving ? (isHT ? "Ap chaje..." : "Loading...") : (isHT ? "Sove" : "Save")}
         </Button>
-        <Button variant="outline" onClick={handleTest} disabled={testing} className="font-display">
-          <Send size={14} className="mr-1" /> {testing ? "..." : (isHT ? "Teste" : "Test")}
-        </Button>
+        {telegramLinked && (
+          <Button variant="outline" onClick={handleTest} disabled={testing} className="font-display">
+            <Send size={14} className="mr-1" /> {testing ? "..." : (isHT ? "Teste" : "Test")}
+          </Button>
+        )}
       </div>
 
       <div className="text-xs text-muted-foreground space-y-1 bg-muted/50 rounded-lg p-3">

@@ -28,6 +28,56 @@ Deno.serve(async (req) => {
     const chatId = message.chat.id;
     const text = message.text.trim();
 
+    // Handle /start link_{token} — parent notification linking
+    if (text.startsWith('/start link_')) {
+      const linkToken = text.replace('/start link_', '').trim();
+      if (linkToken) {
+        const db = createClient(
+          Deno.env.get('SUPABASE_URL')!,
+          Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+          { auth: { persistSession: false } },
+        );
+
+        // Find the token and save chat_id
+        const { data: tokenRow } = await db
+          .from('telegram_link_tokens')
+          .select('id, user_id')
+          .eq('token', linkToken)
+          .eq('used', false)
+          .gt('expires_at', new Date().toISOString())
+          .maybeSingle();
+
+        const botToken = Deno.env.get('TELEGRAM_BOT_TOKEN');
+        if (tokenRow && botToken) {
+          await db
+            .from('telegram_link_tokens')
+            .update({ chat_id: chatId })
+            .eq('id', tokenRow.id);
+
+          await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chat_id: chatId,
+              text: '✅ Connected! You will now receive notifications about your students\' progress here.',
+            }),
+          });
+        } else if (botToken) {
+          await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chat_id: chatId,
+              text: 'This link has expired or is invalid. Please generate a new one from your notification settings.',
+            }),
+          });
+        }
+      }
+      return new Response(JSON.stringify({ ok: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Handle /start beta_{token}
     if (!text.startsWith('/start beta_')) {
       return new Response(JSON.stringify({ ok: true }), {

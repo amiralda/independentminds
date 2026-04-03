@@ -1647,6 +1647,36 @@ export type Database = {
           },
         ]
       }
+      telegram_link_tokens: {
+        Row: {
+          chat_id: number | null
+          created_at: string
+          expires_at: string
+          id: string
+          token: string
+          used: boolean
+          user_id: string
+        }
+        Insert: {
+          chat_id?: number | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          token: string
+          used?: boolean
+          user_id: string
+        }
+        Update: {
+          chat_id?: number | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          token?: string
+          used?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
