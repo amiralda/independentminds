@@ -112,8 +112,9 @@ Deno.serve(async (req) => {
 
     // SOS for users 1-5
     const sosUsers = users.filter(u => u.idx <= 5);
-    const sosCi = sosUsers.map(u => ({ student_id: u.studentId, mood: "😰", focus: "struggling", blocks_done: 0, need_help: true, comment: "SOS: Need help urgently" }));
-    await supabase.from("check_ins").insert(sosCi);
+    const sosCi = sosUsers.map(u => ({ student_id: u.studentId, mood: "Tired", focus: "Low", blocks_done: 0, need_help: true, comment: "SOS: Need help urgently" }));
+    const { error: sosErr } = await supabase.from("check_ins").insert(sosCi);
+    if (sosErr) results.errors.push(`sos_checkins: ${sosErr.message}`);
     const sosInbox = sosUsers.map(u => ({
       parent_id: u.uid, student_id: u.studentId, message_type: "sos", title: "SOS Alert",
       body: `Sim Child ${String(u.idx).padStart(2, "0")} needs help!`, is_read: false,
