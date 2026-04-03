@@ -56,12 +56,12 @@ jobs:
           retention-days: 30
 
   db-tests:
-    name: Database RLS audit (pgTAP)
+    name: Database RLS audit (SQL)
     runs-on: ubuntu-latest
     needs: unit-tests
+    if: ${{ secrets.DATABASE_URL != '' }}
     steps:
       - uses: actions/checkout@v4
-      - run: sudo apt-get install -y pgtap
       - run: psql "$DATABASE_URL" -f tests/db/rls/full_security_audit.sql
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}

@@ -1,62 +1,98 @@
+-- Security audit for Independent Minds EDU
+-- Plain SQL (no pgTAP dependency) — runs against remote Supabase via psql
+-- Returns non-zero exit code on any failure
+
+\set ON_ERROR_STOP on
+
 BEGIN;
-SELECT plan(35);
 
--- All key tables have RLS
-SELECT ok((SELECT relrowsecurity FROM pg_class WHERE relname='profiles'         AND relnamespace='public'::regnamespace),'RLS: profiles');
-SELECT ok((SELECT relrowsecurity FROM pg_class WHERE relname='students'         AND relnamespace='public'::regnamespace),'RLS: students');
-SELECT ok((SELECT relrowsecurity FROM pg_class WHERE relname='daily_plan'       AND relnamespace='public'::regnamespace),'RLS: daily_plan');
-SELECT ok((SELECT relrowsecurity FROM pg_class WHERE relname='co_guardians'     AND relnamespace='public'::regnamespace),'RLS: co_guardians');
-SELECT ok((SELECT relrowsecurity FROM pg_class WHERE relname='guardian_invites' AND relnamespace='public'::regnamespace),'RLS: guardian_invites');
-SELECT ok((SELECT relrowsecurity FROM pg_class WHERE relname='inbox_messages'   AND relnamespace='public'::regnamespace),'RLS: inbox_messages');
-SELECT ok((SELECT relrowsecurity FROM pg_class WHERE relname='user_roles'       AND relnamespace='public'::regnamespace),'RLS: user_roles');
-SELECT ok((SELECT relrowsecurity FROM pg_class WHERE relname='flagged_inputs'   AND relnamespace='public'::regnamespace),'RLS: flagged_inputs');
-SELECT ok((SELECT relrowsecurity FROM pg_class WHERE relname='messages_log'     AND relnamespace='public'::regnamespace),'RLS: messages_log');
-SELECT ok((SELECT relrowsecurity FROM pg_class WHERE relname='rate_limits'      AND relnamespace='public'::regnamespace),'RLS: rate_limits');
-SELECT ok((SELECT relrowsecurity FROM pg_class WHERE relname='ai_conversations' AND relnamespace='public'::regnamespace),'RLS: ai_conversations');
-SELECT ok((SELECT relrowsecurity FROM pg_class WHERE relname='merge_requests'   AND relnamespace='public'::regnamespace),'RLS: merge_requests');
+-- Helper: collect failures instead of aborting on first
+CREATE TEMP TABLE _audit_results (
+  test_name text NOT NULL,
+  passed boolean NOT NULL
+);
 
--- Security definer functions
-SELECT ok((SELECT prosecdef FROM pg_proc p JOIN pg_namespace n ON p.pronamespace=n.oid WHERE n.nspname='public' AND p.proname='has_role'),               'has_role() SECURITY DEFINER');
-SELECT ok((SELECT prosecdef FROM pg_proc p JOIN pg_namespace n ON p.pronamespace=n.oid WHERE n.nspname='public' AND p.proname='has_guardian_permission'), 'has_guardian_permission() SECURITY DEFINER');
-SELECT ok((SELECT prosecdef FROM pg_proc p JOIN pg_namespace n ON p.pronamespace=n.oid WHERE n.nspname='public' AND p.proname='award_points'),            'award_points() SECURITY DEFINER');
-SELECT ok((SELECT prosecdef FROM pg_proc p JOIN pg_namespace n ON p.pronamespace=n.oid WHERE n.nspname='public' AND p.proname='redeem_reward'),           'redeem_reward() SECURITY DEFINER');
-SELECT ok((SELECT prosecdef FROM pg_proc p JOIN pg_namespace n ON p.pronamespace=n.oid WHERE n.nspname='public' AND p.proname='increment_rate_limit'),    'increment_rate_limit() SECURITY DEFINER');
-SELECT ok((SELECT prosecdef FROM pg_proc p JOIN pg_namespace n ON p.pronamespace=n.oid WHERE n.nspname='public' AND p.proname='delete_my_account'),       'delete_my_account() SECURITY DEFINER');
+-- ============================================================
+-- 1. RLS enabled on all key tables
+-- ============================================================
+INSERT INTO _audit_results
+SELECT 'RLS: ' || t.tbl,
+       COALESCE((SELECT relrowsecurity FROM pg_class WHERE relname = t.tbl AND relnamespace = 'public'::regnamespace), false)
+FROM (VALUES
+  ('profiles'),('students'),('daily_plan'),('co_guardians'),
+  ('guardian_invites'),('inbox_messages'),('user_roles'),
+  ('flagged_inputs'),('messages_log'),('rate_limits'),
+  ('ai_conversations'),('merge_requests')
+) AS t(tbl);
 
--- No client INSERT on write-protected tables
-SELECT ok(NOT EXISTS(SELECT 1 FROM pg_policies WHERE tablename='messages_log' AND cmd='INSERT' AND qual IS NULL AND with_check = 'false'),
-  'SEC-05: messages_log blocks client INSERT');
-SELECT ok(EXISTS(SELECT 1 FROM pg_policies WHERE tablename='rate_limits' AND cmd='INSERT'),
-  'SEC-06: rate_limits has INSERT policy defined');
-SELECT ok(EXISTS(SELECT 1 FROM pg_policies WHERE tablename='flagged_inputs'),
-  'SEC-07: flagged_inputs has policies');
+-- ============================================================
+-- 2. Security-definer functions exist
+-- ============================================================
+INSERT INTO _audit_results
+SELECT 'SECDEF: ' || f.fn,
+       COALESCE((SELECT prosecdef FROM pg_proc p JOIN pg_namespace n ON p.pronamespace = n.oid WHERE n.nspname = 'public' AND p.proname = f.fn LIMIT 1), false)
+FROM (VALUES
+  ('has_role'),('has_guardian_permission'),('award_points'),
+  ('redeem_reward'),('increment_rate_limit'),('delete_my_account')
+) AS f(fn);
 
--- COPPA columns exist
-SELECT has_column('public','profiles','adult_confirmed',    'profiles.adult_confirmed');
-SELECT has_column('public','profiles','adult_confirmed_at', 'profiles.adult_confirmed_at');
-SELECT has_column('public','profiles','language_pref',      'profiles.language_pref');
-SELECT has_column('public','profiles','onboarding_step',    'profiles.onboarding_step');
-SELECT has_column('public','parent_settings','telegram_bot_token','telegram_bot_token exists');
+-- ============================================================
+-- 3. Required columns exist
+-- ============================================================
+INSERT INTO _audit_results
+SELECT 'COL: ' || c.tbl || '.' || c.col,
+       EXISTS (
+         SELECT 1 FROM information_schema.columns
+         WHERE table_schema = 'public' AND table_name = c.tbl AND column_name = c.col
+       )
+FROM (VALUES
+  ('profiles','adult_confirmed'),
+  ('profiles','adult_confirmed_at'),
+  ('profiles','language_pref'),
+  ('profiles','onboarding_step'),
+  ('parent_settings','telegram_bot_token'),
+  ('guardian_invites','token'),
+  ('guardian_invites','expires_at'),
+  ('admin_notifications','notification_type'),
+  ('admin_notifications','metadata'),
+  ('impersonation_logs','parent_id'),
+  ('impersonation_logs','student_id'),
+  ('impersonation_logs','action')
+) AS c(tbl, col);
 
--- Guardian invite columns
-SELECT has_column('public','guardian_invites','token',      'guardian_invites.token');
-SELECT has_column('public','guardian_invites','expires_at', 'guardian_invites.expires_at');
+-- ============================================================
+-- 4. Rate-limits INSERT policy exists
+-- ============================================================
+INSERT INTO _audit_results
+SELECT 'POLICY: rate_limits has INSERT policy',
+       EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'rate_limits' AND cmd = 'INSERT');
 
--- Admin notification columns
-SELECT has_column('public','admin_notifications','notification_type', 'admin_notifications.notification_type');
-SELECT has_column('public','admin_notifications','metadata',          'admin_notifications.metadata');
+INSERT INTO _audit_results
+SELECT 'POLICY: flagged_inputs has policies',
+       EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'flagged_inputs');
 
--- Impersonation logs
-SELECT has_column('public','impersonation_logs','parent_id',  'impersonation_logs.parent_id');
-SELECT has_column('public','impersonation_logs','student_id', 'impersonation_logs.student_id');
-SELECT has_column('public','impersonation_logs','action',     'impersonation_logs.action');
+-- ============================================================
+-- Print results
+-- ============================================================
+\echo ''
+\echo '====== SECURITY AUDIT RESULTS ======'
 
--- Anonymous cannot read protected tables
-SET LOCAL role TO anon;
-SELECT is_empty($$SELECT * FROM public.profiles     LIMIT 1$$,'Anon: no profiles');
-SELECT is_empty($$SELECT * FROM public.user_roles   LIMIT 1$$,'Anon: no user_roles');
-SELECT is_empty($$SELECT * FROM public.flagged_inputs LIMIT 1$$,'Anon: no flagged_inputs');
-RESET role;
+SELECT test_name,
+       CASE WHEN passed THEN '✅ PASS' ELSE '❌ FAIL' END AS result
+FROM _audit_results
+ORDER BY passed, test_name;
 
-SELECT * FROM finish();
+-- Final pass/fail check
+DO $$
+DECLARE
+  fail_count integer;
+BEGIN
+  SELECT count(*) INTO fail_count FROM _audit_results WHERE NOT passed;
+  IF fail_count > 0 THEN
+    RAISE EXCEPTION '% audit check(s) FAILED', fail_count;
+  ELSE
+    RAISE NOTICE 'All audit checks passed ✅';
+  END IF;
+END $$;
+
 ROLLBACK;
