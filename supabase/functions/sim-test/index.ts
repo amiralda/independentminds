@@ -87,10 +87,11 @@ Deno.serve(async (req) => {
 
     // Check-ins
     const ciRows = users.map(u => {
-      const [mood, focus, bd] = u.idx <= 5 ? ["😊","focused",5] : u.idx <= 10 ? ["😐","okay",3] : u.idx <= 15 ? ["😰","struggling",1] : ["😐","distracted",0];
+      const [mood, focus, bd] = u.idx <= 5 ? ["Good","High",5] : u.idx <= 10 ? ["Okay","Medium",3] : u.idx <= 15 ? ["Tired","Low",1] : ["Okay","Low",0];
       return { student_id: u.studentId, mood, focus, blocks_done: bd as number, need_help: false, comment: "Simulation check-in" };
     });
-    await supabase.from("check_ins").insert(ciRows);
+    const { error: ciErr } = await supabase.from("check_ins").insert(ciRows);
+    if (ciErr) results.errors.push(`check_ins: ${ciErr.message}`);
     users.forEach(u => pointRows.push({ student_id: u.studentId, points: 15, reason: "Check-in completed", source: "check_in" }));
     results.steps.check_ins = ciRows.length;
 
