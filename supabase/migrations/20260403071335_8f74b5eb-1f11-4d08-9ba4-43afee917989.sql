@@ -1,0 +1,1 @@
+UPDATE auth.users SET email_confirmed_at = now() WHERE email IN ('test-parent@independentminds.test', 'test-admin@independentminds.test', 'test-guardian@independentminds.test') AND email_confirmed_at IS NULL
