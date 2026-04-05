@@ -15,7 +15,7 @@ const TYPE_CONFIG: Record<MessageType, { icon: React.ElementType; color: string 
   streak_milestone: { icon: Trophy, color: "text-purple-500" },
   reward_redeemed: { icon: Gift, color: "text-amber-500" },
   inactivity_alert: { icon: AlertTriangle, color: "text-warning" },
-  admin_broadcast: { icon: Inbox, color: "text-blue-500" },
+  admin_broadcast: { icon: Bell, color: "text-blue-500" },
 };
 
 function relativeTime(dateStr: string): string {
