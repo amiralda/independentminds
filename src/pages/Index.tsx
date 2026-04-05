@@ -36,6 +36,7 @@ const Index = () => {
   const navigate = useNavigate();
   const { profile, selectedStudentId, viewingAsStudent, setViewingAsStudent, students, user } = useAuth();
   const { isAdmin } = useAdminAuth();
+  const { isBetaTester } = useBetaTester();
   const [tab, setTab] = useState<StudentTab>("today");
   const [showAddStudent, setShowAddStudent] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
