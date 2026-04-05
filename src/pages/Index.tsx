@@ -152,7 +152,7 @@ const Index = () => {
           <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
             {role === "parent" && (
               <button
-                onClick={() => { setParentTab("inbox"); setParentTabKey(k => k + 1); }}
+                onClick={() => { setParentTab("inbox"); setParentTabKey(k => k + 1); setTimeout(() => document.getElementById('main-content')?.scrollIntoView({ behavior: 'smooth' }), 100); }}
                 className={`relative text-primary-foreground/70 hover:text-primary-foreground p-1.5 transition-transform ${bellRing ? "animate-bell-ring" : ""}`}
                 title={lang === "HT" ? "Bwat Mesaj" : "Inbox"}
                 aria-label={lang === "HT" ? "Bwat Mesaj" : "Inbox"}
