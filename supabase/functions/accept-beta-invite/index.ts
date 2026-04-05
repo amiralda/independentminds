@@ -103,11 +103,12 @@ Deno.serve(async (req) => {
       }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    // Get tasks for this tester type
+    // Get tasks for this tester type (with title + description for email)
     const { data: tasks } = await db
       .from('beta_tasks')
-      .select('id')
-      .eq('tester_type', invite.tester_type);
+      .select('id, title_key, description_key, task_order')
+      .eq('tester_type', invite.tester_type)
+      .order('task_order', { ascending: true });
 
     const taskCount = tasks?.length ?? 0;
 
@@ -119,6 +120,9 @@ Deno.serve(async (req) => {
         tester_type: invite.tester_type,
         tasks_total: taskCount,
         beta_phase: config ? 'active' : 'closed',
+        points_earned: 0,
+        current_level: 'Explorer',
+        first_login_shown: false,
       })
       .select()
       .single();
@@ -133,6 +137,111 @@ Deno.serve(async (req) => {
         status: 'pending',
       }));
       await db.from('beta_task_completions').insert(completions);
+    }
+
+    // Send welcome email
+    const resendApiKey = Deno.env.get('RESEND_API_KEY');
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+    const { data: authUser } = await db.auth.admin.getUserById(user.id);
+    const userEmail = authUser?.user?.email;
+    const { data: userProfile } = await db.from('profiles').select('display_name').eq('id', user.id).single();
+    const displayName = userProfile?.display_name || 'Beta Tester';
+
+    if (resendApiKey && lovableApiKey && userEmail && tasks && tasks.length > 0) {
+      const taskListHtml = tasks.map((t: any) => `
+        <tr>
+          <td style="padding:12px 16px;border-left:3px solid #BA7517;background:#FFFBF0;margin-bottom:8px;">
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td>
+                  <span style="display:inline-block;width:28px;height:28px;border-radius:50%;background:#BA7517;color:white;text-align:center;line-height:28px;font-weight:bold;font-size:12px;margin-right:8px;">${String(t.task_order).padStart(2, '0')}</span>
+                  <strong style="color:#1A365D;">${t.title_key}</strong>
+                </td>
+                <td style="text-align:right;">
+                  <span style="background:#FEF3C7;color:#92400E;padding:2px 8px;border-radius:12px;font-size:12px;font-weight:bold;">25 pts</span>
+                </td>
+              </tr>
+              <tr>
+                <td colspan="2" style="padding-top:4px;color:#64748B;font-size:13px;">${t.description_key}</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr><td style="height:8px;"></td></tr>
+      `).join('');
+
+      const welcomeHtml = `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#F1F5F9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:white;">
+  <tr>
+    <td style="background:#1A365D;padding:32px 24px;text-align:center;">
+      <h1 style="color:white;margin:0;font-size:22px;">Welcome to Independent Minds EDU Beta, ${displayName}!</h1>
+    </td>
+  </tr>
+  <tr>
+    <td style="padding:24px;">
+      <div style="background:#FFFBF0;border:1px solid #BA7517;border-radius:12px;padding:20px;text-align:center;">
+        <p style="color:#92400E;font-size:15px;margin:0;line-height:1.6;">
+          You have been selected as a Beta Tester. Your mission: complete <strong>${taskCount} tasks</strong> and become a <strong>Beta Champion</strong>. Each task earns you <strong>25 points</strong>.
+        </p>
+      </div>
+    </td>
+  </tr>
+  <tr>
+    <td style="padding:0 24px 16px;">
+      <h2 style="color:#1A365D;font-size:16px;margin:0 0 12px;">Your Tasks:</h2>
+      <table width="100%" cellpadding="0" cellspacing="0">${taskListHtml}</table>
+    </td>
+  </tr>
+  <tr>
+    <td style="padding:16px 24px;">
+      <table width="100%" cellpadding="0" cellspacing="0" style="background:#F8FAFC;border-radius:8px;">
+        <tr>
+          <td style="padding:12px;text-align:center;font-size:13px;">
+            <span style="color:#085041;background:#E1F5EE;padding:4px 10px;border-radius:12px;margin:0 4px;">Explorer</span>
+            <span style="color:#999;">→</span>
+            <span style="color:white;background:#1D9E75;padding:4px 10px;border-radius:12px;margin:0 4px;">Tester</span>
+            <span style="color:#999;">→</span>
+            <span style="color:#3C3489;background:#EEEDFE;padding:4px 10px;border-radius:12px;margin:0 4px;">Contributor</span>
+            <span style="color:#999;">→</span>
+            <span style="color:#633806;background:#FAEEDA;padding:4px 10px;border-radius:12px;margin:0 4px;">🏆 Champion</span>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td style="padding:24px;text-align:center;">
+      <a href="https://independentmindsedu.com" style="display:inline-block;background:#1D9E75;color:white;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:16px;">Start My Mission →</a>
+    </td>
+  </tr>
+  <tr>
+    <td style="background:#F8FAFC;padding:24px;text-align:center;border-top:1px solid #E2E8F0;">
+      <p style="color:#64748B;font-size:13px;line-height:1.6;margin:0;">Thank you for helping us build Independent Minds EDU.</p>
+    </td>
+  </tr>
+</table>
+</body>
+</html>`;
+
+      const GATEWAY_URL = 'https://connector-gateway.lovable.dev/resend';
+      await fetch(`${GATEWAY_URL}/emails`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${lovableApiKey}`,
+          'X-Connection-Api-Key': resendApiKey,
+        },
+        body: JSON.stringify({
+          from: 'Independent Minds EDU <onboarding@resend.dev>',
+          to: [userEmail],
+          subject: 'Welcome to the Beta — Your Mission Starts Now!',
+          html: welcomeHtml,
+        }),
+      });
     }
 
     // Update invite
