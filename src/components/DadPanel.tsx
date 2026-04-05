@@ -54,7 +54,7 @@ interface Props {
   initialTab?: DadTab;
 }
 
-type DadTab = "activity" | "profile" | "progress" | "schedule" | "tracks" | "tools" | "tutor" | "curriculum" | "weekly" | "certificates" | "records" | "rewards" | "telegram" | "guardians" | "inbox";
+type DadTab = "activity" | "profile" | "progress" | "schedule" | "tracks" | "tools" | "tutor" | "curriculum" | "weekly" | "certificates" | "records" | "rewards" | "guardians" | "inbox";
 
 interface NavItem {
   key: DadTab;
@@ -77,7 +77,6 @@ const NAV_ITEMS: NavItem[] = [
   { key: "records", icon: FileText, label: "Records", labelHT: "Dosye" },
   { key: "rewards", icon: Coins, label: "Rewards", labelHT: "Rekonpans" },
   { key: "inbox", icon: Inbox, label: "Inbox", labelHT: "Bwat mesaj" },
-  { key: "telegram", icon: Bell, label: "Notifications", labelHT: "Notifikasyon" },
 ];
 
 export function DadPanel({ onAddStudent, initialTab }: Props) {
@@ -255,6 +254,12 @@ export function DadPanel({ onAddStudent, initialTab }: Props) {
               <StudentProfileCard studentId={studentId} />
               <div className="space-y-3">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-1">
+                  {lang === "HT" ? "Notifikasyon" : "Notification Settings"}
+                </p>
+                <TelegramSettings />
+              </div>
+              <div className="space-y-3">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-1">
                   {lang === "HT" ? "Paramèt Kont" : "Account Settings"}
                 </p>
                 <MfaSettings />
@@ -275,7 +280,7 @@ export function DadPanel({ onAddStudent, initialTab }: Props) {
           {activeTab === "rewards" && <RewardsManagement studentId={studentId} />}
           {activeTab === "guardians" && <CoGuardiansPanel studentId={studentId} />}
           {activeTab === "inbox" && <InboxPanel />}
-          {activeTab === "telegram" && <TelegramSettings />}
+          
         </>
       )}
 
