@@ -61,8 +61,6 @@ export function BetaMissionBanner() {
     fetchData();
   }, [tester?.id, tester?.tester_type]);
 
-  if (!tester || tasks.length === 0) return null;
-
   const completedIds = new Set(
     completions.filter(c => c.status === 'completed').map(c => c.task_id)
   );
@@ -78,14 +76,18 @@ export function BetaMissionBanner() {
 
   // Fire confetti on completion
   useEffect(() => {
-    if (allComplete && !confettiRef.current) {
+    if (allComplete && total > 0 && !confettiRef.current) {
       confettiRef.current = true;
-      import('https://cdn.skypack.dev/canvas-confetti').then(mod => {
-        const confetti = mod.default;
-        confetti({ particleCount: 150, spread: 70, origin: { y: 0.3 } });
-      }).catch(() => {});
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js';
+      script.onload = () => {
+        (window as any).confetti?.({ particleCount: 150, spread: 70, origin: { y: 0.3 } });
+      };
+      document.head.appendChild(script);
     }
-  }, [allComplete]);
+  }, [allComplete, total]);
+
+  if (!tester || tasks.length === 0) return null;
 
   const handleStartTask = () => {
     const el = document.querySelector('[data-feature="beta-task-toggle"], [data-feature="beta-task-complete"]');
