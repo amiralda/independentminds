@@ -604,9 +604,12 @@ export type Database = {
       beta_testers: {
         Row: {
           beta_phase: string | null
+          current_level: string
+          first_login_shown: boolean
           id: string
           joined_at: string | null
           last_active_at: string | null
+          points_earned: number
           recording_consent: boolean | null
           referral_code: string | null
           session_count: number | null
@@ -618,9 +621,12 @@ export type Database = {
         }
         Insert: {
           beta_phase?: string | null
+          current_level?: string
+          first_login_shown?: boolean
           id?: string
           joined_at?: string | null
           last_active_at?: string | null
+          points_earned?: number
           recording_consent?: boolean | null
           referral_code?: string | null
           session_count?: number | null
@@ -632,9 +638,12 @@ export type Database = {
         }
         Update: {
           beta_phase?: string | null
+          current_level?: string
+          first_login_shown?: boolean
           id?: string
           joined_at?: string | null
           last_active_at?: string | null
+          points_earned?: number
           recording_consent?: boolean | null
           referral_code?: string | null
           session_count?: number | null
