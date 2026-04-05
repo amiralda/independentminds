@@ -229,6 +229,7 @@ const Index = () => {
 
       {/* Content */}
       <main id="main-content" className="container px-3 sm:px-4 pb-24">
+        {isBetaTester && <BetaMissionBanner />}
         {role === "student" ? (
           <>
             <BlockReminderPopup studentId={studentId} />
