@@ -31,6 +31,7 @@ import AdminNotificationCenter from "./pages/admin/AdminNotificationCenter";
 import AcceptInvite from "./pages/AcceptInvite";
 import BetaRequest from "./pages/BetaRequest";
 import BetaAccept from "./pages/BetaAccept";
+import Unsubscribe from "./pages/Unsubscribe";
 
 const queryClient = new QueryClient();
 
@@ -86,6 +87,7 @@ const App = () => (
                 <Route path="/accept-invite" element={<AcceptInvite />} />
                 <Route path="/beta" element={<BetaRequest />} />
                 <Route path="/beta/accept" element={<BetaAccept />} />
+                <Route path="/unsubscribe" element={<Unsubscribe />} />
                 <Route path="/admin" element={<AuthGuard><AdminLayout /></AuthGuard>}>
                   <Route index element={<AdminOverview />} />
                   <Route path="students" element={<AdminStudents />} />
