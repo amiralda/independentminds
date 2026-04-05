@@ -214,6 +214,112 @@ Deno.serve(async (req) => {
 
     console.log(`[hourly-monitor] Results:`, JSON.stringify(results));
 
+    // ═══ SMART ALERT RULES ═══
+    try {
+      const oneHourAgo = new Date(Date.now() - 3600_000).toISOString();
+      const oneDayAgo = new Date(Date.now() - 86400_000).toISOString();
+
+      const { data: admins } = await supabase.from("user_roles").select("user_id").eq("role", "admin");
+      if (admins && admins.length > 0) {
+        // RULE 1: Error spike — 5+ errors on same page in 1 hour
+        const { data: recentErrors } = await supabase
+          .from("platform_errors")
+          .select("page_path")
+          .gte("created_at", oneHourAgo);
+
+        if (recentErrors) {
+          const pageCounts: Record<string, number> = {};
+          for (const e of recentErrors) {
+            pageCounts[e.page_path || '/'] = (pageCounts[e.page_path || '/'] || 0) + 1;
+          }
+          for (const [page, count] of Object.entries(pageCounts)) {
+            if (count >= 5) {
+              for (const admin of admins) {
+                const { data: existing } = await supabase.from("admin_notifications")
+                  .select("id").eq("admin_id", admin.user_id)
+                  .eq("notification_type", "error_spike").eq("is_read", false)
+                  .gte("created_at", oneHourAgo).limit(1);
+                if (existing && existing.length > 0) continue;
+                await supabase.from("admin_notifications").insert({
+                  admin_id: admin.user_id,
+                  title: "Error Spike Detected",
+                  body: `${count} errors on ${page} in the last hour. Possible critical bug.`,
+                  notification_type: "error_spike",
+                  is_read: false,
+                  metadata: { page_path: page, error_count: count },
+                });
+              }
+            }
+          }
+        }
+
+        // RULE 2: Low rating — avg below 3.0 in last 24h
+        const { data: ratings } = await supabase
+          .from("user_feedback")
+          .select("rating")
+          .eq("feedback_type", "rating")
+          .gte("created_at", oneDayAgo)
+          .not("rating", "is", null);
+
+        if (ratings && ratings.length >= 3) {
+          const avg = ratings.reduce((s: number, r: any) => s + r.rating, 0) / ratings.length;
+          if (avg < 3.0) {
+            for (const admin of admins) {
+              const { data: existing } = await supabase.from("admin_notifications")
+                .select("id").eq("admin_id", admin.user_id)
+                .eq("notification_type", "low_rating").eq("is_read", false)
+                .gte("created_at", oneDayAgo).limit(1);
+              if (existing && existing.length > 0) continue;
+              await supabase.from("admin_notifications").insert({
+                admin_id: admin.user_id,
+                title: "Low User Satisfaction Alert",
+                body: `Average rating dropped to ${avg.toFixed(1)}/5 in the last 24 hours (${ratings.length} responses).`,
+                notification_type: "low_rating",
+                is_read: false,
+                metadata: { average_rating: avg, response_count: ratings.length },
+              });
+            }
+          }
+        }
+
+        // RULE 3: Feature request trend — 3+ same category in 24h
+        const { data: features } = await supabase
+          .from("user_feedback")
+          .select("category")
+          .eq("feedback_type", "feature")
+          .gte("created_at", oneDayAgo)
+          .not("category", "is", null);
+
+        if (features) {
+          const catCounts: Record<string, number> = {};
+          for (const f of features) {
+            catCounts[f.category || 'Other'] = (catCounts[f.category || 'Other'] || 0) + 1;
+          }
+          for (const [cat, count] of Object.entries(catCounts)) {
+            if (count >= 3) {
+              for (const admin of admins) {
+                const { data: existing } = await supabase.from("admin_notifications")
+                  .select("id").eq("admin_id", admin.user_id)
+                  .eq("notification_type", "feature_trend").eq("is_read", false)
+                  .gte("created_at", oneDayAgo).limit(1);
+                if (existing && existing.length > 0) continue;
+                await supabase.from("admin_notifications").insert({
+                  admin_id: admin.user_id,
+                  title: "Feature Request Trend",
+                  body: `${count} users requested improvements to ${cat} in the last 24 hours.`,
+                  notification_type: "feature_trend",
+                  is_read: false,
+                  metadata: { category: cat, request_count: count },
+                });
+              }
+            }
+          }
+        }
+      }
+    } catch (smartErr) {
+      console.error("[hourly-monitor] Smart alerts error:", smartErr);
+    }
+
     return new Response(JSON.stringify({ success: true, time: haitiTime, date: haitiDate, results }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

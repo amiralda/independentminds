@@ -3,11 +3,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import {
   Bell, Mail, MessageSquare, Send, Clock, Users,
-  Search, X, Check, AlertTriangle, Smartphone, ChevronDown
+  Search, X, Check, AlertTriangle, Smartphone, ChevronDown,
+  Bug, ThumbsUp, Lightbulb, Star
 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 
@@ -346,21 +348,70 @@ export default function AdminNotificationCenter() {
 
   // ── System alerts ──
   const [systemAlerts, setSystemAlerts] = useState<any[]>([]);
+  const [feedback, setFeedback] = useState<any[]>([]);
+  const [feedbackFilter, setFeedbackFilter] = useState({ type: 'all', status: 'all' });
+  const [metricErrors, setMetricErrors] = useState(0);
+  const [metricFeedback, setMetricFeedback] = useState(0);
+  const [metricBugs, setMetricBugs] = useState(0);
+  const [avgRating, setAvgRating] = useState<number | null>(null);
 
   useEffect(() => {
     fetchSystemAlerts();
+    fetchFeedback();
+    fetchMetrics();
   }, []);
+
+  const fetchMetrics = async () => {
+    const sevenDaysAgo = new Date(Date.now() - 7 * 86400_000).toISOString();
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 86400_000).toISOString();
+
+    const [errRes, fbRes, bugRes, ratingRes] = await Promise.all([
+      supabase.from("platform_errors" as any).select("id", { count: 'exact', head: true }).gte("created_at", sevenDaysAgo) as any,
+      supabase.from("user_feedback" as any).select("id", { count: 'exact', head: true }).gte("created_at", sevenDaysAgo) as any,
+      supabase.from("user_feedback" as any).select("id", { count: 'exact', head: true }).eq("feedback_type", "bug").eq("status", "new") as any,
+      supabase.from("user_feedback" as any).select("rating").eq("feedback_type", "rating").gte("created_at", thirtyDaysAgo).not("rating", "is", null) as any,
+    ]);
+
+    setMetricErrors(errRes.count || 0);
+    setMetricFeedback(fbRes.count || 0);
+    setMetricBugs(bugRes.count || 0);
+
+    if (ratingRes.data && ratingRes.data.length > 0) {
+      const sum = ratingRes.data.reduce((a: number, r: any) => a + (r.rating || 0), 0);
+      setAvgRating(Math.round((sum / ratingRes.data.length) * 10) / 10);
+    }
+  };
 
   const fetchSystemAlerts = async () => {
     const { data } = await supabase
       .from("admin_notifications" as any)
       .select("*")
-      .in("notification_type", ["beta_error", "bug_report", "task_difficulty"])
+      .in("notification_type", ["beta_error", "bug_report", "task_difficulty", "platform_error", "error_spike", "low_rating", "feature_trend"])
       .eq("is_read", false)
       .order("created_at", { ascending: false })
-      .limit(20) as any;
+      .limit(30) as any;
     if (data) setSystemAlerts(data);
   };
+
+  const fetchFeedback = async () => {
+    let query = supabase
+      .from("user_feedback" as any)
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(50) as any;
+
+    if (feedbackFilter.type !== 'all') {
+      query = query.eq('feedback_type', feedbackFilter.type);
+    }
+    if (feedbackFilter.status !== 'all') {
+      query = query.eq('status', feedbackFilter.status);
+    }
+
+    const { data } = await query;
+    if (data) setFeedback(data);
+  };
+
+  useEffect(() => { fetchFeedback(); }, [feedbackFilter]);
 
   const markAlertRead = async (id: string) => {
     await supabase
@@ -370,16 +421,33 @@ export default function AdminNotificationCenter() {
     setSystemAlerts((prev) => prev.filter((a) => a.id !== id));
   };
 
+  const updateFeedbackStatus = async (id: string, status: string) => {
+    await supabase
+      .from("user_feedback" as any)
+      .update({ status } as any)
+      .eq("id", id);
+    setFeedback((prev) => prev.map((f) => f.id === id ? { ...f, status } : f));
+  };
+
   const alertIcon = (type: string) => {
-    if (type === "beta_error") return <AlertTriangle size={16} className="text-red-400" />;
+    if (type === "beta_error" || type === "platform_error" || type === "error_spike") return <Bug size={16} className="text-red-400" />;
     if (type === "bug_report") return <AlertTriangle size={16} className="text-amber-400" />;
+    if (type === "low_rating") return <Star size={16} className="text-amber-400" />;
+    if (type === "feature_trend") return <Lightbulb size={16} className="text-teal-400" />;
     return <AlertTriangle size={16} className="text-purple-400" />;
   };
 
   const alertBg = (type: string) => {
-    if (type === "beta_error") return "border-red-500/30 bg-red-500/5";
-    if (type === "bug_report") return "border-amber-500/30 bg-amber-500/5";
+    if (type === "beta_error" || type === "platform_error" || type === "error_spike") return "border-red-500/30 bg-red-500/5";
+    if (type === "bug_report" || type === "low_rating") return "border-amber-500/30 bg-amber-500/5";
+    if (type === "feature_trend") return "border-teal-500/30 bg-teal-500/5";
     return "border-purple-500/30 bg-purple-500/5";
+  };
+
+  const feedbackIcon = (type: string) => {
+    if (type === 'rating') return <ThumbsUp size={14} className="text-teal-400" />;
+    if (type === 'bug') return <Bug size={14} className="text-red-400" />;
+    return <Lightbulb size={14} className="text-amber-400" />;
   };
 
   return (
@@ -388,6 +456,38 @@ export default function AdminNotificationCenter() {
       <div className="flex items-center gap-3">
         <Bell className="text-teal-400" size={24} />
         <h1 className="text-2xl font-bold text-white">Notification Center</h1>
+      </div>
+
+      {/* Metric cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+        <div className={cardCls + " flex items-center gap-3"}>
+          <div className="p-2 rounded-lg bg-red-500/10"><Bug size={18} className="text-red-400" /></div>
+          <div>
+            <p className="text-white/50 text-xs">Errors (7d)</p>
+            <p className="text-white text-lg font-bold">{metricErrors}</p>
+          </div>
+        </div>
+        <div className={cardCls + " flex items-center gap-3"}>
+          <div className="p-2 rounded-lg bg-teal-500/10"><MessageSquare size={18} className="text-teal-400" /></div>
+          <div>
+            <p className="text-white/50 text-xs">Feedback (7d)</p>
+            <p className="text-white text-lg font-bold">{metricFeedback}</p>
+          </div>
+        </div>
+        <div className={cardCls + " flex items-center gap-3"}>
+          <div className="p-2 rounded-lg bg-amber-500/10"><AlertTriangle size={18} className="text-amber-400" /></div>
+          <div>
+            <p className="text-white/50 text-xs">Open Bugs</p>
+            <p className="text-white text-lg font-bold">{metricBugs}</p>
+          </div>
+        </div>
+        <div className={cardCls + " flex items-center gap-3"}>
+          <div className="p-2 rounded-lg bg-purple-500/10"><Star size={18} className="text-purple-400" /></div>
+          <div>
+            <p className="text-white/50 text-xs">Avg Rating (30d)</p>
+            <p className="text-white text-lg font-bold">{avgRating !== null ? `${avgRating}/5` : '—'}</p>
+          </div>
+        </div>
       </div>
 
       {/* System Alerts Section */}
@@ -861,6 +961,90 @@ export default function AdminNotificationCenter() {
                             ? formatDistanceToNow(new Date(n.sent_at), { addSuffix: true })
                             : ""}
                         </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* ── User Feedback ── */}
+          <div className={cardCls}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-white">User Feedback</h2>
+              <div className="flex items-center gap-2">
+                <select
+                  className="bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-white/70 text-xs"
+                  value={feedbackFilter.type}
+                  onChange={(e) => setFeedbackFilter((f) => ({ ...f, type: e.target.value }))}
+                >
+                  <option value="all">All types</option>
+                  <option value="rating">Ratings</option>
+                  <option value="bug">Bugs</option>
+                  <option value="feature">Features</option>
+                </select>
+                <select
+                  className="bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-white/70 text-xs"
+                  value={feedbackFilter.status}
+                  onChange={(e) => setFeedbackFilter((f) => ({ ...f, status: e.target.value }))}
+                >
+                  <option value="all">All status</option>
+                  <option value="new">New</option>
+                  <option value="reviewed">Reviewed</option>
+                  <option value="resolved">Resolved</option>
+                </select>
+              </div>
+            </div>
+            {feedback.length === 0 ? (
+              <p className="text-white/40 text-sm text-center py-6">No feedback yet</p>
+            ) : (
+              <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                {feedback.map((f) => (
+                  <div
+                    key={f.id}
+                    className="p-3 rounded-lg bg-white/5 border border-white/10"
+                  >
+                    <div className="flex items-start gap-2">
+                      {feedbackIcon(f.feedback_type)}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-medium text-white capitalize">{f.feedback_type}</span>
+                          {f.rating && (
+                            <span className="text-xs text-amber-400">{'★'.repeat(f.rating)}{'☆'.repeat(5 - f.rating)}</span>
+                          )}
+                          {f.category && (
+                            <span className="text-[10px] px-1.5 py-0.5 bg-white/10 text-white/50 rounded">{f.category}</span>
+                          )}
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
+                            f.status === 'new' ? 'bg-blue-500/20 text-blue-400'
+                            : f.status === 'reviewed' ? 'bg-amber-500/20 text-amber-400'
+                            : 'bg-emerald-500/20 text-emerald-400'
+                          }`}>{f.status}</span>
+                        </div>
+                        <p className="text-xs text-white/60 mt-1 line-clamp-2">{f.message}</p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <span className="text-[10px] text-white/30">
+                            {formatDistanceToNow(new Date(f.created_at), { addSuffix: true })}
+                          </span>
+                          <span className="text-[10px] text-white/30">{f.page_path}</span>
+                          {f.status === 'new' && (
+                            <button
+                              onClick={() => updateFeedbackStatus(f.id, 'reviewed')}
+                              className="text-[10px] text-teal-400 hover:text-teal-300"
+                            >
+                              Mark reviewed
+                            </button>
+                          )}
+                          {f.status !== 'resolved' && (
+                            <button
+                              onClick={() => updateFeedbackStatus(f.id, 'resolved')}
+                              className="text-[10px] text-emerald-400 hover:text-emerald-300"
+                            >
+                              Resolve
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
