@@ -6,8 +6,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Inbox, AlertTriangle, BookOpen, Trophy, Gift, CheckCheck, ChevronDown } from "lucide-react";
 
-type MessageType = "sos" | "lesson_completed" | "streak_milestone" | "reward_redeemed" | "inactivity_alert";
-type FilterTab = "all" | "unread" | "sos" | "lesson_completed" | "streak_milestone" | "reward_redeemed";
+type MessageType = "sos" | "lesson_completed" | "streak_milestone" | "reward_redeemed" | "inactivity_alert" | "admin_broadcast";
+type FilterTab = "all" | "unread" | "sos" | "lesson_completed" | "streak_milestone" | "reward_redeemed" | "admin_broadcast";
 
 const TYPE_CONFIG: Record<MessageType, { icon: React.ElementType; color: string }> = {
   sos: { icon: AlertTriangle, color: "text-destructive" },
