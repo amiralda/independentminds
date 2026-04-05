@@ -5,7 +5,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const RESEND_GATEWAY = "https://connector-gateway.lovable.dev/resend";
+// Email is now sent via Lovable transactional email infrastructure
 
 interface NotifyRequest {
   filters: {

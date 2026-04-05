@@ -87,6 +87,7 @@ const App = () => (
                 <Route path="/accept-invite" element={<AcceptInvite />} />
                 <Route path="/beta" element={<BetaRequest />} />
                 <Route path="/beta/accept" element={<BetaAccept />} />
+                <Route path="/unsubscribe" element={<Unsubscribe />} />
                 <Route path="/admin" element={<AuthGuard><AdminLayout /></AuthGuard>}>
                   <Route index element={<AdminOverview />} />
                   <Route path="students" element={<AdminStudents />} />
