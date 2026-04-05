@@ -120,6 +120,7 @@ export function InboxPanel() {
     { key: "lesson_completed", label: t("inbox.lessons") },
     { key: "reward_redeemed", label: t("inbox.rewards") },
     { key: "streak_milestone", label: t("inbox.streaks") },
+    { key: "admin_broadcast", label: t("inbox.announcements") },
   ];
 
   return (
