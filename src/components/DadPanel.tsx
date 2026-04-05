@@ -77,7 +77,6 @@ const NAV_ITEMS: NavItem[] = [
   { key: "records", icon: FileText, label: "Records", labelHT: "Dosye" },
   { key: "rewards", icon: Coins, label: "Rewards", labelHT: "Rekonpans" },
   { key: "inbox", icon: Inbox, label: "Inbox", labelHT: "Bwat mesaj" },
-  { key: "telegram", icon: Bell, label: "Notifications", labelHT: "Notifikasyon" },
 ];
 
 export function DadPanel({ onAddStudent, initialTab }: Props) {
