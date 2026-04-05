@@ -131,6 +131,40 @@ Deno.serve(async (req) => {
   }
 });
 
+// ── Bug report notification (always insert — each bug is unique) ──
+async function notifyAdminsOfBugReport(
+  db: any,
+  testerId: string,
+  testerName: string,
+  bugEvent: any,
+) {
+  const bugDesc = bugEvent.metadata?.bug_description || 'No description';
+  const pagePath = bugEvent.page_path || '/';
+
+  const { data: admins } = await db
+    .from('user_roles')
+    .select('user_id')
+    .eq('role', 'admin');
+
+  if (!admins || admins.length === 0) return;
+
+  for (const admin of admins) {
+    await db.from('admin_notifications').insert({
+      admin_id: admin.user_id,
+      title: 'New Bug Report',
+      body: `${testerName} reported a bug on ${pagePath}: ${bugDesc.slice(0, 150)}`,
+      notification_type: 'bug_report',
+      is_read: false,
+      metadata: {
+        tester_id: testerId,
+        tester_name: testerName,
+        page_path: pagePath,
+        bug_description: bugDesc,
+      },
+    });
+  }
+}
+
 // ── Error notification with 1-hour dedup per tester ──
 async function notifyAdminsOfError(
   db: any,

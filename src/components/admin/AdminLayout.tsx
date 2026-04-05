@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink, Outlet, Navigate, Link } from "react-router-dom";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import {
@@ -17,24 +17,24 @@ const navItems = [
   { to: "/admin/rewards", icon: Gift, label: "Rewards" },
   { to: "/admin/system", icon: Activity, label: "System" },
   { to: "/admin/messages", icon: MessageSquare, label: "Messages" },
-  { to: "/admin/notifications", icon: Bell, label: "Notifications" },
+  { to: "/admin/notifications", icon: Bell, label: "Notifications", badgeKey: "notifications" },
   { to: "/admin/users", icon: Shield, label: "Users" },
   { to: "/admin/audit", icon: Eye, label: "Audit Logs" },
   { to: "/admin/beta", icon: FlaskConical, label: "Beta" },
 ];
 
-function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
+function SidebarNav({ onNavigate, systemAlertCount }: { onNavigate?: () => void; systemAlertCount?: number }) {
   return (
     <>
       <nav className="flex-1 py-4 space-y-1 px-3">
-        {navItems.map(({ to, icon: Icon, label, end }) => (
+        {navItems.map(({ to, icon: Icon, label, end, badgeKey }) => (
           <NavLink
             key={to}
             to={to}
             end={end}
             onClick={onNavigate}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+              `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors relative ${
                 isActive
                   ? "bg-white/15 text-white"
                   : "text-white/60 hover:bg-white/8 hover:text-white/90"
@@ -43,6 +43,11 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
           >
             <Icon size={18} />
             {label}
+            {badgeKey === "notifications" && systemAlertCount != null && systemAlertCount > 0 && (
+              <span className="absolute right-2 bg-red-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-1">
+                {systemAlertCount > 9 ? "9+" : systemAlertCount}
+              </span>
+            )}
           </NavLink>
         ))}
       </nav>
@@ -70,6 +75,31 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
 export default function AdminLayout() {
   const { isAdmin, loading } = useAdminAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [systemAlertCount, setSystemAlertCount] = useState(0);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    const fetchAlertCount = async () => {
+      const { data, error } = await supabase
+        .from("admin_notifications" as any)
+        .select("id", { count: "exact", head: true })
+        .in("notification_type", ["beta_error", "bug_report", "task_difficulty"])
+        .eq("is_read", false) as any;
+      if (!error) setSystemAlertCount(data?.length ?? 0);
+    };
+    fetchAlertCount();
+
+    const channel = supabase
+      .channel("admin-system-alerts")
+      .on("postgres_changes", {
+        event: "INSERT", schema: "public", table: "admin_notifications",
+      }, () => fetchAlertCount())
+      .on("postgres_changes", {
+        event: "UPDATE", schema: "public", table: "admin_notifications",
+      }, () => fetchAlertCount())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [isAdmin]);
 
   if (loading) {
     return (
@@ -94,7 +124,7 @@ export default function AdminLayout() {
           </div>
           <AdminNotifications />
         </div>
-        <SidebarNav />
+        <SidebarNav systemAlertCount={systemAlertCount} />
       </aside>
 
       {/* Mobile Header + Sheet — visible only on mobile */}
@@ -117,7 +147,7 @@ export default function AdminLayout() {
                 <img src={logo} alt="IM" className="w-8 h-8" />
                 <span className="font-display font-bold text-white text-lg">Admin Panel</span>
               </div>
-              <SidebarNav onNavigate={() => setMobileOpen(false)} />
+              <SidebarNav onNavigate={() => setMobileOpen(false)} systemAlertCount={systemAlertCount} />
             </SheetContent>
           </Sheet>
           </div>
