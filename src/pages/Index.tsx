@@ -27,6 +27,7 @@ import { StudentProfileCard } from "@/components/StudentProfileCard";
 import { RewardsPanel } from "@/components/RewardsPanel";
 import { StudentHelpGuide } from "@/components/StudentHelpGuide";
 import { BetaMissionBanner } from "@/components/beta/BetaMissionBanner";
+import { BetaWelcomeModal } from "@/components/beta/BetaWelcomeModal";
 import { useBetaTester } from "@/hooks/useBetaTester";
 
 type StudentTab = "today" | "tracks" | "checkin" | "badges" | "trophies" | "library" | "tutor" | "profile" | "rewards";
@@ -229,6 +230,7 @@ const Index = () => {
 
       {/* Content */}
       <main id="main-content" className="container px-3 sm:px-4 pb-24">
+        {isBetaTester && <BetaWelcomeModal />}
         {isBetaTester && <BetaMissionBanner />}
         {role === "student" ? (
           <>

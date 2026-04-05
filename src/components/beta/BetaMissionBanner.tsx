@@ -98,7 +98,7 @@ export function BetaMissionBanner() {
   };
 
   return (
-    <div className="w-full mb-6 space-y-4">
+    <div className="w-full mb-6 space-y-4" data-beta-banner>
       {/* SECTION 1 — MAIN BANNER */}
       <div
         className="rounded-xl overflow-hidden"
