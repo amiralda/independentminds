@@ -10,6 +10,9 @@ interface BetaTester {
   tasks_abandoned: number;
   recording_consent: boolean;
   session_count: number;
+  first_login_shown: boolean;
+  points_earned: number;
+  current_level: string;
 }
 
 export function useBetaTester() {
