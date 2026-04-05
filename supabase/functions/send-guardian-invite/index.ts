@@ -114,7 +114,6 @@ Deno.serve(async (req) => {
         invited_by: user.id,
         invitee_email: email,
         permissions: perms,
-        token: null,
         token_hash: tokenHash,
       } as any)
       .select("id")
