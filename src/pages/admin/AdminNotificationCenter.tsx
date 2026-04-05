@@ -344,6 +344,44 @@ export default function AdminNotificationCenter() {
         : "bg-white/5 text-white/50 border border-white/10 hover:bg-white/10"
     }`;
 
+  // ── System alerts ──
+  const [systemAlerts, setSystemAlerts] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetchSystemAlerts();
+  }, []);
+
+  const fetchSystemAlerts = async () => {
+    const { data } = await supabase
+      .from("admin_notifications" as any)
+      .select("*")
+      .in("notification_type", ["beta_error", "bug_report", "task_difficulty"])
+      .eq("is_read", false)
+      .order("created_at", { ascending: false })
+      .limit(20) as any;
+    if (data) setSystemAlerts(data);
+  };
+
+  const markAlertRead = async (id: string) => {
+    await supabase
+      .from("admin_notifications" as any)
+      .update({ is_read: true } as any)
+      .eq("id", id);
+    setSystemAlerts((prev) => prev.filter((a) => a.id !== id));
+  };
+
+  const alertIcon = (type: string) => {
+    if (type === "beta_error") return <AlertTriangle size={16} className="text-red-400" />;
+    if (type === "bug_report") return <AlertTriangle size={16} className="text-amber-400" />;
+    return <AlertTriangle size={16} className="text-purple-400" />;
+  };
+
+  const alertBg = (type: string) => {
+    if (type === "beta_error") return "border-red-500/30 bg-red-500/5";
+    if (type === "bug_report") return "border-amber-500/30 bg-amber-500/5";
+    return "border-purple-500/30 bg-purple-500/5";
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -351,6 +389,50 @@ export default function AdminNotificationCenter() {
         <Bell className="text-teal-400" size={24} />
         <h1 className="text-2xl font-bold text-white">Notification Center</h1>
       </div>
+
+      {/* System Alerts Section */}
+      {systemAlerts.length > 0 && (
+        <div className={cardCls}>
+          <div className="flex items-center gap-2 mb-4">
+            <AlertTriangle size={18} className="text-red-400" />
+            <h2 className="text-lg font-semibold text-white">System Alerts</h2>
+            <span className="bg-red-500/20 text-red-400 text-xs px-2 py-0.5 rounded-full font-medium">
+              {systemAlerts.length} unread
+            </span>
+          </div>
+          <div className="space-y-2 max-h-[300px] overflow-y-auto">
+            {systemAlerts.map((alert) => (
+              <div
+                key={alert.id}
+                className={`p-3 rounded-lg border ${alertBg(alert.notification_type)} flex items-start gap-3`}
+              >
+                <div className="mt-0.5">{alertIcon(alert.notification_type)}</div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-white">{alert.title}</p>
+                  <p className="text-xs text-white/60 mt-0.5">{alert.body}</p>
+                  <div className="flex items-center gap-3 mt-2">
+                    <span className="text-[10px] text-white/30">
+                      {formatDistanceToNow(new Date(alert.created_at), { addSuffix: true })}
+                    </span>
+                    <button
+                      onClick={() => markAlertRead(alert.id)}
+                      className="text-[10px] text-teal-400 hover:text-teal-300"
+                    >
+                      Mark as read
+                    </button>
+                    <a
+                      href="/admin/beta"
+                      className="text-[10px] text-blue-400 hover:text-blue-300"
+                    >
+                      View in Beta Dashboard
+                    </a>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* ════════ LEFT COLUMN ════════ */}
