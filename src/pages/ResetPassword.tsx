@@ -17,8 +17,10 @@ export default function ResetPassword() {
   const [isRecovery, setIsRecovery] = useState(false);
 
   useEffect(() => {
+    // Check both hash (implicit flow) and query params (PKCE flow)
     const hash = window.location.hash;
-    if (hash.includes("type=recovery")) {
+    const params = new URLSearchParams(window.location.search);
+    if (hash.includes("type=recovery") || params.get("type") === "recovery") {
       setIsRecovery(true);
     }
 
