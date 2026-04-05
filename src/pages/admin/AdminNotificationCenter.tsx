@@ -3,11 +3,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import {
   Bell, Mail, MessageSquare, Send, Clock, Users,
-  Search, X, Check, AlertTriangle, Smartphone, ChevronDown
+  Search, X, Check, AlertTriangle, Smartphone, ChevronDown,
+  Bug, ThumbsUp, Lightbulb, Star
 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 
