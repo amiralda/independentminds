@@ -28,18 +28,30 @@ jobs:
     name: E2E tests (Playwright)
     runs-on: ubuntu-latest
     needs: unit-tests
-    if: ${{ secrets.PLAYWRIGHT_BASE_URL != '' }}
+    environment: e2e
+    env:
+      PLAYWRIGHT_BASE_URL: ${{ secrets.PLAYWRIGHT_BASE_URL }}
     steps:
+      - name: Skip if no base URL configured
+        if: env.PLAYWRIGHT_BASE_URL == ''
+        run: |
+          echo "PLAYWRIGHT_BASE_URL not set — skipping E2E tests"
+          echo "skip=true" >> "$GITHUB_OUTPUT"
+        id: check
       - uses: actions/checkout@v4
+        if: steps.check.outputs.skip != 'true'
       - uses: actions/setup-node@v4
+        if: steps.check.outputs.skip != 'true'
         with:
           node-version: 20
           cache: npm
       - run: npm ci
+        if: steps.check.outputs.skip != 'true'
       - run: npx playwright install --with-deps chromium
+        if: steps.check.outputs.skip != 'true'
       - run: npm run test:e2e
+        if: steps.check.outputs.skip != 'true'
         env:
-          PLAYWRIGHT_BASE_URL: ${{ secrets.PLAYWRIGHT_BASE_URL }}
           TEST_PARENT_EMAIL: ${{ secrets.TEST_PARENT_EMAIL }}
           TEST_PARENT_PASSWORD: ${{ secrets.TEST_PARENT_PASSWORD }}
           TEST_ADMIN_EMAIL: ${{ secrets.TEST_ADMIN_EMAIL }}
