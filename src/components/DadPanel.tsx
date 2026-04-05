@@ -54,7 +54,7 @@ interface Props {
   initialTab?: DadTab;
 }
 
-type DadTab = "activity" | "profile" | "progress" | "schedule" | "tracks" | "tools" | "tutor" | "curriculum" | "weekly" | "certificates" | "records" | "rewards" | "telegram" | "guardians" | "inbox";
+type DadTab = "activity" | "profile" | "progress" | "schedule" | "tracks" | "tools" | "tutor" | "curriculum" | "weekly" | "certificates" | "records" | "rewards" | "guardians" | "inbox";
 
 interface NavItem {
   key: DadTab;
