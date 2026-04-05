@@ -230,6 +230,7 @@ const Index = () => {
 
       {/* Content */}
       <main id="main-content" className="container px-3 sm:px-4 pb-24">
+        {isBetaTester && <BetaWelcomeModal />}
         {isBetaTester && <BetaMissionBanner />}
         {role === "student" ? (
           <>
