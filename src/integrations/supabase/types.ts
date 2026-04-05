@@ -1320,6 +1320,48 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_errors: {
+        Row: {
+          browser: string | null
+          created_at: string
+          device_type: string | null
+          error_message: string
+          error_stack: string | null
+          id: string
+          is_beta_tester: boolean
+          page_path: string | null
+          resolved: boolean
+          user_id: string | null
+          user_role: string
+        }
+        Insert: {
+          browser?: string | null
+          created_at?: string
+          device_type?: string | null
+          error_message: string
+          error_stack?: string | null
+          id?: string
+          is_beta_tester?: boolean
+          page_path?: string | null
+          resolved?: boolean
+          user_id?: string | null
+          user_role?: string
+        }
+        Update: {
+          browser?: string | null
+          created_at?: string
+          device_type?: string | null
+          error_message?: string
+          error_stack?: string | null
+          id?: string
+          is_beta_tester?: boolean
+          page_path?: string | null
+          resolved?: boolean
+          user_id?: string | null
+          user_role?: string
+        }
+        Relationships: []
+      }
       point_settings: {
         Row: {
           action_key: string
@@ -1737,6 +1779,51 @@ export type Database = {
           token?: string
           used?: boolean
           user_id?: string
+        }
+        Relationships: []
+      }
+      user_feedback: {
+        Row: {
+          category: string | null
+          created_at: string
+          feedback_type: string
+          id: string
+          is_beta_tester: boolean
+          message: string | null
+          page_path: string | null
+          rating: number | null
+          screenshot_url: string | null
+          status: string
+          user_id: string
+          user_role: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          feedback_type: string
+          id?: string
+          is_beta_tester?: boolean
+          message?: string | null
+          page_path?: string | null
+          rating?: number | null
+          screenshot_url?: string | null
+          status?: string
+          user_id: string
+          user_role?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          feedback_type?: string
+          id?: string
+          is_beta_tester?: boolean
+          message?: string | null
+          page_path?: string | null
+          rating?: number | null
+          screenshot_url?: string | null
+          status?: string
+          user_id?: string
+          user_role?: string
         }
         Relationships: []
       }
