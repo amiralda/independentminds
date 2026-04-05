@@ -3,7 +3,7 @@ import { NavLink, Outlet, Navigate, Link } from "react-router-dom";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import {
   LayoutDashboard, Users, TrendingUp, Gift, Activity,
-  MessageSquare, Shield, LogOut, Home, Menu, X, Eye, FlaskConical
+  MessageSquare, Shield, LogOut, Home, Menu, X, Eye, FlaskConical, Bell
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.svg";
@@ -17,6 +17,7 @@ const navItems = [
   { to: "/admin/rewards", icon: Gift, label: "Rewards" },
   { to: "/admin/system", icon: Activity, label: "System" },
   { to: "/admin/messages", icon: MessageSquare, label: "Messages" },
+  { to: "/admin/notifications", icon: Bell, label: "Notifications" },
   { to: "/admin/users", icon: Shield, label: "Users" },
   { to: "/admin/audit", icon: Eye, label: "Audit Logs" },
   { to: "/admin/beta", icon: FlaskConical, label: "Beta" },

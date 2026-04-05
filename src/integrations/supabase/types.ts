@@ -142,6 +142,48 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_sent_notifications: {
+        Row: {
+          body: string
+          channels: string[]
+          created_at: string
+          filters: Json
+          id: string
+          recipient_count: number
+          scheduled_for: string | null
+          sent_at: string | null
+          sent_by: string
+          status: string
+          title: string
+        }
+        Insert: {
+          body: string
+          channels?: string[]
+          created_at?: string
+          filters?: Json
+          id?: string
+          recipient_count?: number
+          scheduled_for?: string | null
+          sent_at?: string | null
+          sent_by: string
+          status?: string
+          title: string
+        }
+        Update: {
+          body?: string
+          channels?: string[]
+          created_at?: string
+          filters?: Json
+          id?: string
+          recipient_count?: number
+          scheduled_for?: string | null
+          sent_at?: string | null
+          sent_by?: string
+          status?: string
+          title?: string
+        }
+        Relationships: []
+      }
       ai_conversations: {
         Row: {
           content: string
