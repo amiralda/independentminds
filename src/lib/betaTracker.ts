@@ -113,16 +113,21 @@ function handleError(event: ErrorEvent) {
   enqueue({
     event_type: 'error',
     page_path: window.location.pathname,
-    metadata: { message: event.message?.slice(0, 200) },
+    metadata: {
+      message: event.message?.slice(0, 200),
+      stack: event.error?.stack?.slice(0, 500) ?? null,
+    },
   });
 }
 
 function handleUnhandledRejection(event: PromiseRejectionEvent) {
+  const reason = event.reason;
   enqueue({
     event_type: 'error',
     page_path: window.location.pathname,
     metadata: {
-      message: String(event.reason)?.slice(0, 200),
+      message: String(reason)?.slice(0, 200),
+      stack: reason?.stack?.slice(0, 500) ?? null,
     },
   });
 }

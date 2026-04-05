@@ -29,6 +29,50 @@ export function BetaFeedbackWidget() {
       page_path: window.location.pathname,
       ...data,
     } as any);
+
+    // If bug report, also create admin notifications
+    if (type === 'bug_report') {
+      try {
+        const bugDesc = data.comment
+          ? (() => {
+              try {
+                const parsed = JSON.parse(data.comment);
+                return parsed.what || data.comment;
+              } catch {
+                return data.comment;
+              }
+            })()
+          : 'No description';
+
+        // Get tester name from profile
+        const { data: { user } } = await supabase.auth.getUser();
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('display_name')
+          .eq('id', user?.id ?? '')
+          .maybeSingle();
+        const testerName = profile?.display_name || 'A tester';
+
+        // Invoke edge function to create admin alerts
+        await supabase.functions.invoke('beta-track', {
+          body: {
+            events: [{
+              event_type: 'bug_report',
+              page_path: window.location.pathname,
+              metadata: {
+                tester_name: testerName,
+                bug_description: bugDesc.slice(0, 200),
+                feedback_type: 'bug_report',
+              },
+            }],
+            session_data: null,
+          },
+        });
+      } catch {
+        // Don't block feedback submission
+      }
+    }
+
     setSubmitted(type);
     setTimeout(() => {
       setSubmitted('');
