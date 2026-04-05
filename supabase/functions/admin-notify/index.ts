@@ -101,26 +101,22 @@ Deno.serve(async (req) => {
           });
         }
 
-        // Email via Resend
+        // Email via Lovable transactional email system
         if (channels.includes("email") && recipient.email) {
-          const lovableKey = Deno.env.get("LOVABLE_API_KEY");
-          const resendKey = Deno.env.get("RESEND_API_KEY");
-          if (lovableKey && resendKey) {
-            const emailHtml = buildEmailHtml(personalizedTitle, personalizedBody, recipient.display_name);
-            await fetch(`${RESEND_GATEWAY}/emails`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${lovableKey}`,
-                "X-Connection-Api-Key": resendKey,
+          try {
+            await supabase.functions.invoke("send-transactional-email", {
+              body: {
+                templateName: "admin-broadcast",
+                recipientEmail: recipient.email,
+                templateData: {
+                  title: personalizedTitle,
+                  body: personalizedBody,
+                  recipientName: recipient.display_name,
+                },
               },
-              body: JSON.stringify({
-                from: "Independent Minds EDU <onboarding@resend.dev>",
-                to: [recipient.email],
-                subject: personalizedTitle,
-                html: emailHtml,
-              }),
             });
+          } catch (emailErr) {
+            console.error("Failed to send transactional email:", emailErr);
           }
         }
 
