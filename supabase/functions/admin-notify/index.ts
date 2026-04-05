@@ -319,24 +319,3 @@ function personalizeMessage(msg: string, recipient: Recipient): string {
     .replace(/\{\{points\}\}/g, String(recipient.points || 0));
 }
 
-function buildEmailHtml(subject: string, body: string, name: string): string {
-  return `<!DOCTYPE html>
-<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
-<body style="margin:0;padding:0;background:#f4f4f5;font-family:system-ui,-apple-system,sans-serif;">
-<div style="max-width:600px;margin:0 auto;background:#fff;">
-  <div style="background:#1A365D;padding:24px 32px;text-align:center;">
-    <h1 style="color:#fff;margin:0;font-size:20px;">Independent Minds EDU</h1>
-  </div>
-  <div style="padding:32px;">
-    <h2 style="color:#1A365D;margin:0 0 16px;">${subject}</h2>
-    <p style="color:#374151;font-size:15px;line-height:1.6;white-space:pre-wrap;">${body}</p>
-    <div style="margin-top:32px;text-align:center;">
-      <a href="https://independentmindsedu.com" style="display:inline-block;background:#1D9E75;color:#fff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:600;">Go to Dashboard →</a>
-    </div>
-  </div>
-  <div style="padding:20px 32px;background:#f9fafb;border-top:1px solid #e5e7eb;text-align:center;">
-    <p style="color:#9ca3af;font-size:12px;margin:0;">Independent Minds EDU — Empowering diaspora families worldwide</p>
-  </div>
-</div>
-</body></html>`;
-}
