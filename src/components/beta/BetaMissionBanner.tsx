@@ -260,7 +260,8 @@ export function BetaMissionBanner() {
                 background: lvl.bg,
                 color: lvl.text,
                 opacity: isCurrent ? 1 : 0.6,
-                ringColor: isCurrent ? lvl.text : undefined,
+                // @ts-expect-error ring color via CSS variable
+                '--tw-ring-color': isCurrent ? lvl.text : undefined,
               }}
             >
               <div className="flex items-center justify-center gap-1">
