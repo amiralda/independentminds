@@ -968,6 +968,90 @@ export default function AdminNotificationCenter() {
               </div>
             )}
           </div>
+
+          {/* ── User Feedback ── */}
+          <div className={cardCls}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-white">User Feedback</h2>
+              <div className="flex items-center gap-2">
+                <select
+                  className="bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-white/70 text-xs"
+                  value={feedbackFilter.type}
+                  onChange={(e) => setFeedbackFilter((f) => ({ ...f, type: e.target.value }))}
+                >
+                  <option value="all">All types</option>
+                  <option value="rating">Ratings</option>
+                  <option value="bug">Bugs</option>
+                  <option value="feature">Features</option>
+                </select>
+                <select
+                  className="bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-white/70 text-xs"
+                  value={feedbackFilter.status}
+                  onChange={(e) => setFeedbackFilter((f) => ({ ...f, status: e.target.value }))}
+                >
+                  <option value="all">All status</option>
+                  <option value="new">New</option>
+                  <option value="reviewed">Reviewed</option>
+                  <option value="resolved">Resolved</option>
+                </select>
+              </div>
+            </div>
+            {feedback.length === 0 ? (
+              <p className="text-white/40 text-sm text-center py-6">No feedback yet</p>
+            ) : (
+              <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                {feedback.map((f) => (
+                  <div
+                    key={f.id}
+                    className="p-3 rounded-lg bg-white/5 border border-white/10"
+                  >
+                    <div className="flex items-start gap-2">
+                      {feedbackIcon(f.feedback_type)}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-medium text-white capitalize">{f.feedback_type}</span>
+                          {f.rating && (
+                            <span className="text-xs text-amber-400">{'★'.repeat(f.rating)}{'☆'.repeat(5 - f.rating)}</span>
+                          )}
+                          {f.category && (
+                            <span className="text-[10px] px-1.5 py-0.5 bg-white/10 text-white/50 rounded">{f.category}</span>
+                          )}
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
+                            f.status === 'new' ? 'bg-blue-500/20 text-blue-400'
+                            : f.status === 'reviewed' ? 'bg-amber-500/20 text-amber-400'
+                            : 'bg-emerald-500/20 text-emerald-400'
+                          }`}>{f.status}</span>
+                        </div>
+                        <p className="text-xs text-white/60 mt-1 line-clamp-2">{f.message}</p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <span className="text-[10px] text-white/30">
+                            {formatDistanceToNow(new Date(f.created_at), { addSuffix: true })}
+                          </span>
+                          <span className="text-[10px] text-white/30">{f.page_path}</span>
+                          {f.status === 'new' && (
+                            <button
+                              onClick={() => updateFeedbackStatus(f.id, 'reviewed')}
+                              className="text-[10px] text-teal-400 hover:text-teal-300"
+                            >
+                              Mark reviewed
+                            </button>
+                          )}
+                          {f.status !== 'resolved' && (
+                            <button
+                              onClick={() => updateFeedbackStatus(f.id, 'resolved')}
+                              className="text-[10px] text-emerald-400 hover:text-emerald-300"
+                            >
+                              Resolve
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
