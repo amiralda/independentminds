@@ -254,6 +254,12 @@ export function DadPanel({ onAddStudent, initialTab }: Props) {
               <StudentProfileCard studentId={studentId} />
               <div className="space-y-3">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-1">
+                  {lang === "HT" ? "Notifikasyon" : "Notification Settings"}
+                </p>
+                <TelegramSettings />
+              </div>
+              <div className="space-y-3">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-1">
                   {lang === "HT" ? "Paramèt Kont" : "Account Settings"}
                 </p>
                 <MfaSettings />
