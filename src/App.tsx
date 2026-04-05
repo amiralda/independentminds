@@ -73,6 +73,7 @@ const App = () => (
                 <Route path="rewards" element={<AdminRewards />} />
                 <Route path="system" element={<AdminSystem />} />
                 <Route path="messages" element={<AdminMessages />} />
+                <Route path="notifications" element={<AdminNotificationCenter />} />
                 <Route path="users" element={<AdminUsers />} />
                 <Route path="audit" element={<AdminAuditLogs />} />
                 <Route path="beta" element={<AdminBeta />} />
