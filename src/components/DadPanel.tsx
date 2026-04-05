@@ -280,7 +280,7 @@ export function DadPanel({ onAddStudent, initialTab }: Props) {
           {activeTab === "rewards" && <RewardsManagement studentId={studentId} />}
           {activeTab === "guardians" && <CoGuardiansPanel studentId={studentId} />}
           {activeTab === "inbox" && <InboxPanel />}
-          {activeTab === "telegram" && <TelegramSettings />}
+          
         </>
       )}
 
