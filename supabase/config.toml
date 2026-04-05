@@ -35,3 +35,5 @@ project_id = "wkvattbvybvgaeobtidl"
     verify_jwt = false
   [functions.beta-progress-email]
     verify_jwt = false
+  [functions.process-email-queue]
+    verify_jwt = true
