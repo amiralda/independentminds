@@ -83,6 +83,12 @@ Deno.serve(async (req) => {
         await notifyAdminsOfError(db, tester.id, testerName, errorEvents[0]);
       }
 
+      // Check for bug_report events → admin notification (always insert)
+      const bugReports = events.filter((e: any) => e.event_type === 'bug_report');
+      for (const bug of bugReports) {
+        await notifyAdminsOfBugReport(db, tester.id, testerName, bug);
+      }
+
       // Check for task_completion events → difficulty analysis
       const taskCompletions = events.filter((e: any) => e.event_type === 'task_completion');
       for (const tc of taskCompletions) {
