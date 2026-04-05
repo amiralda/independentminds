@@ -453,6 +453,11 @@ const translations: Translations = {
     PT: "Sequências", AR: "سلاسل", ZH: "连续记录",
     DE: "Serien", JA: "ストリーク", RU: "Серии",
   },
+  "inbox.announcements": {
+    EN: "Announcements", HT: "Anons", FR: "Annonces", ES: "Anuncios",
+    PT: "Anúncios", AR: "إعلانات", ZH: "公告",
+    DE: "Ankündigungen", JA: "お知らせ", RU: "Объявления",
+  },
   "inbox.from": {
     EN: "From", HT: "De", FR: "De", ES: "De",
     PT: "De", AR: "من", ZH: "来自",

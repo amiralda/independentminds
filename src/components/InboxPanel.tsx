@@ -4,10 +4,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Inbox, AlertTriangle, BookOpen, Trophy, Gift, CheckCheck, ChevronDown } from "lucide-react";
+import { Inbox, AlertTriangle, BookOpen, Trophy, Gift, CheckCheck, ChevronDown, Bell } from "lucide-react";
 
-type MessageType = "sos" | "lesson_completed" | "streak_milestone" | "reward_redeemed" | "inactivity_alert";
-type FilterTab = "all" | "unread" | "sos" | "lesson_completed" | "streak_milestone" | "reward_redeemed";
+type MessageType = "sos" | "lesson_completed" | "streak_milestone" | "reward_redeemed" | "inactivity_alert" | "admin_broadcast";
+type FilterTab = "all" | "unread" | "sos" | "lesson_completed" | "streak_milestone" | "reward_redeemed" | "admin_broadcast";
 
 const TYPE_CONFIG: Record<MessageType, { icon: React.ElementType; color: string }> = {
   sos: { icon: AlertTriangle, color: "text-destructive" },
@@ -15,6 +15,7 @@ const TYPE_CONFIG: Record<MessageType, { icon: React.ElementType; color: string 
   streak_milestone: { icon: Trophy, color: "text-purple-500" },
   reward_redeemed: { icon: Gift, color: "text-amber-500" },
   inactivity_alert: { icon: AlertTriangle, color: "text-warning" },
+  admin_broadcast: { icon: Bell, color: "text-blue-500" },
 };
 
 function relativeTime(dateStr: string): string {
@@ -119,6 +120,7 @@ export function InboxPanel() {
     { key: "lesson_completed", label: t("inbox.lessons") },
     { key: "reward_redeemed", label: t("inbox.rewards") },
     { key: "streak_milestone", label: t("inbox.streaks") },
+    { key: "admin_broadcast", label: t("inbox.announcements") },
   ];
 
   return (
