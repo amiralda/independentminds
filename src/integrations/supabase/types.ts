@@ -571,29 +571,41 @@ export type Database = {
       beta_task_completions: {
         Row: {
           completed_at: string | null
+          difficulty_score: number
+          errors_count: number
           id: string
+          rage_clicks_count: number
           started_at: string | null
           status: string
           task_id: string | null
           tester_id: string | null
+          time_on_task: number
           time_spent_seconds: number | null
         }
         Insert: {
           completed_at?: string | null
+          difficulty_score?: number
+          errors_count?: number
           id?: string
+          rage_clicks_count?: number
           started_at?: string | null
           status?: string
           task_id?: string | null
           tester_id?: string | null
+          time_on_task?: number
           time_spent_seconds?: number | null
         }
         Update: {
           completed_at?: string | null
+          difficulty_score?: number
+          errors_count?: number
           id?: string
+          rage_clicks_count?: number
           started_at?: string | null
           status?: string
           task_id?: string | null
           tester_id?: string | null
+          time_on_task?: number
           time_spent_seconds?: number | null
         }
         Relationships: [

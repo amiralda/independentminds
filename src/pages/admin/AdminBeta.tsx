@@ -12,7 +12,7 @@ import { AdminInvitePanel } from '@/components/beta/AdminInvitePanel';
 import { toast } from 'sonner';
 import {
   Users, CheckCircle, MessageSquare, BarChart3,
-  Bug, Activity, Plus, Copy, RotateCcw, XCircle,
+  Bug, Activity, Plus, Copy, RotateCcw, XCircle, AlertTriangle,
 } from 'lucide-react';
 import { useAutoRefresh } from '@/hooks/useAutoRefresh';
 
@@ -29,6 +29,10 @@ export default function AdminBeta() {
     bugReports: 0, feedbackToday: 0,
   });
 
+  // Badge counts
+  const [errorBadge, setErrorBadge] = useState(0);
+  const [bugBadge, setBugBadge] = useState(0);
+
   // Table data
   const [testers, setTesters] = useState<any[]>([]);
   const [invites, setInvites] = useState<any[]>([]);
@@ -44,6 +48,7 @@ export default function AdminBeta() {
       { data: req },
       { data: fb },
       { data: ses },
+      { data: adminNotifs },
     ] = await Promise.all([
       supabase.from('beta_config').select('*').eq('id', 1).single(),
       supabase.from('beta_testers').select('*').order('joined_at', { ascending: false }),
@@ -51,6 +56,7 @@ export default function AdminBeta() {
       supabase.from('beta_requests').select('*').order('created_at', { ascending: false }),
       supabase.from('beta_feedback').select('*').order('created_at', { ascending: false }),
       supabase.from('beta_sessions').select('*').order('started_at', { ascending: false }),
+      supabase.from('admin_notifications' as any).select('notification_type, is_read, created_at').in('notification_type', ['beta_error', 'bug_report']).eq('is_read', false) as any,
     ]);
     setConfig(cfg);
     setTesters(tst ?? []);
@@ -59,10 +65,15 @@ export default function AdminBeta() {
     setFeedback(fb ?? []);
     setSessions(ses ?? []);
 
+    // Badge counts
+    const notifs = adminNotifs ?? [];
+    const oneDayAgo = new Date(Date.now() - 86400_000).toISOString();
+    setErrorBadge(notifs.filter((n: any) => n.notification_type === 'beta_error' && n.created_at >= oneDayAgo).length);
+    setBugBadge(notifs.filter((n: any) => n.notification_type === 'bug_report').length);
+
     // Compute stats
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
-    const weekStart = new Date(now.getTime() - 7 * 86400000).toISOString();
 
     const activeToday = (tst ?? []).filter(
       (t: any) => t.last_active_at && t.last_active_at >= todayStart,
@@ -157,8 +168,22 @@ export default function AdminBeta() {
           <TabsTrigger value="testers">Testers</TabsTrigger>
           <TabsTrigger value="invites">Invites</TabsTrigger>
           <TabsTrigger value="requests">Requests</TabsTrigger>
-          <TabsTrigger value="feedback">Feedback</TabsTrigger>
-          <TabsTrigger value="sessions">Sessions</TabsTrigger>
+          <TabsTrigger value="feedback" className="relative">
+            Feedback
+            {bugBadge > 0 && (
+              <span className="absolute -top-1 -right-1 bg-amber-500 text-white text-[9px] font-bold rounded-full min-w-[14px] h-3.5 flex items-center justify-center px-0.5">
+                {bugBadge > 9 ? '9+' : bugBadge}
+              </span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="sessions" className="relative">
+            Sessions
+            {errorBadge > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold rounded-full min-w-[14px] h-3.5 flex items-center justify-center px-0.5">
+                {errorBadge > 9 ? '9+' : errorBadge}
+              </span>
+            )}
+          </TabsTrigger>
         </TabsList>
 
         {/* OVERVIEW */}

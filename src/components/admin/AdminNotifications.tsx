@@ -20,6 +20,9 @@ const TYPE_CONFIG: Record<string, { label: string; icon: typeof Bell; color: str
   coguardian_accepted: { label: "Co-Guardians", icon: Users, color: "text-blue-400" },
   sos_checkin: { label: "SOS Check-Ins", icon: AlertTriangle, color: "text-red-400" },
   reward_redeemed: { label: "Rewards Redeemed", icon: Gift, color: "text-purple-400" },
+  beta_error: { label: "Beta Errors", icon: AlertTriangle, color: "text-red-500" },
+  bug_report: { label: "Bug Reports", icon: AlertTriangle, color: "text-amber-500" },
+  task_difficulty: { label: "Task Difficulty", icon: AlertTriangle, color: "text-purple-500" },
 };
 
 export function AdminNotifications() {
