@@ -348,21 +348,70 @@ export default function AdminNotificationCenter() {
 
   // ── System alerts ──
   const [systemAlerts, setSystemAlerts] = useState<any[]>([]);
+  const [feedback, setFeedback] = useState<any[]>([]);
+  const [feedbackFilter, setFeedbackFilter] = useState({ type: 'all', status: 'all' });
+  const [metricErrors, setMetricErrors] = useState(0);
+  const [metricFeedback, setMetricFeedback] = useState(0);
+  const [metricBugs, setMetricBugs] = useState(0);
+  const [avgRating, setAvgRating] = useState<number | null>(null);
 
   useEffect(() => {
     fetchSystemAlerts();
+    fetchFeedback();
+    fetchMetrics();
   }, []);
+
+  const fetchMetrics = async () => {
+    const sevenDaysAgo = new Date(Date.now() - 7 * 86400_000).toISOString();
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 86400_000).toISOString();
+
+    const [errRes, fbRes, bugRes, ratingRes] = await Promise.all([
+      supabase.from("platform_errors" as any).select("id", { count: 'exact', head: true }).gte("created_at", sevenDaysAgo) as any,
+      supabase.from("user_feedback" as any).select("id", { count: 'exact', head: true }).gte("created_at", sevenDaysAgo) as any,
+      supabase.from("user_feedback" as any).select("id", { count: 'exact', head: true }).eq("feedback_type", "bug").eq("status", "new") as any,
+      supabase.from("user_feedback" as any).select("rating").eq("feedback_type", "rating").gte("created_at", thirtyDaysAgo).not("rating", "is", null) as any,
+    ]);
+
+    setMetricErrors(errRes.count || 0);
+    setMetricFeedback(fbRes.count || 0);
+    setMetricBugs(bugRes.count || 0);
+
+    if (ratingRes.data && ratingRes.data.length > 0) {
+      const sum = ratingRes.data.reduce((a: number, r: any) => a + (r.rating || 0), 0);
+      setAvgRating(Math.round((sum / ratingRes.data.length) * 10) / 10);
+    }
+  };
 
   const fetchSystemAlerts = async () => {
     const { data } = await supabase
       .from("admin_notifications" as any)
       .select("*")
-      .in("notification_type", ["beta_error", "bug_report", "task_difficulty"])
+      .in("notification_type", ["beta_error", "bug_report", "task_difficulty", "platform_error", "error_spike", "low_rating", "feature_trend"])
       .eq("is_read", false)
       .order("created_at", { ascending: false })
-      .limit(20) as any;
+      .limit(30) as any;
     if (data) setSystemAlerts(data);
   };
+
+  const fetchFeedback = async () => {
+    let query = supabase
+      .from("user_feedback" as any)
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(50) as any;
+
+    if (feedbackFilter.type !== 'all') {
+      query = query.eq('feedback_type', feedbackFilter.type);
+    }
+    if (feedbackFilter.status !== 'all') {
+      query = query.eq('status', feedbackFilter.status);
+    }
+
+    const { data } = await query;
+    if (data) setFeedback(data);
+  };
+
+  useEffect(() => { fetchFeedback(); }, [feedbackFilter]);
 
   const markAlertRead = async (id: string) => {
     await supabase
@@ -372,16 +421,33 @@ export default function AdminNotificationCenter() {
     setSystemAlerts((prev) => prev.filter((a) => a.id !== id));
   };
 
+  const updateFeedbackStatus = async (id: string, status: string) => {
+    await supabase
+      .from("user_feedback" as any)
+      .update({ status } as any)
+      .eq("id", id);
+    setFeedback((prev) => prev.map((f) => f.id === id ? { ...f, status } : f));
+  };
+
   const alertIcon = (type: string) => {
-    if (type === "beta_error") return <AlertTriangle size={16} className="text-red-400" />;
+    if (type === "beta_error" || type === "platform_error" || type === "error_spike") return <Bug size={16} className="text-red-400" />;
     if (type === "bug_report") return <AlertTriangle size={16} className="text-amber-400" />;
+    if (type === "low_rating") return <Star size={16} className="text-amber-400" />;
+    if (type === "feature_trend") return <Lightbulb size={16} className="text-teal-400" />;
     return <AlertTriangle size={16} className="text-purple-400" />;
   };
 
   const alertBg = (type: string) => {
-    if (type === "beta_error") return "border-red-500/30 bg-red-500/5";
-    if (type === "bug_report") return "border-amber-500/30 bg-amber-500/5";
+    if (type === "beta_error" || type === "platform_error" || type === "error_spike") return "border-red-500/30 bg-red-500/5";
+    if (type === "bug_report" || type === "low_rating") return "border-amber-500/30 bg-amber-500/5";
+    if (type === "feature_trend") return "border-teal-500/30 bg-teal-500/5";
     return "border-purple-500/30 bg-purple-500/5";
+  };
+
+  const feedbackIcon = (type: string) => {
+    if (type === 'rating') return <ThumbsUp size={14} className="text-teal-400" />;
+    if (type === 'bug') return <Bug size={14} className="text-red-400" />;
+    return <Lightbulb size={14} className="text-amber-400" />;
   };
 
   return (
