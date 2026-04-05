@@ -458,6 +458,38 @@ export default function AdminNotificationCenter() {
         <h1 className="text-2xl font-bold text-white">Notification Center</h1>
       </div>
 
+      {/* Metric cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+        <div className={cardCls + " flex items-center gap-3"}>
+          <div className="p-2 rounded-lg bg-red-500/10"><Bug size={18} className="text-red-400" /></div>
+          <div>
+            <p className="text-white/50 text-xs">Errors (7d)</p>
+            <p className="text-white text-lg font-bold">{metricErrors}</p>
+          </div>
+        </div>
+        <div className={cardCls + " flex items-center gap-3"}>
+          <div className="p-2 rounded-lg bg-teal-500/10"><MessageSquare size={18} className="text-teal-400" /></div>
+          <div>
+            <p className="text-white/50 text-xs">Feedback (7d)</p>
+            <p className="text-white text-lg font-bold">{metricFeedback}</p>
+          </div>
+        </div>
+        <div className={cardCls + " flex items-center gap-3"}>
+          <div className="p-2 rounded-lg bg-amber-500/10"><AlertTriangle size={18} className="text-amber-400" /></div>
+          <div>
+            <p className="text-white/50 text-xs">Open Bugs</p>
+            <p className="text-white text-lg font-bold">{metricBugs}</p>
+          </div>
+        </div>
+        <div className={cardCls + " flex items-center gap-3"}>
+          <div className="p-2 rounded-lg bg-purple-500/10"><Star size={18} className="text-purple-400" /></div>
+          <div>
+            <p className="text-white/50 text-xs">Avg Rating (30d)</p>
+            <p className="text-white text-lg font-bold">{avgRating !== null ? `${avgRating}/5` : '—'}</p>
+          </div>
+        </div>
+      </div>
+
       {/* System Alerts Section */}
       {systemAlerts.length > 0 && (
         <div className={cardCls}>
