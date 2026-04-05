@@ -1166,7 +1166,6 @@ export type Database = {
           permissions: Json | null
           status: string
           student_id: string
-          token: string | null
           token_hash: string
         }
         Insert: {
@@ -1179,7 +1178,6 @@ export type Database = {
           permissions?: Json | null
           status?: string
           student_id: string
-          token?: string | null
           token_hash: string
         }
         Update: {
@@ -1192,7 +1190,6 @@ export type Database = {
           permissions?: Json | null
           status?: string
           student_id?: string
-          token?: string | null
           token_hash?: string
         }
         Relationships: []
