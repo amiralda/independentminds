@@ -26,6 +26,8 @@ import { ActivityFeed } from "@/components/ActivityFeed";
 import { StudentProfileCard } from "@/components/StudentProfileCard";
 import { RewardsPanel } from "@/components/RewardsPanel";
 import { StudentHelpGuide } from "@/components/StudentHelpGuide";
+import { BetaMissionBanner } from "@/components/beta/BetaMissionBanner";
+import { useBetaTester } from "@/hooks/useBetaTester";
 
 type StudentTab = "today" | "tracks" | "checkin" | "badges" | "trophies" | "library" | "tutor" | "profile" | "rewards";
 
@@ -34,6 +36,7 @@ const Index = () => {
   const navigate = useNavigate();
   const { profile, selectedStudentId, viewingAsStudent, setViewingAsStudent, students, user } = useAuth();
   const { isAdmin } = useAdminAuth();
+  const { isBetaTester } = useBetaTester();
   const [tab, setTab] = useState<StudentTab>("today");
   const [showAddStudent, setShowAddStudent] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
@@ -226,6 +229,7 @@ const Index = () => {
 
       {/* Content */}
       <main id="main-content" className="container px-3 sm:px-4 pb-24">
+        {isBetaTester && <BetaMissionBanner />}
         {role === "student" ? (
           <>
             <BlockReminderPopup studentId={studentId} />
