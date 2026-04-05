@@ -31,6 +31,7 @@ import AdminNotificationCenter from "./pages/admin/AdminNotificationCenter";
 import AcceptInvite from "./pages/AcceptInvite";
 import BetaRequest from "./pages/BetaRequest";
 import BetaAccept from "./pages/BetaAccept";
+import Unsubscribe from "./pages/Unsubscribe";
 
 const queryClient = new QueryClient();
 
