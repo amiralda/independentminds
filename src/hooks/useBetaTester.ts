@@ -31,7 +31,7 @@ export function useBetaTester() {
       const { data } = await supabase
         .from('beta_testers')
         .select(
-          'id, tester_type, tasks_total, tasks_completed, tasks_abandoned, recording_consent, session_count',
+          'id, tester_type, tasks_total, tasks_completed, tasks_abandoned, recording_consent, session_count, first_login_shown, points_earned, current_level',
         )
         .eq('user_id', session.user.id)
         .maybeSingle();
