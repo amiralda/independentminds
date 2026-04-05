@@ -26,6 +26,8 @@ import { ActivityFeed } from "@/components/ActivityFeed";
 import { StudentProfileCard } from "@/components/StudentProfileCard";
 import { RewardsPanel } from "@/components/RewardsPanel";
 import { StudentHelpGuide } from "@/components/StudentHelpGuide";
+import { BetaMissionBanner } from "@/components/beta/BetaMissionBanner";
+import { useBetaTester } from "@/hooks/useBetaTester";
 
 type StudentTab = "today" | "tracks" | "checkin" | "badges" | "trophies" | "library" | "tutor" | "profile" | "rewards";
 
