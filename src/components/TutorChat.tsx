@@ -238,7 +238,7 @@ export function TutorChat() {
         const err = await resp.json().catch(() => ({ error: "Unknown error" }));
         if (resp.status === 429) {
           const resetAt = err.reset_at || "";
-          const msg = lang === "HT" ? (err.message_ht || "Ou rive limit èdtan ou pou Mr A.") : (err.message || "Hourly limit reached for Mr A.");
+          const msg = err.message || t("tutor.rateLimitReached");
           setRateLimitInfo({ resetAt, message: msg });
         } else if (resp.status === 402) {
           toast.error("AI usage limit reached.");
