@@ -24,7 +24,7 @@ export function DeleteAccountButton() {
       const { error } = await supabase.rpc("delete_my_account");
       if (error) throw error;
       await supabase.auth.signOut();
-      toast.success(lang === "HT" ? "Kont efase" : "Account deleted");
+      toast.success(t("profile.accountDeleted"));
       navigate("/login");
     } catch (e: any) {
       toast.error(e.message || "Failed to delete account");
@@ -42,9 +42,7 @@ export function DeleteAccountButton() {
           <div className="flex-1">
             <p className="font-display font-semibold text-sm text-destructive">{t("profile.deleteAccount")}</p>
             <p className="text-xs text-muted-foreground">
-              {lang === "HT"
-                ? "Sa a pral efase tout done ou — elèv, orè, badj, ak tout lòt enfòmasyon."
-                : "This will permanently delete all your data — students, schedules, badges, and everything."}
+              {t("profile.deleteAccountDesc")}
             </p>
           </div>
         </div>
@@ -64,9 +62,7 @@ export function DeleteAccountButton() {
           </DialogHeader>
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              {lang === "HT"
-                ? "Aksyon sa a pa ka defèt. Tape DELETE pou konfime."
-                : "This action cannot be undone. Type DELETE to confirm."}
+              {t("profile.deleteAccountWarning")}
             </p>
             <Input
               value={confirmText}
@@ -82,10 +78,10 @@ export function DeleteAccountButton() {
                 className="flex-1"
               >
                 {loading ? <Loader2 size={14} className="animate-spin mr-1" /> : <Trash2 size={14} className="mr-1" />}
-                {lang === "HT" ? "Efase Kont Mwen" : "Delete My Account"}
+                {t("profile.deleteMyAccount")}
               </Button>
               <Button variant="outline" onClick={() => { setOpen(false); setConfirmText(""); }}>
-                {lang === "HT" ? "Anile" : "Cancel"}
+                {t("action.cancel")}
               </Button>
             </div>
           </div>

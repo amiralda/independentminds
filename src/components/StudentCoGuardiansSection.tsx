@@ -37,7 +37,7 @@ export function StudentCoGuardiansSection({ studentId }: Props) {
 
       return coGuardians.map((g: any) => ({
         ...g,
-        display_name: profileMap.get(g.guardian_id) || (lang === "HT" ? "Ko-Gadyen" : "Co-Guardian"),
+        display_name: profileMap.get(g.guardian_id) || t("guardians.coGuardian"),
       }));
     },
   });
@@ -49,9 +49,9 @@ export function StudentCoGuardiansSection({ studentId }: Props) {
       return badges;
     }
     badges.push({ label: t("guardians.view_progress"), color: "bg-muted text-muted-foreground" });
-    if (g.can_receive_sos) badges.push({ label: lang === "HT" ? "SOS" : "SOS alerts", color: "bg-destructive/15 text-destructive" });
-    if (g.can_approve_rewards) badges.push({ label: lang === "HT" ? "Rekonpans" : "Rewards", color: "bg-amber-500/15 text-amber-700" });
-    if (g.can_edit_lessons) badges.push({ label: lang === "HT" ? "Leson" : "Lessons", color: "bg-blue-500/15 text-blue-700" });
+    if (g.can_receive_sos) badges.push({ label: t("guardians.sosShort"), color: "bg-destructive/15 text-destructive" });
+    if (g.can_approve_rewards) badges.push({ label: t("nav.rewards"), color: "bg-amber-500/15 text-amber-700" });
+    if (g.can_edit_lessons) badges.push({ label: t("guardians.lessons"), color: "bg-blue-500/15 text-blue-700" });
     return badges;
   };
 

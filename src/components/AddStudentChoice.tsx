@@ -10,20 +10,18 @@ interface Props {
 }
 
 export function AddStudentChoice({ open, onClose, onChooseFullForm, onChooseQuickCreate }: Props) {
-  const { lang } = useI18n();
+  const { t } = useI18n();
 
   return (
     <Dialog open={open} onOpenChange={v => { if (!v) onClose(); }}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="font-display text-xl">
-            {lang === "HT" ? "Ajoute yon Elèv" : "Add a Student"} 🎓
+            {t("student.add")} 🎓
           </DialogTitle>
         </DialogHeader>
         <p className="text-sm text-muted-foreground">
-          {lang === "HT"
-            ? "Chwazi kijan ou vle kreye pwofil elèv la:"
-            : "Choose how you'd like to create the student profile:"}
+          {t("student.chooseMethod")}
         </p>
         <div className="grid gap-3 mt-2">
           {/* Option 1: Full Form */}
@@ -36,12 +34,10 @@ export function AddStudentChoice({ open, onClose, onChooseFullForm, onChooseQuic
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="font-display font-semibold text-base">
-                {lang === "HT" ? "Fòm Konplè" : "Complete Profile Form"}
+                {t("student.completeForm")}
               </h3>
               <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                {lang === "HT"
-                  ? "Ranpli tout enfòmasyon pèsonèl, foto, epi telechaje dokiman orè."
-                  : "Fill in all personal details, upload a photo, and import schedule documents."}
+                {t("student.completeFormDesc")}
               </p>
             </div>
           </button>
@@ -56,12 +52,10 @@ export function AddStudentChoice({ open, onClose, onChooseFullForm, onChooseQuic
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="font-display font-semibold text-base">
-                {lang === "HT" ? "Kreye Rapid" : "Quick Create & Share"}
+                {t("student.quickCreate")}
               </h3>
               <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                {lang === "HT"
-                  ? "Kreye yon pwofil bazik epi jwenn yon mesaj pou voye pa imèl oswa tèks. Ou ka konplete detay yo aprè."
-                  : "Create a basic profile and get a shareable message via email or text. Complete details later."}
+                {t("student.quickCreateDesc")}
               </p>
             </div>
           </button>

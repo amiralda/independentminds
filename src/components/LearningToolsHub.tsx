@@ -45,7 +45,7 @@ interface Props {
 }
 
 export function LearningToolsHub({ studentId }: Props) {
-  const { lang } = useI18n();
+  const { t } = useI18n();
   const { profile } = useAuth();
   const queryClient = useQueryClient();
   const isParent = profile?.role === "parent";
@@ -112,28 +112,28 @@ export function LearningToolsHub({ studentId }: Props) {
       <div className="flex items-center justify-between">
         <div>
           <h3 className="font-display text-lg font-bold">
-            {lang === "HT" ? "Zouti Aprantisaj" : "Learning Tools"}
+            {t("tools.title")}
           </h3>
           <p className="text-xs text-muted-foreground">
-            {lang === "HT" ? "Platfòm ak resous pou elèv la" : "Platforms & resources for this student"}
+            {t("tools.subtitle")}
           </p>
         </div>
         {isParent && (
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button size="sm" className="font-display">
-                <Plus size={14} className="mr-1" /> {lang === "HT" ? "Ajoute" : "Add Tool"}
+                <Plus size={14} className="mr-1" /> {t("tools.addTool")}
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle className="font-display">
-                  {lang === "HT" ? "Ajoute Zouti" : "Add Learning Tool"}
+                  {t("tools.addToolTitle")}
                 </DialogTitle>
               </DialogHeader>
               <div className="space-y-3">
                 <div>
-                  <label className="text-sm font-medium">{lang === "HT" ? "Non" : "Name"}</label>
+                  <label className="text-sm font-medium">{t("student.name")}</label>
                   <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="e.g. Khan Academy" />
                 </div>
                 <div>
@@ -141,7 +141,7 @@ export function LearningToolsHub({ studentId }: Props) {
                   <Input value={form.url} onChange={e => setForm(f => ({ ...f, url: e.target.value }))} placeholder="https://..." />
                 </div>
                 <div>
-                  <label className="text-sm font-medium">{lang === "HT" ? "Kategori" : "Category"}</label>
+                  <label className="text-sm font-medium">{t("challenges.category").replace(" (optional)", "").replace(" (opsyonèl)", "")}</label>
                   <Select value={form.category} onValueChange={v => setForm(f => ({ ...f, category: v }))}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
@@ -158,7 +158,7 @@ export function LearningToolsHub({ studentId }: Props) {
                   disabled={!form.name.trim() || !form.url.trim() || addTool.isPending}
                   className="w-full font-display"
                 >
-                  {lang === "HT" ? "Ajoute" : "Add Tool"}
+                  {t("tools.addTool")}
                 </Button>
               </div>
             </DialogContent>
@@ -205,7 +205,7 @@ export function LearningToolsHub({ studentId }: Props) {
       ) : (
         <div className="text-center py-6 text-muted-foreground">
           <BookOpen size={32} className="mx-auto mb-2 opacity-40" />
-          <p className="text-sm">{lang === "HT" ? "Pa gen zouti ankò" : "No tools added yet"}</p>
+          <p className="text-sm">{t("tools.noTools")}</p>
         </div>
       )}
 
@@ -213,7 +213,7 @@ export function LearningToolsHub({ studentId }: Props) {
       {isParent && availableSuggestions.length > 0 && (
         <div>
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
-            {lang === "HT" ? "Sijesyon" : "Suggested Tools"}
+            {t("tools.suggested")}
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {availableSuggestions.map(s => {

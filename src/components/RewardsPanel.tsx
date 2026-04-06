@@ -43,12 +43,12 @@ export function RewardsPanel() {
   const handleRedeem = (reward: { id: string; name: string; point_cost: number }) => {
     if (!studentId) return;
     if (balance < reward.point_cost) {
-      toast.error(lang === "HT" ? "Pa gen ase pwen!" : "Not enough points!");
+      toast.error(t("rewards.notEnough"));
       return;
     }
     redeemMutation.mutate(
       { student_id: studentId, reward_id: reward.id, points_spent: reward.point_cost, reward_name: reward.name },
-      { onSuccess: () => toast.success(lang === "HT" ? `${reward.name} reklame!` : `${reward.name} redeemed! 🎉`) }
+      { onSuccess: () => toast.success(`${reward.name} ${t("rewards.redeemed_toast")}`) }
     );
   };
 
@@ -62,7 +62,7 @@ export function RewardsPanel() {
       setSentSuggestions(prev => new Set(prev).add(key));
       toast.success(t("rewards.suggestions.sent"));
     } catch {
-      toast.error(lang === "HT" ? "Echèk voye sijesyon" : "Failed to send suggestion");
+      toast.error(t("rewards.suggestFailed"));
     }
   };
 
@@ -73,7 +73,7 @@ export function RewardsPanel() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              {lang === "HT" ? "Balans Pwen" : "Points Balance"}
+              {t("rewards.pointsBalance")}
             </p>
             <div className="flex items-baseline gap-2 mt-1">
               <span className="font-display text-4xl font-bold text-secondary-foreground">{balance}</span>
@@ -87,9 +87,9 @@ export function RewardsPanel() {
 
         {/* How to earn */}
         <div className="mt-4 grid grid-cols-3 gap-2">
-          <EarnBadge icon={Zap} label={lang === "HT" ? "Blòk" : "Block"} points={POINT_VALUES.BLOCK_COMPLETED} />
-          <EarnBadge icon={Trophy} label={lang === "HT" ? "Tcheke" : "Check-in"} points={POINT_VALUES.CHECK_IN} />
-          <EarnBadge icon={Star} label={lang === "HT" ? "Jou pafè" : "Perfect Day"} points={POINT_VALUES.PERFECT_DAY} />
+          <EarnBadge icon={Zap} label={t("rewards.block")} points={POINT_VALUES.BLOCK_COMPLETED} />
+          <EarnBadge icon={Trophy} label={t("rewards.checkin")} points={POINT_VALUES.CHECK_IN} />
+          <EarnBadge icon={Star} label={t("rewards.perfectDay")} points={POINT_VALUES.PERFECT_DAY} />
         </div>
       </div>
 
@@ -99,16 +99,16 @@ export function RewardsPanel() {
       <Tabs defaultValue="wallet">
         <TabsList className="w-full grid grid-cols-4">
           <TabsTrigger value="wallet" className="font-display text-xs">
-            <Wallet size={12} className="mr-1" /> {lang === "HT" ? "Pòtfèy" : "Wallet"}
+            <Wallet size={12} className="mr-1" /> {t("rewards.wallet")}
           </TabsTrigger>
           <TabsTrigger value="shop" className="font-display text-xs">
-            <ShoppingCart size={12} className="mr-1" /> {lang === "HT" ? "Boutik" : "Shop"}
+            <ShoppingCart size={12} className="mr-1" /> {t("rewards.shop")}
           </TabsTrigger>
           <TabsTrigger value="history" className="font-display text-xs">
-            <History size={12} className="mr-1" /> {lang === "HT" ? "Istwa" : "History"}
+            <History size={12} className="mr-1" /> {t("rewards.history")}
           </TabsTrigger>
           <TabsTrigger value="redeemed" className="font-display text-xs">
-            <Gift size={12} className="mr-1" /> {lang === "HT" ? "Reklame" : "Redeemed"}
+            <Gift size={12} className="mr-1" /> {t("rewards.redeemedTab")}
           </TabsTrigger>
         </TabsList>
 
@@ -125,7 +125,7 @@ export function RewardsPanel() {
                 <Sparkles size={28} className="mx-auto mb-2 text-secondary" />
                 <h3 className="font-display font-bold text-base">{t("rewards.empty.inspirationTitle")}</h3>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {lang === "HT" ? "Tape yon rekonpans pou voye sijesyon bay paran ou!" : "Tap a reward to suggest it to your parent!"}
+                  {t("rewards.tapToSuggest")}
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -148,10 +148,10 @@ export function RewardsPanel() {
                         <Coins size={14} /> {reward.points}
                       </div>
                       {isSent ? (
-                        <span className="text-[10px] text-muted-foreground">✓ {lang === "HT" ? "Voye" : "Sent"}</span>
+                        <span className="text-[10px] text-muted-foreground">✓ {t("rewards.sent")}</span>
                       ) : (
                         <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
-                          <Send size={10} /> {lang === "HT" ? "Sijere" : "Suggest"}
+                          <Send size={10} /> {t("rewards.suggest")}
                         </span>
                       )}
                     </button>
@@ -180,11 +180,11 @@ export function RewardsPanel() {
                     disabled={balance < reward.point_cost || redeemMutation.isPending}
                     onClick={() => handleRedeem(reward)}
                     variant={balance >= reward.point_cost ? "default" : "outline"}
-                    aria-label={`${lang === "HT" ? "Reklame" : "Redeem"} ${reward.name}`}
+                    aria-label={`${t("rewards.redeem")} ${reward.name}`}
                   >
                     {balance >= reward.point_cost
-                      ? (lang === "HT" ? "Reklame" : "Redeem")
-                      : (lang === "HT" ? "Bezwen plis" : "Need more")}
+                      ? t("rewards.redeem")
+                      : t("rewards.needMore")}
                   </Button>
                 </div>
               ))}
@@ -196,7 +196,7 @@ export function RewardsPanel() {
         <TabsContent value="history" className="mt-3">
           {history.length === 0 ? (
             <p className="text-center text-sm text-muted-foreground py-8">
-              {lang === "HT" ? "Pa gen pwen ankò" : "No points earned yet"}
+              {t("rewards.noPointsYet")}
             </p>
           ) : (
             <div className="space-y-2 max-h-80 overflow-y-auto">
@@ -221,7 +221,7 @@ export function RewardsPanel() {
         <TabsContent value="redeemed" className="mt-3">
           {redemptions.length === 0 ? (
             <p className="text-center text-sm text-muted-foreground py-8">
-              {lang === "HT" ? "Pa gen reklame ankò" : "No redemptions yet"}
+              {t("rewards.noRedemptions")}
             </p>
           ) : (
             <div className="space-y-2">

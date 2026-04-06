@@ -145,7 +145,7 @@ export function TutorChat() {
     await supabase.rpc("clear_ai_history", { p_student_id: studentId, p_subject: subjectMode });
     setMessages([]);
     queryClient.invalidateQueries({ queryKey: ["ai_history", studentId, subjectMode] });
-    toast.success(lang === "HT" ? "Istwa efase" : "History cleared");
+    toast.success(t("tutor.historyClearedToast"));
   };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -314,7 +314,7 @@ export function TutorChat() {
         <div className="flex-1">
           <h2 className="font-display font-bold text-lg leading-tight">Mr A</h2>
           <p className="text-xs text-muted-foreground">
-            {lang === "HT" ? "Pwofesè AI ou" : "Your AI Study Buddy"}
+            {t("tutor.subtitle")}
           </p>
         </div>
         {messages.length > 0 && (
@@ -365,12 +365,10 @@ export function TutorChat() {
             </div>
             <div>
               <p className="font-display font-semibold text-lg">
-                {lang === "HT" ? "Bonjou! Mwen se Mr A 👋" : "Hi! I'm Mr A 👋"}
+                {t("tutor.greeting")}
               </p>
               <p className="text-sm text-muted-foreground mt-1">
-                {lang === "HT"
-                  ? "M ka ede ou ak nenpòt matyè. Chwazi yon matyè, voye yon fichye, oswa poze m yon kesyon!"
-                  : "I can help with any subject. Pick a topic, upload a file, or ask me anything!"}
+                {t("tutor.intro")}
               </p>
             </div>
             <div className="grid grid-cols-2 gap-2 max-w-sm mx-auto">

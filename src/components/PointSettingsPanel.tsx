@@ -11,7 +11,7 @@ interface Props {
 }
 
 export function PointSettingsPanel({ studentId }: Props) {
-  const { lang } = useI18n();
+  const { t } = useI18n();
   const { data: settings = [] } = usePointSettings(studentId);
   const saveSetting = useSavePointSetting();
   const [localValues, setLocalValues] = useState<Record<string, { points: number; enabled: boolean }>>({});
@@ -34,7 +34,7 @@ export function PointSettingsPanel({ studentId }: Props) {
     if (!val) return;
     saveSetting.mutate(
       { student_id: studentId, action_key: actionKey, points: val.points, enabled: val.enabled },
-      { onSuccess: () => toast.success(lang === "HT" ? "Anrejistre!" : "Saved!") }
+      { onSuccess: () => toast.success(t("action.saved")) }
     );
   };
 
@@ -43,7 +43,7 @@ export function PointSettingsPanel({ studentId }: Props) {
       <div className="flex items-center gap-2 mb-2">
         <Coins size={16} className="text-secondary" />
         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-          {lang === "HT" ? "Valè Pwen pa Aksyon" : "Point Values per Action"}
+          {t("points.perAction")}
         </p>
       </div>
 
@@ -68,7 +68,7 @@ export function PointSettingsPanel({ studentId }: Props) {
               />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">
-                  {lang === "HT" ? action.labelHT : action.label}
+                  {t(`points.${action.key}`) !== `points.${action.key}` ? t(`points.${action.key}`) : action.label}
                 </p>
               </div>
               <Input
@@ -97,9 +97,7 @@ export function PointSettingsPanel({ studentId }: Props) {
       </div>
 
       <p className="text-[10px] text-muted-foreground text-center mt-2">
-        {lang === "HT"
-          ? "Chanje valè pwen pou chak aksyon. Dezaktive pou pa bay pwen."
-          : "Customize point values for each action. Disable to stop awarding."}
+        {t("points.customize")}
       </p>
     </div>
   );

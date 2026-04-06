@@ -15,7 +15,7 @@ interface Props {
 }
 
 export function ScheduleTemplates({ studentId }: Props) {
-  const { lang } = useI18n();
+  const { t } = useI18n();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [saveOpen, setSaveOpen] = useState(false);
@@ -66,7 +66,7 @@ export function ScheduleTemplates({ studentId }: Props) {
       .order("block_order");
 
     if (!blocks || blocks.length === 0) {
-      toast.error(lang === "HT" ? "Pa gen blòk pou sove" : "No blocks to save");
+      toast.error(t("schedule.noBlocks"));
       setLoading(false);
       return;
     }
@@ -93,7 +93,7 @@ export function ScheduleTemplates({ studentId }: Props) {
     if (error) {
       toast.error("Failed to save template");
     } else {
-      toast.success(lang === "HT" ? "Modèl sove!" : "Template saved!");
+      toast.success(t("schedule.templateSaved"));
       queryClient.invalidateQueries({ queryKey: ["schedule_templates"] });
     }
     setSaveOpen(false);
@@ -132,7 +132,7 @@ export function ScheduleTemplates({ studentId }: Props) {
     if (error) {
       toast.error("Failed to apply template");
     } else {
-      toast.success(lang === "HT" ? "Modèl aplike!" : "Template applied!");
+      toast.success(t("schedule.templateApplied"));
       invalidateSchedule();
     }
     setApplyOpen(false);
@@ -159,7 +159,7 @@ export function ScheduleTemplates({ studentId }: Props) {
       .lte("plan_date", lastFriday.toISOString().split("T")[0]);
 
     if (!lastWeekBlocks || lastWeekBlocks.length === 0) {
-      toast.error(lang === "HT" ? "Pa gen blòk semèn pase" : "No blocks from last week");
+      toast.error(t("schedule.noLastWeek"));
       setLoading(false);
       return;
     }
@@ -184,7 +184,7 @@ export function ScheduleTemplates({ studentId }: Props) {
     if (error) {
       toast.error("Failed to copy week");
     } else {
-      toast.success(lang === "HT" ? "Semèn pase kopye!" : "Last week copied!");
+      toast.success(t("schedule.lastWeekCopied"));
       invalidateSchedule();
     }
     setLoading(false);
@@ -194,15 +194,15 @@ export function ScheduleTemplates({ studentId }: Props) {
     <div className="flex gap-2 flex-wrap">
       <Button size="sm" variant="outline" onClick={() => setSaveOpen(true)} disabled={loading}>
         <Save size={14} className="mr-1" />
-        {lang === "HT" ? "Sove Modèl" : "Save Template"}
+        {t("schedule.saveTemplate")}
       </Button>
       <Button size="sm" variant="outline" onClick={() => setApplyOpen(true)} disabled={loading}>
         <Layout size={14} className="mr-1" />
-        {lang === "HT" ? "Aplike Modèl" : "Apply Template"}
+        {t("schedule.applyTemplate")}
       </Button>
       <Button size="sm" variant="outline" onClick={handleCopyLastWeek} disabled={loading}>
         <Copy size={14} className="mr-1" />
-        {lang === "HT" ? "Kopye Semèn Pase" : "Copy Last Week"}
+        {t("schedule.copyLastWeek")}
       </Button>
 
       {/* Save dialog */}
@@ -210,17 +210,17 @@ export function ScheduleTemplates({ studentId }: Props) {
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
             <DialogTitle className="font-display">
-              {lang === "HT" ? "Sove Modèl Orè" : "Save Schedule Template"}
+              {t("schedule.saveScheduleTemplate")}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <Input
-              placeholder={lang === "HT" ? "Non modèl" : "Template name"}
+              placeholder={t("schedule.templateName")}
               value={templateName}
               onChange={e => setTemplateName(e.target.value)}
             />
             <Button onClick={handleSaveTemplate} disabled={!templateName.trim() || loading} className="w-full">
-              {lang === "HT" ? "Sove" : "Save"}
+              {t("action.save")}
             </Button>
           </div>
         </DialogContent>
@@ -231,13 +231,13 @@ export function ScheduleTemplates({ studentId }: Props) {
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
             <DialogTitle className="font-display">
-              {lang === "HT" ? "Aplike Modèl" : "Apply Template"}
+              {t("schedule.applyTemplate")}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
               <SelectTrigger>
-                <SelectValue placeholder={lang === "HT" ? "Chwazi yon modèl" : "Choose a template"} />
+                <SelectValue placeholder={t("schedule.chooseTemplate")} />
               </SelectTrigger>
               <SelectContent>
                 {templates.map(t => (
@@ -248,7 +248,7 @@ export function ScheduleTemplates({ studentId }: Props) {
               </SelectContent>
             </Select>
             <Button onClick={handleApplyTemplate} disabled={!selectedTemplate || loading} className="w-full">
-              {lang === "HT" ? "Aplike" : "Apply"}
+              {t("schedule.apply")}
             </Button>
           </div>
         </DialogContent>

@@ -31,7 +31,7 @@ interface Props {
 }
 
 export function StudentProfileCard({ studentId }: Props) {
-  const { lang } = useI18n();
+  const { t } = useI18n();
   const { profile } = useAuth();
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState(false);
@@ -189,7 +189,7 @@ export function StudentProfileCard({ studentId }: Props) {
               className="absolute top-3 right-3 text-xs"
               onClick={startEdit}
             >
-              <Pencil size={12} className="mr-1" /> {lang === "HT" ? "Modifye" : "Edit"}
+              <Pencil size={12} className="mr-1" /> {t("action.edit")}
             </Button>
           )}
         </div>
@@ -213,13 +213,13 @@ export function StudentProfileCard({ studentId }: Props) {
           {/* Info Grid */}
           <div className="grid grid-cols-2 gap-3 mt-4">
             {student.date_of_birth && (
-              <InfoItem icon={Calendar} label={lang === "HT" ? "Laj" : "Age"} value={`${calculateAge(student.date_of_birth)} years`} />
+              <InfoItem icon={Calendar} label={t("profile.age")} value={`${calculateAge(student.date_of_birth)} years`} />
             )}
             {student.nationality && (
-              <InfoItem icon={MapPin} label={lang === "HT" ? "Nasyonalite" : "Nationality"} value={student.nationality} />
+              <InfoItem icon={MapPin} label={t("profile.nationality")} value={student.nationality} />
             )}
             {student.enrollment_date && (
-              <InfoItem icon={BookOpen} label={lang === "HT" ? "Enskripsyon" : "Enrolled"} value={new Date(student.enrollment_date).toLocaleDateString()} />
+              <InfoItem icon={BookOpen} label={t("profile.enrolled")} value={new Date(student.enrollment_date).toLocaleDateString()} />
             )}
             <InfoItem icon={Users} label="Student ID" value={student.student_id} />
           </div>
@@ -229,7 +229,7 @@ export function StudentProfileCard({ studentId }: Props) {
         {(student.parent_name || student.parent_email) && (
           <div className="border-t px-6 py-4 bg-muted/30">
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
-              {lang === "HT" ? "Paran / Gadyen" : "Parent / Guardian"}
+              {t("profile.parentGuardian")}
             </p>
             <div className="grid grid-cols-2 gap-2 text-sm">
               {student.parent_name && <p className="font-medium">{student.parent_name}</p>}
@@ -242,9 +242,9 @@ export function StudentProfileCard({ studentId }: Props) {
         {/* Stats Bar */}
         {stats && (
           <div className="border-t grid grid-cols-4 divide-x">
-            <StatBox label={lang === "HT" ? "Konplete" : "Completion"} value={`${stats.completionRate}%`} icon={TrendingUp} color="text-primary" />
-            <StatBox label={lang === "HT" ? "Blòk" : "Blocks"} value={`${stats.completedBlocks}`} icon={BookOpen} color="text-secondary" />
-            <StatBox label={lang === "HT" ? "Badj" : "Badges"} value={`${stats.badges}`} icon={Award} color="text-accent" />
+            <StatBox label={t("report.completion")} value={`${stats.completionRate}%`} icon={TrendingUp} color="text-primary" />
+            <StatBox label={t("rewards.block")} value={`${stats.completedBlocks}`} icon={BookOpen} color="text-secondary" />
+            <StatBox label={t("nav.badges")} value={`${stats.badges}`} icon={Award} color="text-accent" />
             <StatBox label="Check-ins" value={`${stats.checkIns}`} icon={Calendar} color="text-success" />
           </div>
         )}
@@ -255,28 +255,28 @@ export function StudentProfileCard({ studentId }: Props) {
         <DialogContent className="max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-display">
-              {lang === "HT" ? "Modifye Pwofil" : "Edit Profile"}
+              {t("profile.editProfile")}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
-            <FormField label={lang === "HT" ? "Non" : "Full Name"} value={form.display_name} onChange={v => setForm(f => ({ ...f, display_name: v }))} />
-            <FormField label={lang === "HT" ? "Dat Nesans" : "Date of Birth"} value={form.date_of_birth} onChange={v => setForm(f => ({ ...f, date_of_birth: v }))} type="date" />
-            <FormField label={lang === "HT" ? "Nasyonalite" : "Nationality"} value={form.nationality} onChange={v => setForm(f => ({ ...f, nationality: v }))} />
-            <FormField label={lang === "HT" ? "Adrès" : "Address"} value={form.address} onChange={v => setForm(f => ({ ...f, address: v }))} />
+            <FormField label={t("student.name")} value={form.display_name} onChange={v => setForm(f => ({ ...f, display_name: v }))} />
+            <FormField label={t("student.dob")} value={form.date_of_birth} onChange={v => setForm(f => ({ ...f, date_of_birth: v }))} type="date" />
+            <FormField label={t("profile.nationality")} value={form.nationality} onChange={v => setForm(f => ({ ...f, nationality: v }))} />
+            <FormField label={t("profile.address")} value={form.address} onChange={v => setForm(f => ({ ...f, address: v }))} />
             <div>
-              <label className="text-sm font-medium">{lang === "HT" ? "Nivo" : "Grade Level"}</label>
+              <label className="text-sm font-medium">{t("student.gradeLabel")}</label>
               <Input type="number" min={1} max={12} value={form.grade_level} onChange={e => setForm(f => ({ ...f, grade_level: parseInt(e.target.value) || 7 }))} />
             </div>
-            <FormField label={lang === "HT" ? "Ane Akademik" : "Academic Year"} value={form.academic_year} onChange={v => setForm(f => ({ ...f, academic_year: v }))} />
+            <FormField label={t("profile.academicYear")} value={form.academic_year} onChange={v => setForm(f => ({ ...f, academic_year: v }))} />
             <hr />
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              {lang === "HT" ? "Enfòmasyon Paran" : "Parent Information"}
+              {t("profile.parentInfo")}
             </p>
-            <FormField label={lang === "HT" ? "Non Paran" : "Parent Name"} value={form.parent_name} onChange={v => setForm(f => ({ ...f, parent_name: v }))} />
+            <FormField label={t("profile.parentName")} value={form.parent_name} onChange={v => setForm(f => ({ ...f, parent_name: v }))} />
             <FormField label="Email" value={form.parent_email} onChange={v => setForm(f => ({ ...f, parent_email: v }))} type="email" />
             <FormField label="WhatsApp" value={form.parent_whatsapp} onChange={v => setForm(f => ({ ...f, parent_whatsapp: v }))} />
             <div className="flex gap-2 pt-2">
-              <Button onClick={saveProfile} className="flex-1 font-display"><Save size={14} className="mr-1" /> {lang === "HT" ? "Anrejistre" : "Save"}</Button>
+              <Button onClick={saveProfile} className="flex-1 font-display"><Save size={14} className="mr-1" /> {t("action.save")}</Button>
               <Button variant="outline" onClick={() => setEditing(false)}><X size={14} /></Button>
             </div>
           </div>
