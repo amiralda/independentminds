@@ -49,7 +49,7 @@ const translations: Translations = {
   "nav.curriculum": { EN: "Curriculum", HT: "Pwogram", FR: "Programme", ES: "Currículo", PT: "Currículo", AR: "منهج", ZH: "课程", DE: "Lehrplan", JA: "カリキュラム", RU: "Учебный план" },
   "nav.certificates": { EN: "Certificates", HT: "Sètifika", FR: "Certificats", ES: "Certificados", PT: "Certificados", AR: "شهادات", ZH: "证书", DE: "Zertifikate", JA: "証明書", RU: "Сертификаты" },
   "nav.reports": { EN: "Reports", HT: "Rapò", FR: "Rapports", ES: "Informes", PT: "Relatórios", AR: "تقارير", ZH: "报告", DE: "Berichte", JA: "レポート", RU: "Отчёты" },
-  "nav.telegram": { EN: "Telegram", HT: "Telegram" },
+  "nav.telegram": { EN: "Telegram", HT: "Telegram", FR: "Telegram", ES: "Telegram", PT: "Telegram", AR: "Telegram", ZH: "Telegram", DE: "Telegram", JA: "Telegram", RU: "Telegram" },
   "nav.records": { EN: "Records", HT: "Dosye", FR: "Dossiers", ES: "Registros", PT: "Registros", AR: "سجلات", ZH: "记录", DE: "Datensätze", JA: "記録", RU: "Записи" },
   "nav.inbox": { EN: "Inbox", HT: "Bwat mesaj", FR: "Boîte de réception", ES: "Bandeja de entrada", PT: "Caixa de entrada", AR: "صندوق الوارد", ZH: "收件箱", DE: "Posteingang", JA: "受信トレイ", RU: "Входящие" },
 
