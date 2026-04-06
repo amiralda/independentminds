@@ -166,7 +166,7 @@ export function DadPanel({ onAddStudent, initialTab }: Props) {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-sm truncate">{s.display_name}</p>
-                        <p className="text-[10px] text-muted-foreground">Grade {s.grade_level}</p>
+                        <p className="text-[10px] text-muted-foreground">{t("student.grade")} {s.grade_level}</p>
                       </div>
                       {selectedStudentId === s.student_id && (
                         <Check size={16} className="text-primary flex-shrink-0" />
