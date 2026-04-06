@@ -93,10 +93,10 @@ const translations: Translations = {
   "checkin.success": { EN: "Check-in submitted!", HT: "Tcheke soumèt!", FR: "Pointage soumis!", ES: "¡Registro enviado!", PT: "Check-in enviado!", AR: "تم إرسال التسجيل!", ZH: "签到已提交！", DE: "Check-In eingereicht!", JA: "チェックイン送信済み！", RU: "Отметка отправлена!" },
 
   // Badges
-  "badge.champion": { EN: "🏆 Champion of the Week!", HT: "🏆 Chanpyon Semèn nan!" },
-  "badge.goldStar": { EN: "⭐ Gold Star!", HT: "⭐ Zetwal Lò!" },
-  "badge.keepGoing": { EN: "💪 Keep Going!", HT: "💪 Kontinye!" },
-  "badge.newWeek": { EN: "🔄 New Week, New Start!", HT: "🔄 Nouvo Semèn, Nouvo Kòmansman!" },
+  "badge.champion": { EN: "🏆 Champion of the Week!", HT: "🏆 Chanpyon Semèn nan!", FR: "🏆 Champion de la semaine !", ES: "🏆 ¡Campeón de la semana!", PT: "🏆 Campeão da semana!", AR: "🏆 بطل الأسبوع!", ZH: "🏆 本周冠军！", DE: "🏆 Champion der Woche!", JA: "🏆 今週のチャンピオン！", RU: "🏆 Чемпион недели!" },
+  "badge.goldStar": { EN: "⭐ Gold Star!", HT: "⭐ Zetwal Lò!", FR: "⭐ Étoile d'or !", ES: "⭐ ¡Estrella de oro!", PT: "⭐ Estrela de ouro!", AR: "⭐ نجمة ذهبية!", ZH: "⭐ 金星！", DE: "⭐ Goldstern!", JA: "⭐ ゴールドスター！", RU: "⭐ Золотая звезда!" },
+  "badge.keepGoing": { EN: "💪 Keep Going!", HT: "💪 Kontinye!", FR: "💪 Continuez !", ES: "💪 ¡Sigue adelante!", PT: "💪 Continue!", AR: "💪 استمر!", ZH: "💪 继续加油！", DE: "💪 Weiter so!", JA: "💪 頑張って！", RU: "💪 Продолжай!" },
+  "badge.newWeek": { EN: "🔄 New Week, New Start!", HT: "🔄 Nouvo Semèn, Nouvo Kòmansman!", FR: "🔄 Nouvelle semaine, nouveau départ !", ES: "🔄 ¡Nueva semana, nuevo comienzo!", PT: "🔄 Nova semana, novo começo!", AR: "🔄 أسبوع جديد، بداية جديدة!", ZH: "🔄 新的一周，新的开始！", DE: "🔄 Neue Woche, neuer Anfang!", JA: "🔄 新しい週、新しいスタート！", RU: "🔄 Новая неделя, новое начало!" },
 
   // Greetings
   "greeting.morning": { EN: "Good morning", HT: "Bonjou", FR: "Bonjour", ES: "Buenos días", PT: "Bom dia", AR: "صباح الخير", ZH: "早上好", DE: "Guten Morgen", JA: "おはようございます", RU: "Доброе утро" },
