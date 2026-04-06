@@ -37,7 +37,7 @@ export function StudentCoGuardiansSection({ studentId }: Props) {
 
       return coGuardians.map((g: any) => ({
         ...g,
-        display_name: profileMap.get(g.guardian_id) || (lang === "HT" ? "Ko-Gadyen" : "Co-Guardian"),
+        display_name: profileMap.get(g.guardian_id) || t("guardians.coGuardian"),
       }));
     },
   });

@@ -63,7 +63,7 @@ export function MfaSettings() {
       setEnrolling(false);
       setQrUri(null);
       setVerifyCode("");
-      toast.success(lang === "HT" ? "MFA aktive!" : "MFA enabled!");
+      toast.success(t("mfa.mfaEnabled"));
     } catch (e: any) {
       toast.error(e.message || "Verification failed");
     }
@@ -83,7 +83,7 @@ export function MfaSettings() {
         password: disablePassword,
       });
       if (signInError) {
-        toast.error(lang === "HT" ? "Modpas pa kòrèk" : "Incorrect password");
+        toast.error(t("mfa.incorrectPassword"));
         setLoading(false);
         return;
       }
@@ -94,7 +94,7 @@ export function MfaSettings() {
       setFactorId(null);
       setDisableMode(false);
       setDisablePassword("");
-      toast.success(lang === "HT" ? "MFA dezaktive" : "MFA disabled");
+      toast.success(t("mfa.mfaDisabled"));
     } catch (e: any) {
       toast.error(e.message || "Failed to disable MFA");
     }
@@ -111,18 +111,16 @@ export function MfaSettings() {
             </div>
             <div className="flex-1">
               <p className="font-display font-semibold text-sm">
-                {lang === "HT" ? "Konfime modpas ou" : "Confirm your password"}
+                {t("mfa.confirmPassword")}
               </p>
               <p className="text-xs text-muted-foreground">
-                {lang === "HT"
-                  ? "Antre modpas ou pou dezaktive MFA"
-                  : "Enter your password to disable MFA"}
+                {t("mfa.confirmPasswordDesc")}
               </p>
             </div>
           </div>
           <div>
             <label htmlFor="mfa-disable-password" className="text-sm font-medium">
-              {lang === "HT" ? "Modpas" : "Password"}
+              {t("auth.password")}
             </label>
             <PasswordInput
               id="mfa-disable-password"
@@ -149,7 +147,7 @@ export function MfaSettings() {
               onClick={() => { setDisableMode(false); setDisablePassword(""); }}
               className="text-xs"
             >
-              {lang === "HT" ? "Anile" : "Cancel"}
+              {t("action.cancel")}
             </Button>
           </div>
         </div>
@@ -197,10 +195,10 @@ export function MfaSettings() {
         <div className="flex gap-2">
           <Button onClick={handleVerify} disabled={verifyCode.length !== 6 || loading} className="flex-1">
             {loading ? <Loader2 size={14} className="animate-spin mr-1" /> : null}
-            {lang === "HT" ? "Verifye" : "Verify"}
+            {t("action.verify")}
           </Button>
           <Button variant="outline" onClick={() => { setEnrolling(false); setQrUri(null); }}>
-            {lang === "HT" ? "Anile" : "Cancel"}
+            {t("action.cancel")}
           </Button>
         </div>
       </div>

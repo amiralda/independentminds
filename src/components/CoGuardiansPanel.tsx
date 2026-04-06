@@ -160,10 +160,10 @@ export function CoGuardiansPanel({ studentId }: Props) {
   ];
 
   const invitePermsList = [
-    { key: "can_receive_sos", label: lang === "HT" ? "Resevwa alèt SOS" : "Receive SOS Alerts" },
-    { key: "can_approve_rewards", label: lang === "HT" ? "Apwouve rekonpans" : "Approve & Deny Rewards" },
-    { key: "can_edit_lessons", label: lang === "HT" ? "Modifye leson" : "Add & Edit Lessons" },
-    { key: "is_full_access", label: lang === "HT" ? "Aksè konplè" : "Full Access" },
+    { key: "can_receive_sos", label: t("guardians.receiveSOS") },
+    { key: "can_approve_rewards", label: t("guardians.approveRewards_label") },
+    { key: "can_edit_lessons", label: t("guardians.editLessons") },
+    { key: "is_full_access", label: t("guardians.fullAccessLabel") },
   ];
 
   return (
@@ -194,7 +194,7 @@ export function CoGuardiansPanel({ studentId }: Props) {
           >
             {showPermissions ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
             <span className="ml-1 hidden sm:inline">
-              {lang === "HT" ? "Pèmisyon" : "Permissions"}
+              {t("guardians.permissions_label")}
             </span>
           </Button>
         </div>
@@ -203,11 +203,11 @@ export function CoGuardiansPanel({ studentId }: Props) {
         {showPermissions && email.trim() && (
           <div className="border rounded-xl p-4 space-y-3 bg-muted/30 animate-fade-in">
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              {lang === "HT" ? "Ki pèmisyon ko-gadyen sa a ap genyen?" : "What permissions will this co-guardian have?"}
+              {t("guardians.permissionsQuestion")}
             </p>
             <div className="flex items-center justify-between py-1">
               <span className="text-sm text-muted-foreground">
-                {lang === "HT" ? "Wè pwogrè elèv" : "View Student Progress"}
+                {t("guardians.viewProgress")}
               </span>
               <Switch checked={true} disabled />
             </div>
@@ -226,7 +226,7 @@ export function CoGuardiansPanel({ studentId }: Props) {
 
         <Button onClick={sendInvite} disabled={sending || !email.trim()} size="sm" className="w-full sm:w-auto">
           <UserPlus size={16} className="mr-1" />
-          {lang === "HT" ? "Voye envitasyon kòm paran" : "Send Invite as Parent"}
+          {t("guardians.sendInviteAsParent")}
         </Button>
       </div>
 
@@ -276,7 +276,7 @@ export function CoGuardiansPanel({ studentId }: Props) {
               </div>
               <div>
                 <p className="text-sm font-medium">
-                  {lang === "HT" ? "Ko-Gadyen (Paran)" : "Co-Guardian (Parent)"}
+                  {t("guardians.coGuardianParent")}
                 </p>
                 <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 font-medium">
                   {t("guardians.active")}
