@@ -238,6 +238,19 @@ export default function AdminBeta() {
               </div>
             </div>
           </div>
+
+          {/* Admin Actions */}
+          <div className="rounded-lg bg-white/5 border border-white/10 p-4 space-y-3">
+            <p className="text-sm text-white/60 font-medium">Actions</p>
+            <div className="flex gap-2 flex-wrap">
+              <Button size="sm" variant="outline" onClick={sendWelcomeEmails}>
+                <Mail size={14} className="mr-1" /> Send welcome emails
+              </Button>
+              <Button size="sm" variant="outline" onClick={notifyBetaTesters}>
+                <Bell size={14} className="mr-1" /> Notify testers of update
+              </Button>
+            </div>
+          </div>
         </TabsContent>
 
         {/* TESTERS */}
