@@ -77,12 +77,12 @@ const translations: Translations = {
   "action.selectStudent": { EN: "Select Student", HT: "Chwazi Elèv", FR: "Sélectionner un élève", ES: "Seleccionar estudiante", PT: "Selecionar aluno", AR: "اختيار طالب", ZH: "选择学生", DE: "Schüler auswählen", JA: "生徒を選択", RU: "Выбрать ученика" },
 
   // Mood & Focus
-  "mood.good": { EN: "Good 😊", HT: "Bon 😊" },
-  "mood.okay": { EN: "Okay 😐", HT: "Okay 😐" },
-  "mood.tired": { EN: "Tired 😴", HT: "Fatige 😴" },
-  "focus.high": { EN: "High 🔥", HT: "Wo 🔥" },
-  "focus.medium": { EN: "Medium ⚡", HT: "Mwayen ⚡" },
-  "focus.low": { EN: "Low 🐢", HT: "Ba 🐢" },
+  "mood.good": { EN: "Good 😊", HT: "Bon 😊", FR: "Bien 😊", ES: "Bien 😊", PT: "Bom 😊", AR: "جيد 😊", ZH: "好 😊", DE: "Gut 😊", JA: "良い 😊", RU: "Хорошо 😊" },
+  "mood.okay": { EN: "Okay 😐", HT: "Okay 😐", FR: "Correct 😐", ES: "Regular 😐", PT: "Ok 😐", AR: "لا بأس 😐", ZH: "还行 😐", DE: "Okay 😐", JA: "まあまあ 😐", RU: "Нормально 😐" },
+  "mood.tired": { EN: "Tired 😴", HT: "Fatige 😴", FR: "Fatigué 😴", ES: "Cansado 😴", PT: "Cansado 😴", AR: "متعب 😴", ZH: "累了 😴", DE: "Müde 😴", JA: "疲れた 😴", RU: "Устал 😴" },
+  "focus.high": { EN: "High 🔥", HT: "Wo 🔥", FR: "Élevée 🔥", ES: "Alta 🔥", PT: "Alta 🔥", AR: "عالي 🔥", ZH: "高 🔥", DE: "Hoch 🔥", JA: "高い 🔥", RU: "Высокая 🔥" },
+  "focus.medium": { EN: "Medium ⚡", HT: "Mwayen ⚡", FR: "Moyenne ⚡", ES: "Media ⚡", PT: "Média ⚡", AR: "متوسط ⚡", ZH: "中 ⚡", DE: "Mittel ⚡", JA: "中 ⚡", RU: "Средняя ⚡" },
+  "focus.low": { EN: "Low 🐢", HT: "Ba 🐢", FR: "Basse 🐢", ES: "Baja 🐢", PT: "Baixa 🐢", AR: "منخفض 🐢", ZH: "低 🐢", DE: "Niedrig 🐢", JA: "低い 🐢", RU: "Низкая 🐢" },
 
   // Check-in
   "checkin.mood": { EN: "How are you feeling?", HT: "Kijan ou santi ou?", FR: "Comment vous sentez-vous?", ES: "¿Cómo te sientes?", PT: "Como você está?", AR: "كيف تشعر؟", ZH: "你感觉怎么样？", DE: "Wie fühlst du dich?", JA: "気分はどうですか？", RU: "Как ты себя чувствуешь?" },
