@@ -68,6 +68,7 @@ const Index = () => {
       const { count } = await supabase
         .from("inbox_messages")
         .select("*", { count: "exact", head: true })
+        .eq("parent_id", user?.id)
         .eq("is_read", false);
       const newCount = count || 0;
 
@@ -120,12 +121,12 @@ const Index = () => {
 
   const studentTabs: { key: StudentTab; icon: React.ElementType; label: string }[] = [
     { key: "today", icon: BookOpen, label: t("nav.today") },
-    { key: "rewards", icon: Coins, label: lang === "HT" ? "Pwen" : "Rewards" },
+    { key: "rewards", icon: Coins, label: t("inbox.rewards") },
     { key: "checkin", icon: CheckSquare, label: t("nav.checkin") },
     { key: "badges", icon: Trophy, label: t("nav.badges") },
     { key: "trophies", icon: Award, label: t("nav.trophies") },
     { key: "tutor", icon: Bot, label: "Mr A" },
-    { key: "profile", icon: UserCircle, label: lang === "HT" ? "Pwofil" : "Profile" },
+    { key: "profile", icon: UserCircle, label: t("nav.settings") },
   ];
 
   return (
@@ -135,7 +136,7 @@ const Index = () => {
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:bg-primary focus:text-primary-foreground focus:px-4 focus:py-2 focus:rounded-lg focus:shadow-lg"
       >
-        {lang === "HT" ? "Ale nan kontni prensipal" : "Skip to main content"}
+        {t("a11y.skipToContent")}
       </a>
       {/* Header */}
       <header className="sticky top-0 z-50 bg-primary shadow-md">
