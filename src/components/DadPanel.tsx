@@ -59,24 +59,23 @@ type DadTab = "activity" | "profile" | "progress" | "schedule" | "tracks" | "too
 interface NavItem {
   key: DadTab;
   icon: React.ElementType;
-  label: string;
-  labelHT: string;
+  labelKey: string;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { key: "activity", icon: Activity, label: "Feed", labelHT: "Aktivite" },
-  { key: "profile", icon: UserCircle, label: "Profile", labelHT: "Pwofil" },
-  { key: "progress", icon: BarChart3, label: "Today", labelHT: "Jodi a" },
-  { key: "schedule", icon: Calendar, label: "Schedule", labelHT: "Orè" },
-  { key: "tracks", icon: Settings, label: "Tracks", labelHT: "Matyè" },
-  { key: "tools", icon: Wrench, label: "Tools", labelHT: "Zouti" },
-  { key: "tutor", icon: Bot, label: "Mr A", labelHT: "Mr A" },
-  { key: "curriculum", icon: BookOpen, label: "Curriculum", labelHT: "Pwogram" },
-  { key: "weekly", icon: ClipboardList, label: "Weekly", labelHT: "Semèn" },
-  { key: "certificates", icon: Award, label: "Certificates", labelHT: "Sètifika" },
-  { key: "records", icon: FileText, label: "Records", labelHT: "Dosye" },
-  { key: "rewards", icon: Coins, label: "Rewards", labelHT: "Rekonpans" },
-  { key: "inbox", icon: Inbox, label: "Inbox", labelHT: "Bwat mesaj" },
+  { key: "activity", icon: Activity, labelKey: "nav.feed" },
+  { key: "profile", icon: UserCircle, labelKey: "role.parent" },
+  { key: "progress", icon: BarChart3, labelKey: "nav.progress" },
+  { key: "schedule", icon: Calendar, labelKey: "nav.schedule" },
+  { key: "tracks", icon: Settings, labelKey: "nav.tracks" },
+  { key: "tools", icon: Wrench, labelKey: "nav.library" },
+  { key: "tutor", icon: Bot, labelKey: "nav.telegram" },
+  { key: "curriculum", icon: BookOpen, labelKey: "nav.curriculum" },
+  { key: "weekly", icon: ClipboardList, labelKey: "nav.reports" },
+  { key: "certificates", icon: Award, labelKey: "nav.certificates" },
+  { key: "records", icon: FileText, labelKey: "nav.records" },
+  { key: "rewards", icon: Coins, labelKey: "inbox.rewards" },
+  { key: "inbox", icon: Inbox, labelKey: "nav.inbox" },
 ];
 
 export function DadPanel({ onAddStudent, initialTab }: Props) {
