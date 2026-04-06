@@ -14,7 +14,7 @@ interface Props {
 }
 
 export function ChallengesPanel({ studentId, isParent = false }: Props) {
-  const { lang } = useI18n();
+  const { t } = useI18n();
   const { data: challenges = [] } = useChallenges(studentId);
   const createChallenge = useCreateChallenge();
   const deleteChallenge = useDeleteChallenge();
@@ -45,7 +45,7 @@ export function ChallengesPanel({ studentId, isParent = false }: Props) {
       },
       {
         onSuccess: () => {
-          toast.success(lang === "HT" ? "Defi kreye!" : "Challenge created!");
+          toast.success(t("challenges.created"));
           setDialogOpen(false);
           setForm({ title: "", description: "", target_count: 5, bonus_points: 50, subject_filter: "", category_filter: "" });
         },
@@ -59,12 +59,12 @@ export function ChallengesPanel({ studentId, isParent = false }: Props) {
         <div className="flex items-center gap-2">
           <Target size={16} className="text-primary" />
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-            {lang === "HT" ? "Defi" : "Challenges"}
+            {t("challenges.title")}
           </p>
         </div>
         {isParent && (
           <Button size="sm" onClick={() => setDialogOpen(true)} className="font-display text-xs">
-            <Plus size={12} className="mr-1" /> {lang === "HT" ? "Nouvo" : "New"}
+            <Plus size={12} className="mr-1" /> {t("challenges.new")}
           </Button>
         )}
       </div>
@@ -74,11 +74,11 @@ export function ChallengesPanel({ studentId, isParent = false }: Props) {
         <div className="text-center py-6 text-muted-foreground">
           <Target size={32} className="mx-auto mb-2 opacity-40" />
           <p className="text-sm">
-            {lang === "HT" ? "Pa gen defi aktif" : "No active challenges"}
+            {t("challenges.noActive")}
           </p>
           {isParent && (
             <p className="text-xs mt-1">
-              {lang === "HT" ? "Kreye yon defi pou motiye elèv ou!" : "Create a challenge to motivate your student!"}
+              {t("challenges.motivate")}
             </p>
           )}
         </div>
@@ -111,7 +111,7 @@ export function ChallengesPanel({ studentId, isParent = false }: Props) {
               </span>
             </div>
             <div className="flex items-center gap-1 text-secondary text-xs font-bold">
-              <Trophy size={12} /> +{ch.bonus_points} {lang === "HT" ? "pwen" : "pts"}
+              <Trophy size={12} /> +{ch.bonus_points} {t("challenges.pts")}
               {ch.subject_filter && <span className="text-muted-foreground font-normal ml-2">📚 {ch.subject_filter}</span>}
               {ch.category_filter && <span className="text-muted-foreground font-normal ml-2">📂 {ch.category_filter}</span>}
             </div>
@@ -123,7 +123,7 @@ export function ChallengesPanel({ studentId, isParent = false }: Props) {
       {completedChallenges.length > 0 && (
         <div className="space-y-2">
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-            ✅ {lang === "HT" ? "Fini" : "Completed"} ({completedChallenges.length})
+            ✅ {t("challenges.completed")} ({completedChallenges.length})
           </p>
           {completedChallenges.slice(0, 5).map(ch => (
             <div key={ch.id} className="flex items-center gap-2 bg-success/10 rounded-lg px-3 py-2">
@@ -140,12 +140,12 @@ export function ChallengesPanel({ studentId, isParent = false }: Props) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="font-display">
-              {lang === "HT" ? "Nouvo Defi" : "New Challenge"}
+              {t("challenges.newChallenge")}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <div>
-              <label className="text-sm font-medium">{lang === "HT" ? "Tit" : "Title"}</label>
+              <label className="text-sm font-medium">{t("challenges.titleLabel")}</label>
               <Input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="e.g. Complete 5 Science lessons" />
             </div>
             <div>
@@ -154,26 +154,26 @@ export function ChallengesPanel({ studentId, isParent = false }: Props) {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-sm font-medium">{lang === "HT" ? "Objektif" : "Target"}</label>
+                <label className="text-sm font-medium">{t("challenges.target")}</label>
                 <Input type="number" min={1} value={form.target_count} onChange={e => setForm(f => ({ ...f, target_count: parseInt(e.target.value) || 1 }))} />
               </div>
               <div>
-                <label className="text-sm font-medium">{lang === "HT" ? "Pwen Bonnis" : "Bonus Points"}</label>
+                <label className="text-sm font-medium">{t("challenges.bonusPoints")}</label>
                 <Input type="number" min={1} value={form.bonus_points} onChange={e => setForm(f => ({ ...f, bonus_points: parseInt(e.target.value) || 1 }))} />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-sm font-medium">{lang === "HT" ? "Matyè (opsyonèl)" : "Subject (optional)"}</label>
+                <label className="text-sm font-medium">{t("challenges.subject")}</label>
                 <Input value={form.subject_filter} onChange={e => setForm(f => ({ ...f, subject_filter: e.target.value }))} placeholder="e.g. Math" />
               </div>
               <div>
-                <label className="text-sm font-medium">{lang === "HT" ? "Kategori (opsyonèl)" : "Category (optional)"}</label>
+                <label className="text-sm font-medium">{t("challenges.category")}</label>
                 <Input value={form.category_filter} onChange={e => setForm(f => ({ ...f, category_filter: e.target.value }))} placeholder="e.g. Core Academics" />
               </div>
             </div>
             <Button onClick={handleCreate} className="w-full font-display" disabled={createChallenge.isPending}>
-              <Target size={14} className="mr-1" /> {lang === "HT" ? "Kreye Defi" : "Create Challenge"}
+              <Target size={14} className="mr-1" /> {t("challenges.createBtn")}
             </Button>
           </div>
         </DialogContent>

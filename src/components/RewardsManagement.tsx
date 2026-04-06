@@ -19,7 +19,7 @@ interface Props {
 }
 
 export function RewardsManagement({ studentId }: Props) {
-  const { lang } = useI18n();
+  const { t } = useI18n();
   const qc = useQueryClient();
   const { data: catalog = [] } = useAllRewardsCatalog(studentId);
   const { data: redemptions = [] } = useRedemptions(studentId);
@@ -55,14 +55,14 @@ export function RewardsManagement({ studentId }: Props) {
         point_cost: form.point_cost, icon: form.icon, enabled: form.enabled,
       } as any).eq("id", editingId);
       if (error) { toast.error("Failed to update"); return; }
-      toast.success(lang === "HT" ? "Rekonpans mete ajou!" : "Reward updated!");
+      toast.success(t("rewards.rewardUpdated"));
     } else {
       const { error } = await supabase.from("rewards_catalog").insert({
         student_id: studentId, name: form.name, description: form.description || null,
         point_cost: form.point_cost, icon: form.icon, enabled: form.enabled,
       } as any);
       if (error) { toast.error("Failed to create"); return; }
-      toast.success(lang === "HT" ? "Rekonpans ajoute!" : "Reward added!");
+      toast.success(t("rewards.rewardAdded"));
     }
     setDialogOpen(false);
     qc.invalidateQueries({ queryKey: ["rewards_catalog"] });
@@ -82,7 +82,7 @@ export function RewardsManagement({ studentId }: Props) {
       status: "fulfilled", fulfilled_at: new Date().toISOString(),
     } as any).eq("id", id);
     if (error) { toast.error("Failed"); return; }
-    toast.success(lang === "HT" ? "Rekonpans bay!" : "Reward fulfilled! ✅");
+    toast.success(t("rewards.rewardFulfilled"));
     qc.invalidateQueries({ queryKey: ["redemptions"] });
   };
 
@@ -107,7 +107,7 @@ export function RewardsManagement({ studentId }: Props) {
       <div className="rounded-xl bg-gradient-to-r from-secondary/15 to-accent/10 border border-secondary/25 p-4 flex items-center justify-between">
         <div>
           <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
-            {lang === "HT" ? "Balans Elèv" : "Student Balance"}
+            {t("rewards.studentBalance")}
           </p>
           <div className="flex items-baseline gap-2 mt-0.5">
             <span className="font-display text-3xl font-bold">{balance}</span>
@@ -115,7 +115,7 @@ export function RewardsManagement({ studentId }: Props) {
           </div>
         </div>
         <Button size="sm" variant="secondary" className="font-display" onClick={() => setBonusOpen(true)}>
-          <Plus size={14} className="mr-1" /> {lang === "HT" ? "Bonnis" : "Bonus"}
+          <Plus size={14} className="mr-1" /> {t("rewards.bonus")}
         </Button>
       </div>
 
@@ -123,7 +123,7 @@ export function RewardsManagement({ studentId }: Props) {
       {pendingRedemptions.length > 0 && (
         <div className="space-y-2">
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-            ⏳ {lang === "HT" ? "Reklame an atant" : "Pending Redemptions"} ({pendingRedemptions.length})
+            ⏳ {t("rewards.pendingRedemptions")} ({pendingRedemptions.length})
           </p>
           {pendingRedemptions.map((r) => (
             <div key={r.id} className="flex items-center justify-between bg-warning/10 border border-warning/20 rounded-lg px-3 py-2">
@@ -132,7 +132,7 @@ export function RewardsManagement({ studentId }: Props) {
                 <p className="text-[10px] text-muted-foreground">{new Date(r.created_at).toLocaleDateString()}</p>
               </div>
               <Button size="sm" variant="outline" className="text-xs" onClick={() => fulfillRedemption(r.id)}>
-                <CheckCircle size={12} className="mr-1" /> {lang === "HT" ? "Bay" : "Fulfill"}
+                <CheckCircle size={12} className="mr-1" /> {t("rewards.fulfill")}
               </Button>
             </div>
           ))}
@@ -142,18 +142,18 @@ export function RewardsManagement({ studentId }: Props) {
       {/* Rewards Catalog */}
       <div className="flex items-center justify-between">
         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-          {lang === "HT" ? "Katalòg Rekonpans" : "Rewards Catalog"} ({catalog.length})
+          {t("rewards.catalog")} ({catalog.length})
         </p>
         <Button size="sm" onClick={openNew} className="font-display text-xs">
-          <Plus size={12} className="mr-1" /> {lang === "HT" ? "Ajoute" : "Add"}
+          <Plus size={12} className="mr-1" /> {t("action.add")}
         </Button>
       </div>
 
       {catalog.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">
           <Gift size={36} className="mx-auto mb-2 opacity-40" />
-          <p className="text-sm">{lang === "HT" ? "Ajoute premye rekonpans ou!" : "Add your first reward!"}</p>
-          <p className="text-xs mt-1">{lang === "HT" ? "Elèv yo ka reklame pwen pou rekonpans" : "Students can redeem points for rewards"}</p>
+          <p className="text-sm">{t("rewards.addFirst")}</p>
+          <p className="text-xs mt-1">{t("rewards.studentCanRedeem")}</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -183,12 +183,12 @@ export function RewardsManagement({ studentId }: Props) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="font-display">
-              {editingId ? (lang === "HT" ? "Modifye Rekonpans" : "Edit Reward") : (lang === "HT" ? "Nouvo Rekonpans" : "New Reward")}
+              {editingId ? t("rewards.editReward") : t("rewards.newReward")}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <div>
-              <label className="text-sm font-medium">{lang === "HT" ? "Ikòn" : "Icon"}</label>
+              <label className="text-sm font-medium">{t("rewards.icon")}</label>
               <div className="flex flex-wrap gap-2 mt-1">
                 {EMOJI_OPTIONS.map((e) => (
                   <button
@@ -202,7 +202,7 @@ export function RewardsManagement({ studentId }: Props) {
               </div>
             </div>
             <div>
-              <label className="text-sm font-medium">{lang === "HT" ? "Non" : "Name"}</label>
+              <label className="text-sm font-medium">{t("student.name")}</label>
               <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="e.g. 30 min Screen Time" />
             </div>
             <div>
@@ -210,16 +210,16 @@ export function RewardsManagement({ studentId }: Props) {
               <Input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Optional details" />
             </div>
             <div>
-              <label className="text-sm font-medium">{lang === "HT" ? "Pri (Pwen)" : "Cost (Points)"}</label>
+              <label className="text-sm font-medium">{t("rewards.cost")}</label>
               <Input type="number" min={1} value={form.point_cost} onChange={e => setForm(f => ({ ...f, point_cost: parseInt(e.target.value) || 1 }))} />
             </div>
             <div className="flex items-center gap-2">
               <input type="checkbox" checked={form.enabled} onChange={e => setForm(f => ({ ...f, enabled: e.target.checked }))} id="enabled" />
-              <label htmlFor="enabled" className="text-sm">{lang === "HT" ? "Aktif" : "Enabled"}</label>
+              <label htmlFor="enabled" className="text-sm">{t("rewards.enabled")}</label>
             </div>
             <div className="flex gap-2 pt-2">
               <Button onClick={saveReward} className="flex-1 font-display">
-                {editingId ? (lang === "HT" ? "Mete Ajou" : "Update") : (lang === "HT" ? "Ajoute" : "Add Reward")}
+                {editingId ? t("rewards.update") : t("rewards.addReward")}
               </Button>
               <Button variant="outline" onClick={() => setDialogOpen(false)}><X size={14} /></Button>
             </div>
@@ -232,20 +232,20 @@ export function RewardsManagement({ studentId }: Props) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="font-display">
-              {lang === "HT" ? "Bay Pwen Bonnis" : "Award Bonus Points"}
+              {t("rewards.awardBonusPoints")}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <div>
-              <label className="text-sm font-medium">{lang === "HT" ? "Pwen" : "Points"}</label>
+              <label className="text-sm font-medium">{t("rewards.points")}</label>
               <Input type="number" min={1} value={bonusPoints} onChange={e => setBonusPoints(parseInt(e.target.value) || 0)} />
             </div>
             <div>
-              <label className="text-sm font-medium">{lang === "HT" ? "Rezon" : "Reason"}</label>
+              <label className="text-sm font-medium">{t("rewards.reason")}</label>
               <Input value={bonusReason} onChange={e => setBonusReason(e.target.value)} placeholder="e.g. Extra homework, great behavior" />
             </div>
             <Button onClick={grantBonus} className="w-full font-display" disabled={awardPoints.isPending}>
-              <Coins size={14} className="mr-1" /> {lang === "HT" ? "Bay Pwen" : "Award Points"}
+              <Coins size={14} className="mr-1" /> {t("rewards.awardPoints")}
             </Button>
           </div>
         </DialogContent>
