@@ -118,8 +118,8 @@ const translations: Translations = {
   "notes": { EN: "Notes (optional)", HT: "Nòt (opsyonèl)", FR: "Notes (optionnel)", ES: "Notas (opcional)", PT: "Notas (opcional)", AR: "ملاحظات (اختياري)", ZH: "备注（可选）", DE: "Notizen (optional)", JA: "メモ（任意）", RU: "Заметки (необязательно)" },
 
   // Library
-  "library.title": { EN: "Learning Resources", HT: "Resous Aprantisaj" },
-  "library.t4l": { EN: "Open Time4Learning", HT: "Louvri Time4Learning" },
+  "library.title": { EN: "Learning Resources", HT: "Resous Aprantisaj", FR: "Ressources d'apprentissage", ES: "Recursos de aprendizaje", PT: "Recursos de aprendizagem", AR: "موارد التعلم", ZH: "学习资源", DE: "Lernressourcen", JA: "学習リソース", RU: "Учебные ресурсы" },
+  "library.t4l": { EN: "Open Time4Learning", HT: "Louvri Time4Learning", FR: "Ouvrir Time4Learning", ES: "Abrir Time4Learning", PT: "Abrir Time4Learning", AR: "فتح Time4Learning", ZH: "打开Time4Learning", DE: "Time4Learning öffnen", JA: "Time4Learningを開く", RU: "Открыть Time4Learning" },
 
   // Auth
   "auth.email": { EN: "Email", HT: "Imèl", FR: "Courriel", ES: "Correo", PT: "E-mail", AR: "بريد إلكتروني", ZH: "电子邮件", DE: "E-Mail", JA: "メール", RU: "Электронная почта" },
