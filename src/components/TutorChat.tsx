@@ -340,7 +340,7 @@ export function TutorChat() {
               }`}
             >
               <Icon size={12} />
-              {lang === "HT" ? mode.ht : mode.en}
+              {t(mode.labelKey)}
             </button>
           );
         })}
