@@ -23,6 +23,8 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectPath = searchParams.get('redirect');
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,7 +34,7 @@ export default function Login() {
     if (error) {
       toast.error(error.message);
     } else {
-      navigate("/");
+      navigate(redirectPath || "/");
     }
   };
 
