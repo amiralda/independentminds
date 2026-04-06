@@ -186,7 +186,7 @@ export function DadPanel({ onAddStudent, initialTab }: Props) {
                         } catch {}
                       }}
                       className="p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-accent-foreground transition-colors flex-shrink-0"
-                      title={lang === "HT" ? `Konekte kòm ${s.display_name}` : `Login as ${s.display_name}`}
+                      title={`${t("dadpanel.loginAs")} ${s.display_name}`}
                     >
                       <Eye size={16} />
                     </button>
