@@ -242,7 +242,7 @@ export function DadPanel({ onAddStudent, initialTab }: Props) {
         <div className="text-center py-12 text-muted-foreground">
           <GraduationCap size={48} className="mx-auto mb-3 text-muted-foreground/50" />
           <p className="font-display text-lg">{t("action.selectStudent")}</p>
-          <p className="text-sm mt-1">{lang === "HT" ? "Tape ☰ pou chwazi yon elèv" : "Tap ☰ to choose a student"}</p>
+          <p className="text-sm mt-1">{t("dadpanel.selectStudent")}</p>
         </div>
       ) : (
         <>
