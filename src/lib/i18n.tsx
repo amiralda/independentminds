@@ -43,7 +43,7 @@ const translations: Translations = {
   "nav.trophies": { EN: "Trophies", HT: "Twofe", FR: "Trophées", ES: "Trofeos", PT: "Troféus", AR: "جوائز", ZH: "奖杯", DE: "Trophäen", JA: "トロフィー", RU: "Трофеи" },
   "nav.settings": { EN: "Settings", HT: "Paramèt", FR: "Paramètres", ES: "Configuración", PT: "Configurações", AR: "إعدادات", ZH: "设置", DE: "Einstellungen", JA: "設定", RU: "Настройки" },
   "nav.alerts": { EN: "Alerts", HT: "Alèt", FR: "Alertes", ES: "Alertas", PT: "Alertas", AR: "تنبيهات", ZH: "提醒", DE: "Warnungen", JA: "アラート", RU: "Оповещения" },
-  "nav.progress": { EN: "Today", HT: "Jodi a" },
+  "nav.progress": { EN: "Today", HT: "Jodi a", FR: "Aujourd'hui", ES: "Hoy", PT: "Hoje", AR: "اليوم", ZH: "今天", DE: "Heute", JA: "今日", RU: "Сегодня" },
   "nav.schedule": { EN: "Schedule", HT: "Orè", FR: "Horaire", ES: "Horario", PT: "Agenda", AR: "جدول", ZH: "日程", DE: "Zeitplan", JA: "スケジュール", RU: "Расписание" },
   "nav.feed": { EN: "Feed", HT: "Aktivite", FR: "Activité", ES: "Actividad", PT: "Feed", AR: "النشاط", ZH: "动态", DE: "Feed", JA: "フィード", RU: "Лента" },
   "nav.curriculum": { EN: "Curriculum", HT: "Pwogram", FR: "Programme", ES: "Currículo", PT: "Currículo", AR: "منهج", ZH: "课程", DE: "Lehrplan", JA: "カリキュラム", RU: "Учебный план" },
