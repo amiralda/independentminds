@@ -1,5 +1,8 @@
 # 🎓 Independent Minds EDU
 
+<!-- Replace OWNER/REPO below once the GitHub repository is connected -->
+![CI](https://github.com/OWNER/REPO/actions/workflows/test.yml/badge.svg?branch=main)
+
 **A Multi-Tenant Academic Management & Milestone Tracking SaaS Platform**
 
 > *Learn Smart. Grow Every Day.* — independentmindsedu.com
