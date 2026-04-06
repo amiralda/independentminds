@@ -476,7 +476,7 @@ export function TutorChat() {
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={lang === "HT" ? "Ekri kesyon ou pou Mr A..." : "Ask Mr A a question..."}
+            placeholder={t("tutor.askPlaceholder")}
             rows={1}
             className="resize-none min-h-[44px] max-h-24"
             disabled={isLoading}
