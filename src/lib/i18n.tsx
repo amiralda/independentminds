@@ -112,10 +112,10 @@ const translations: Translations = {
   "no": { EN: "No", HT: "Non", FR: "Non", ES: "No", PT: "Não", AR: "لا", ZH: "否", DE: "Nein", JA: "いいえ", RU: "Нет" },
 
   // Blocks & Scores
-  "blocks.done": { EN: "Blocks Done", HT: "Blòk Fini" },
-  "rating": { EN: "How did it go? (1-5)", HT: "Kijan sa te ale? (1-5)" },
-  "score": { EN: "T4L Score (optional)", HT: "Nòt T4L (opsyonèl)" },
-  "notes": { EN: "Notes (optional)", HT: "Nòt (opsyonèl)" },
+  "blocks.done": { EN: "Blocks Done", HT: "Blòk Fini", FR: "Blocs terminés", ES: "Bloques hechos", PT: "Blocos feitos", AR: "الكتل المنجزة", ZH: "已完成区块", DE: "Erledigte Blöcke", JA: "完了ブロック", RU: "Блоков выполнено" },
+  "rating": { EN: "How did it go? (1-5)", HT: "Kijan sa te ale? (1-5)", FR: "Comment ça s'est passé ? (1-5)", ES: "¿Cómo fue? (1-5)", PT: "Como foi? (1-5)", AR: "كيف سارت الأمور؟ (1-5)", ZH: "进展如何？(1-5)", DE: "Wie lief es? (1-5)", JA: "どうでしたか？(1-5)", RU: "Как прошло? (1-5)" },
+  "score": { EN: "T4L Score (optional)", HT: "Nòt T4L (opsyonèl)", FR: "Score T4L (optionnel)", ES: "Puntuación T4L (opcional)", PT: "Nota T4L (opcional)", AR: "نتيجة T4L (اختياري)", ZH: "T4L分数（可选）", DE: "T4L-Punktzahl (optional)", JA: "T4Lスコア（任意）", RU: "Оценка T4L (необязательно)" },
+  "notes": { EN: "Notes (optional)", HT: "Nòt (opsyonèl)", FR: "Notes (optionnel)", ES: "Notas (opcional)", PT: "Notas (opcional)", AR: "ملاحظات (اختياري)", ZH: "备注（可选）", DE: "Notizen (optional)", JA: "メモ（任意）", RU: "Заметки (необязательно)" },
 
   // Library
   "library.title": { EN: "Learning Resources", HT: "Resous Aprantisaj" },
