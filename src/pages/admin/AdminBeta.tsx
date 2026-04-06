@@ -114,6 +114,23 @@ export default function AdminBeta() {
     fetchAll();
   };
 
+  const sendWelcomeEmails = async () => {
+    const { data, error } = await supabase.functions.invoke('beta-notify', {
+      body: { action: 'welcome_mission' },
+    });
+    if (error) { toast.error('Failed to send welcome emails'); return; }
+    toast.success(`Welcome emails sent to ${data?.sent ?? 0} testers`);
+  };
+
+  const notifyBetaTesters = async () => {
+    if (!confirm('Send update notification to all beta testers?')) return;
+    const { data, error } = await supabase.functions.invoke('beta-notify', {
+      body: { action: 'notify_update' },
+    });
+    if (error) { toast.error('Failed to send notifications'); return; }
+    toast.success(`Update notification sent to ${data?.sent ?? 0} testers`);
+  };
+
   const declineRequest = async (id: string) => {
     await supabase.from('beta_requests')
       .update({ status: 'declined', reviewed_at: new Date().toISOString() })
