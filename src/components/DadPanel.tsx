@@ -206,7 +206,7 @@ export function DadPanel({ onAddStudent, initialTab }: Props) {
               {/* Navigation section */}
               <div className="p-3 space-y-0.5">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-2 py-1.5">
-                  {lang === "HT" ? "Navigasyon" : "Navigation"}
+                  {t("dadpanel.navigation")}
                 </p>
                 {NAV_ITEMS.map(({ key, icon: Icon, label, labelHT }) => (
                   <button
