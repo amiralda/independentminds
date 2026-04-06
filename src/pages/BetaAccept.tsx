@@ -80,7 +80,7 @@ export default function BetaAccept() {
             <p className="text-sm text-muted-foreground">
               Please sign in or create an account to accept this invitation.
             </p>
-            <Link to={`/login?redirect=/beta/accept?token=${token}`}>
+            <Link to={`/login?redirect=${encodeURIComponent(`/beta/accept?token=${token}`)}`}>
               <Button className="w-full">Sign In / Create Account</Button>
             </Link>
           </div>
