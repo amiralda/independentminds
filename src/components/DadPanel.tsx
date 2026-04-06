@@ -254,7 +254,7 @@ export function DadPanel({ onAddStudent, initialTab }: Props) {
             <div className="flex items-center gap-2 px-1">
               <activeNavItem.icon size={16} className="text-primary" />
               <h3 className="font-display font-semibold text-base">
-                {lang === "HT" ? activeNavItem.labelHT : activeNavItem.label}
+                {t(activeNavItem.labelKey)}
               </h3>
             </div>
           )}
