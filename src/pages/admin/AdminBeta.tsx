@@ -12,7 +12,7 @@ import { AdminInvitePanel } from '@/components/beta/AdminInvitePanel';
 import { toast } from 'sonner';
 import {
   Users, CheckCircle, MessageSquare, BarChart3,
-  Bug, Activity, Plus, Copy, RotateCcw, XCircle, AlertTriangle,
+  Bug, Activity, Plus, Copy, RotateCcw, XCircle, AlertTriangle, Bell, Mail,
 } from 'lucide-react';
 import { useAutoRefresh } from '@/hooks/useAutoRefresh';
 
