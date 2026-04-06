@@ -34,13 +34,13 @@ const ALLOWED_TYPES = [
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
 ];
 
-const SUBJECT_MODES: { key: SubjectMode; icon: React.ElementType; en: string; ht: string; color: string }[] = [
-  { key: "general", icon: Sparkles, en: "All Subjects", ht: "Tout Matyè", color: "bg-primary/10 text-primary" },
-  { key: "math", icon: Calculator, en: "Math", ht: "Matematik", color: "bg-accent/10 text-accent" },
-  { key: "science", icon: FlaskConical, en: "Science", ht: "Syans", color: "bg-success/10 text-success" },
-  { key: "english", icon: BookOpen, en: "English", ht: "Angle", color: "bg-info/10 text-info" },
-  { key: "social", icon: Globe2, en: "Social Studies", ht: "Etid Sosyal", color: "bg-warning/10 text-warning" },
-  { key: "esl", icon: Languages, en: "ESL", ht: "ESL", color: "bg-secondary/10 text-secondary" },
+const SUBJECT_MODES: { key: SubjectMode; icon: React.ElementType; labelKey: string; color: string }[] = [
+  { key: "general", icon: Sparkles, labelKey: "tutor.allSubjects", color: "bg-primary/10 text-primary" },
+  { key: "math", icon: Calculator, labelKey: "tutor.math", color: "bg-accent/10 text-accent" },
+  { key: "science", icon: FlaskConical, labelKey: "tutor.science", color: "bg-success/10 text-success" },
+  { key: "english", icon: BookOpen, labelKey: "tutor.english", color: "bg-info/10 text-info" },
+  { key: "social", icon: Globe2, labelKey: "tutor.social", color: "bg-warning/10 text-warning" },
+  { key: "esl", icon: Languages, labelKey: "tutor.esl", color: "bg-secondary/10 text-secondary" },
 ];
 
 const quickPromptsByMode: Record<SubjectMode, { en: string; ht: string; emoji: string }[]> = {
@@ -238,7 +238,7 @@ export function TutorChat() {
         const err = await resp.json().catch(() => ({ error: "Unknown error" }));
         if (resp.status === 429) {
           const resetAt = err.reset_at || "";
-          const msg = lang === "HT" ? (err.message_ht || "Ou rive limit èdtan ou pou Mr A.") : (err.message || "Hourly limit reached for Mr A.");
+          const msg = err.message || t("tutor.rateLimitReached");
           setRateLimitInfo({ resetAt, message: msg });
         } else if (resp.status === 402) {
           toast.error("AI usage limit reached.");
@@ -340,7 +340,7 @@ export function TutorChat() {
               }`}
             >
               <Icon size={12} />
-              {lang === "HT" ? mode.ht : mode.en}
+              {t(mode.labelKey)}
             </button>
           );
         })}
@@ -476,7 +476,7 @@ export function TutorChat() {
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={lang === "HT" ? "Ekri kesyon ou pou Mr A..." : "Ask Mr A a question..."}
+            placeholder={t("tutor.askPlaceholder")}
             rows={1}
             className="resize-none min-h-[44px] max-h-24"
             disabled={isLoading}

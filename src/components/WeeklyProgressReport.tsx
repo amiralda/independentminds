@@ -38,7 +38,7 @@ function getWeekRange(offset: number) {
 }
 
 export function WeeklyProgressReport({ studentId }: { studentId: string }) {
-  const { lang } = useI18n();
+  const { lang, t } = useI18n();
   const [weekOffset, setWeekOffset] = useState(0);
   const [sending, setSending] = useState(false);
   const week = getWeekRange(weekOffset);
@@ -192,7 +192,7 @@ export function WeeklyProgressReport({ studentId }: { studentId: string }) {
     doc.text("Independent Minds EDU", 14, 16);
     doc.setFontSize(11);
     doc.setFont("helvetica", "normal");
-    doc.text(lang === "HT" ? "Rapò Semèn" : "Weekly Progress Report", 14, 24);
+    doc.text(t("report.weeklyReport"), 14, 24);
 
     // Gold accent line
     doc.setDrawColor(...gold);
@@ -203,19 +203,19 @@ export function WeeklyProgressReport({ studentId }: { studentId: string }) {
     doc.setTextColor(26, 54, 93);
     doc.setFontSize(13);
     doc.setFont("helvetica", "bold");
-    doc.text(`${lang === "HT" ? "Semèn" : "Week"}: ${week.label}`, 14, y);
+    doc.text(`${t("report.week")}: ${week.label}`, 14, y);
     y += 10;
 
     // Summary stats
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
     const summaryItems = [
-      [`${lang === "HT" ? "Konplete" : "Completion Rate"}`, `${stats.rate}% (${stats.done}/${stats.total})`],
-      [`${lang === "HT" ? "Konsekitif" : "Streak"}`, `${stats.streak} ${lang === "HT" ? "jou" : "days"}`],
-      [`${lang === "HT" ? "Pwen" : "Points Earned"}`, `${pointsEarned}`],
-      [`${lang === "HT" ? "Badj" : "Badges"}`, `${badges.length}`],
+      [t("report.completionRate"), `${stats.rate}% (${stats.done}/${stats.total})`],
+      [t("report.streak"), `${stats.streak} ${t("report.days")}`],
+      [t("report.pointsEarned"), `${pointsEarned}`],
+      [t("nav.badges"), `${badges.length}`],
     ];
-    if (stats.avgScore !== null) summaryItems.push([`${lang === "HT" ? "Mwayèn Nòt" : "Avg Score"}`, `${stats.avgScore}%`]);
+    if (stats.avgScore !== null) summaryItems.push([t("report.avgScore"), `${stats.avgScore}%`]);
 
     summaryItems.forEach(([label, value]) => {
       doc.setFont("helvetica", "bold");
@@ -230,12 +230,12 @@ export function WeeklyProgressReport({ studentId }: { studentId: string }) {
     if (stats.subjectData.length > 0) {
       doc.setFont("helvetica", "bold");
       doc.setFontSize(12);
-      doc.text(lang === "HT" ? "Pa Matyè" : "Subject Breakdown", 14, y);
+      doc.text(t("report.subjectBreakdown"), 14, y);
       y += 7;
       doc.setFontSize(10);
       stats.subjectData.forEach(s => {
         doc.setFont("helvetica", "normal");
-        doc.text(`${s.name}: ${s.value} ${lang === "HT" ? "blòk" : "blocks"}`, 20, y);
+        doc.text(`${s.name}: ${s.value} ${t("report.blocks")}`, 20, y);
         y += 6;
       });
       y += 5;
@@ -244,12 +244,12 @@ export function WeeklyProgressReport({ studentId }: { studentId: string }) {
     // Daily breakdown
     doc.setFont("helvetica", "bold");
     doc.setFontSize(12);
-    doc.text(lang === "HT" ? "Chak Jou" : "Daily Breakdown", 14, y);
+    doc.text(t("report.dailyBreakdown"), 14, y);
     y += 7;
     doc.setFontSize(10);
     stats.dailyData.forEach(d => {
       doc.setFont("helvetica", "normal");
-      doc.text(`${d.day}: ${d.done} ${lang === "HT" ? "fini" : "done"}, ${d.missed} ${lang === "HT" ? "manke" : "remaining"}`, 20, y);
+      doc.text(`${d.day}: ${d.done} ${t("report.done")}, ${d.missed} ${t("report.remaining")}`, 20, y);
       y += 6;
     });
 
@@ -290,17 +290,17 @@ export function WeeklyProgressReport({ studentId }: { studentId: string }) {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 gap-3">
-        <SummaryCard icon={TrendingUp} label={lang === "HT" ? "Konplete" : "Completion"} value={`${stats.rate}%`} sub={`${stats.done}/${stats.total}`} color="primary" />
-        <SummaryCard icon={Target} label={lang === "HT" ? "Konsekitif" : "Streak"} value={`${stats.streak}d`} sub={lang === "HT" ? "jou konsekitif" : "day streak"} color="secondary" />
-        <SummaryCard icon={Coins} label={lang === "HT" ? "Pwen" : "Points"} value={`${pointsEarned}`} sub={lang === "HT" ? "pwen genyen" : "earned this week"} color="accent" />
-        <SummaryCard icon={Award} label={lang === "HT" ? "Badj" : "Badges"} value={`${badges.length}`} sub={badges.length > 0 ? badges.map(b => b.name).join(", ") : (lang === "HT" ? "pa gen nouvo" : "none this week")} color="primary" />
+        <SummaryCard icon={TrendingUp} label={t("report.completion")} value={`${stats.rate}%`} sub={`${stats.done}/${stats.total}`} color="primary" />
+        <SummaryCard icon={Target} label={t("report.streak")} value={`${stats.streak}d`} sub={t("report.dayStreak")} color="secondary" />
+        <SummaryCard icon={Coins} label={t("report.pointsEarned")} value={`${pointsEarned}`} sub={t("report.earnedThisWeek")} color="accent" />
+        <SummaryCard icon={Award} label={t("nav.badges")} value={`${badges.length}`} sub={badges.length > 0 ? badges.map(b => b.name).join(", ") : t("report.noneThisWeek")} color="primary" />
       </div>
 
       {/* Daily Completion Chart */}
       <div className="rounded-2xl bg-card border p-4 shadow-sm">
         <h4 className="font-display font-semibold text-sm mb-3 flex items-center gap-2">
           <TrendingUp size={16} className="text-primary" />
-          {lang === "HT" ? "Konplete Chak Jou" : "Daily Completion"}
+          {t("report.dailyCompletion")}
         </h4>
         <ResponsiveContainer width="100%" height={180}>
           <BarChart data={stats.dailyData} barGap={2}>
@@ -308,8 +308,8 @@ export function WeeklyProgressReport({ studentId }: { studentId: string }) {
             <XAxis dataKey="day" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
             <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
             <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px", fontSize: "12px" }} />
-            <Bar dataKey="done" stackId="a" fill="hsl(var(--primary))" radius={[0, 0, 0, 0]} name={lang === "HT" ? "Fini" : "Done"} />
-            <Bar dataKey="missed" stackId="a" fill="hsl(var(--muted))" radius={[4, 4, 0, 0]} name={lang === "HT" ? "Manke" : "Remaining"} />
+            <Bar dataKey="done" stackId="a" fill="hsl(var(--primary))" radius={[0, 0, 0, 0]} name={t("status.done")} />
+            <Bar dataKey="missed" stackId="a" fill="hsl(var(--muted))" radius={[4, 4, 0, 0]} name={t("report.remaining")} />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -318,7 +318,7 @@ export function WeeklyProgressReport({ studentId }: { studentId: string }) {
       {stats.subjectData.length > 0 && (
         <div className="rounded-2xl bg-card border p-4 shadow-sm">
           <h4 className="font-display font-semibold text-sm mb-3">
-            {lang === "HT" ? "Pa Matyè" : "By Subject"}
+            {t("report.bySubject")}
           </h4>
           <div className="flex items-center gap-4">
             <ResponsiveContainer width="50%" height={160}>
@@ -349,7 +349,7 @@ export function WeeklyProgressReport({ studentId }: { studentId: string }) {
         <div className="rounded-2xl bg-card border p-4 shadow-sm">
           <h4 className="font-display font-semibold text-sm mb-3 flex items-center gap-2">
             <Smile size={16} className="text-secondary" />
-            {lang === "HT" ? "Imè & Konsantrasyon" : "Mood & Focus Trend"}
+            {t("report.moodFocus")}
           </h4>
           <ResponsiveContainer width="100%" height={150}>
             <LineChart data={stats.moodTrend}>
@@ -358,8 +358,8 @@ export function WeeklyProgressReport({ studentId }: { studentId: string }) {
               <YAxis domain={[1, 5]} ticks={[1, 2, 3, 4, 5]} tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
               <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px", fontSize: "12px" }} />
               <Legend wrapperStyle={{ fontSize: "11px" }} />
-              <Line type="monotone" dataKey="mood" stroke="hsl(var(--secondary))" strokeWidth={2} dot={{ r: 3 }} name={lang === "HT" ? "Imè" : "Mood"} />
-              <Line type="monotone" dataKey="focus" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3 }} name={lang === "HT" ? "Konsantrasyon" : "Focus"} />
+              <Line type="monotone" dataKey="mood" stroke="hsl(var(--secondary))" strokeWidth={2} dot={{ r: 3 }} name={t("report.mood")} />
+              <Line type="monotone" dataKey="focus" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3 }} name={t("report.focus")} />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -368,7 +368,7 @@ export function WeeklyProgressReport({ studentId }: { studentId: string }) {
       {/* Avg Score */}
       {stats.avgScore !== null && (
         <div className="rounded-xl bg-primary/5 border border-primary/20 p-4 text-center">
-          <p className="text-xs text-muted-foreground mb-1">{lang === "HT" ? "Mwayèn Nòt" : "Average Score"}</p>
+          <p className="text-xs text-muted-foreground mb-1">{t("report.avgScore")}</p>
           <p className="font-display text-3xl font-bold text-primary">{stats.avgScore}%</p>
         </div>
       )}
@@ -377,15 +377,13 @@ export function WeeklyProgressReport({ studentId }: { studentId: string }) {
       <div className="flex gap-2">
         <Button onClick={handleSend} disabled={sending} className="flex-1 font-display">
           <Send size={16} className="mr-2" />
-          {sending
-            ? (lang === "HT" ? "Ap voye..." : "Sending...")
-            : (lang === "HT" ? "Voye Rapò" : "Send Report")}
+          {sending ? t("report.sending") : t("report.sendReport")}
         </Button>
         <Button
           variant="outline"
           className="font-display"
           onClick={() => handleDownloadPdf()}
-          aria-label={lang === "HT" ? "Telechaje Rapò PDF" : "Download Report PDF"}
+          aria-label={t("report.downloadPdf")}
         >
           <Download size={16} className="mr-2" />
           PDF
