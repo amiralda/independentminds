@@ -192,7 +192,7 @@ export function WeeklyProgressReport({ studentId }: { studentId: string }) {
     doc.text("Independent Minds EDU", 14, 16);
     doc.setFontSize(11);
     doc.setFont("helvetica", "normal");
-    doc.text(lang === "HT" ? "Rapò Semèn" : "Weekly Progress Report", 14, 24);
+    doc.text(t("report.weeklyReport"), 14, 24);
 
     // Gold accent line
     doc.setDrawColor(...gold);
@@ -203,19 +203,19 @@ export function WeeklyProgressReport({ studentId }: { studentId: string }) {
     doc.setTextColor(26, 54, 93);
     doc.setFontSize(13);
     doc.setFont("helvetica", "bold");
-    doc.text(`${lang === "HT" ? "Semèn" : "Week"}: ${week.label}`, 14, y);
+    doc.text(`${t("report.week")}: ${week.label}`, 14, y);
     y += 10;
 
     // Summary stats
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
     const summaryItems = [
-      [`${lang === "HT" ? "Konplete" : "Completion Rate"}`, `${stats.rate}% (${stats.done}/${stats.total})`],
-      [`${lang === "HT" ? "Konsekitif" : "Streak"}`, `${stats.streak} ${lang === "HT" ? "jou" : "days"}`],
-      [`${lang === "HT" ? "Pwen" : "Points Earned"}`, `${pointsEarned}`],
-      [`${lang === "HT" ? "Badj" : "Badges"}`, `${badges.length}`],
+      [t("report.completionRate"), `${stats.rate}% (${stats.done}/${stats.total})`],
+      [t("report.streak"), `${stats.streak} ${t("report.days")}`],
+      [t("report.pointsEarned"), `${pointsEarned}`],
+      [t("nav.badges"), `${badges.length}`],
     ];
-    if (stats.avgScore !== null) summaryItems.push([`${lang === "HT" ? "Mwayèn Nòt" : "Avg Score"}`, `${stats.avgScore}%`]);
+    if (stats.avgScore !== null) summaryItems.push([t("report.avgScore"), `${stats.avgScore}%`]);
 
     summaryItems.forEach(([label, value]) => {
       doc.setFont("helvetica", "bold");
@@ -230,12 +230,12 @@ export function WeeklyProgressReport({ studentId }: { studentId: string }) {
     if (stats.subjectData.length > 0) {
       doc.setFont("helvetica", "bold");
       doc.setFontSize(12);
-      doc.text(lang === "HT" ? "Pa Matyè" : "Subject Breakdown", 14, y);
+      doc.text(t("report.subjectBreakdown"), 14, y);
       y += 7;
       doc.setFontSize(10);
       stats.subjectData.forEach(s => {
         doc.setFont("helvetica", "normal");
-        doc.text(`${s.name}: ${s.value} ${lang === "HT" ? "blòk" : "blocks"}`, 20, y);
+        doc.text(`${s.name}: ${s.value} ${t("report.blocks")}`, 20, y);
         y += 6;
       });
       y += 5;
@@ -244,12 +244,12 @@ export function WeeklyProgressReport({ studentId }: { studentId: string }) {
     // Daily breakdown
     doc.setFont("helvetica", "bold");
     doc.setFontSize(12);
-    doc.text(lang === "HT" ? "Chak Jou" : "Daily Breakdown", 14, y);
+    doc.text(t("report.dailyBreakdown"), 14, y);
     y += 7;
     doc.setFontSize(10);
     stats.dailyData.forEach(d => {
       doc.setFont("helvetica", "normal");
-      doc.text(`${d.day}: ${d.done} ${lang === "HT" ? "fini" : "done"}, ${d.missed} ${lang === "HT" ? "manke" : "remaining"}`, 20, y);
+      doc.text(`${d.day}: ${d.done} ${t("report.done")}, ${d.missed} ${t("report.remaining")}`, 20, y);
       y += 6;
     });
 

@@ -49,7 +49,7 @@ export function AddStudentQuickCreate({ open, onClose, onBack }: Props) {
   const appUrl = window.location.origin;
   const parentName = user?.user_metadata?.display_name || user?.email || "Parent";
 
-  const shareMessage = lang === "ht"  // force EN for now
+  const shareMessage = lang === "HT"
     ? `Bonjou! Mwen enskri ${name} nan platfòm Independent Minds EDU.\n\nEnfòmasyon elèv:\n• Non: ${name}\n• ID: ${studentId.toUpperCase()}\n• Klas: Grade ${grade}\n\nPou konplete pwofil elèv la, silvouplè konekte nan:\n${appUrl}\n\nMèsi!\n— ${parentName}`
     : `Hello! I have enrolled ${name} on the Independent Minds EDU platform.\n\nStudent Information:\n• Name: ${name}\n• ID: ${studentId.toUpperCase()}\n• Grade: Grade ${grade}\n\nTo complete the student profile, please sign in at:\n${appUrl}\n\nThank you!\n— ${parentName}`;
 
