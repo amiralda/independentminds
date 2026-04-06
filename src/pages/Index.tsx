@@ -68,6 +68,7 @@ const Index = () => {
       const { count } = await supabase
         .from("inbox_messages")
         .select("*", { count: "exact", head: true })
+        .eq("parent_id", user?.id)
         .eq("is_read", false);
       const newCount = count || 0;
 
