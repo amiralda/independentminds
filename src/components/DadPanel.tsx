@@ -91,6 +91,18 @@ export function DadPanel({ onAddStudent, initialTab }: Props) {
     if (initialTab) setActiveTab(initialTab);
   }, [initialTab]);
 
+  // Listen for beta task navigation events
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const tab = (e as CustomEvent).detail?.tab;
+      if (tab && NAV_ITEMS.some((n) => n.key === tab)) {
+        setActiveTab(tab as DadTab);
+      }
+    };
+    window.addEventListener('beta-navigate-tab', handler);
+    return () => window.removeEventListener('beta-navigate-tab', handler);
+  }, []);
+
   const selectedStudent = students.find(s => s.student_id === selectedStudentId);
   const activeNavItem = NAV_ITEMS.find(n => n.key === activeTab);
 
