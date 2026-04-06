@@ -117,181 +117,135 @@ export function BetaMissionBanner() {
 
   if (!tester || tasks.length === 0) return null;
 
+  const remaining = total - completed;
+
   return (
     <div className="w-full mb-4" data-beta-banner>
       <div
-        className="rounded-xl overflow-hidden"
+        className="overflow-hidden"
         style={{
           background: allComplete
             ? 'linear-gradient(135deg, #BA7517, #D4A030, #BA7517)'
             : '#1A365D',
+          borderRadius: '10px',
+          padding: '8px 16px',
         }}
       >
-        <div className="px-3 py-2.5 sm:px-4 sm:py-3">
-          {/* Single compact row — desktop */}
-          <div className="hidden sm:flex items-center gap-3">
-            {/* Left: badges */}
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <span
-                className="inline-block px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider text-white"
-                style={{ background: '#1D9E75' }}
-              >
-                {t('beta.mission_banner.title')}
-              </span>
-              <span
-                className="text-[10px] font-medium text-white/70"
-              >
-                L{currentLevel.level}
-              </span>
-              <span className="inline-flex items-center gap-0.5 text-[10px] font-bold" style={{ color: '#FBBF24' }}>
-                <Star size={10} fill="currentColor" /> {points}
-              </span>
-            </div>
+        <div className="flex flex-col" style={{ gap: '6px' }}>
+          {/* ROW 1: pill + dots + Start */}
+          <div className="flex items-center gap-2">
+            <span
+              className="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider flex-shrink-0"
+              style={{ background: '#1D9E75', color: '#085041' }}
+            >
+              {t('beta.mission_banner.title')}
+            </span>
 
-            {/* Center: task dots + progress bar */}
-            <div className="flex-1 min-w-0 space-y-1">
-              {/* Task dots */}
-              <div className="flex items-center gap-1 overflow-hidden">
-                {tasks.map((task, i) => {
-                  const isDone = completedIds.has(task.id);
-                  const isNext = nextTask?.id === task.id;
-                  return (
-                    <div
-                      key={task.id}
-                      className={`w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold flex-shrink-0 ${
-                        isNext ? 'beta-dot-pulse' : ''
-                      }`}
-                      style={{
-                        background: isDone
-                          ? '#1D9E75'
-                          : isNext
-                          ? '#BA7517'
-                          : 'rgba(255,255,255,0.15)',
-                        color:
-                          isDone || isNext
-                            ? 'white'
-                            : 'rgba(255,255,255,0.35)',
-                      }}
-                      title={t(task.title_key)}
-                    >
-                      {isDone ? <Check size={9} strokeWidth={3} /> : i + 1}
-                    </div>
-                  );
-                })}
-              </div>
-              {/* Slim progress bar */}
-              {!allComplete && (
-                <div
-                  className="relative h-1.5 rounded-full overflow-hidden"
-                  style={{ background: 'rgba(255,255,255,0.12)' }}
-                >
+            {/* Task dots */}
+            <div className="flex items-center gap-1 flex-1 min-w-0 flex-wrap">
+              {tasks.map((task, i) => {
+                const isDone = completedIds.has(task.id);
+                const isNext = nextTask?.id === task.id;
+                return (
                   <div
-                    className="h-full rounded-full transition-all duration-700"
+                    key={task.id}
+                    className={`rounded-full flex items-center justify-center text-[7px] font-bold flex-shrink-0 ${
+                      isNext ? 'beta-dot-pulse' : ''
+                    }`}
                     style={{
-                      width: `${percent}%`,
-                      background:
-                        'linear-gradient(90deg, #1D9E75, #5DCAA5)',
+                      width: '14px',
+                      height: '14px',
+                      background: isDone
+                        ? '#1D9E75'
+                        : isNext
+                        ? '#BA7517'
+                        : 'rgba(255,255,255,0.2)',
+                      color:
+                        isDone || isNext
+                          ? 'white'
+                          : 'rgba(255,255,255,0.35)',
                     }}
-                  />
-                </div>
-              )}
+                    title={t(task.title_key)}
+                  >
+                    {isDone ? <Check size={7} strokeWidth={3} /> : i + 1}
+                  </div>
+                );
+              })}
             </div>
 
-            {/* Right: next task CTA or completion */}
-            <div className="flex items-center gap-2 flex-shrink-0">
+            {/* Start / Feedback button */}
+            <div className="flex-shrink-0">
               {allComplete ? (
                 <button
                   onClick={() => setShowFeedback(true)}
-                  className="flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold transition-colors"
-                  style={{ background: '#1D9E75', color: 'white' }}
+                  className="flex items-center gap-1 text-[11px] font-bold transition-colors"
+                  style={{
+                    background: '#1D9E75',
+                    color: 'white',
+                    borderRadius: '6px',
+                    padding: '4px 10px',
+                  }}
                 >
                   🎉 {t('beta.mission_banner.submit_feedback')}
                 </button>
               ) : nextTask ? (
-                <>
-                  <span className="text-[10px] text-white/60 truncate max-w-[140px]">
-                    {t('beta.mission_banner.next_up')}: {t(nextTask.title_key)}
-                  </span>
-                  <button
-                    onClick={() => navigateToTask(nextTask.title_key)}
-                    className="flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold flex-shrink-0 transition-colors"
-                    style={{ background: '#BA7517', color: 'white' }}
-                  >
-                    {t('beta.mission_banner.start_button')}{' '}
-                    <ArrowRight size={10} />
-                  </button>
-                </>
+                <button
+                  onClick={() => navigateToTask(nextTask.title_key)}
+                  className="flex items-center gap-1 text-[11px] font-bold flex-shrink-0 transition-colors"
+                  style={{
+                    background: '#BA7517',
+                    color: 'white',
+                    borderRadius: '6px',
+                    padding: '4px 10px',
+                  }}
+                >
+                  {t('beta.mission_banner.start_button')}{' '}
+                  <ArrowRight size={10} />
+                </button>
               ) : null}
             </div>
           </div>
 
-          {/* Mobile: 2-row layout */}
-          <div className="sm:hidden space-y-2">
-            {/* Row 1: badges + points */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span
-                  className="inline-block px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider text-white"
-                  style={{ background: '#1D9E75' }}
-                >
-                  {t('beta.mission_banner.title')}
-                </span>
-                <span className="text-[10px] font-medium text-white/70">
-                  L{currentLevel.level}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-0.5 text-[10px] font-bold" style={{ color: '#FBBF24' }}>
-                  <Star size={10} fill="currentColor" /> {points}
-                </span>
-                <span className="text-[10px] text-white/50">
-                  {completed}/{total}
-                </span>
-              </div>
+          {/* ROW 2: stats + progress bar */}
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 flex-shrink-0 text-[10px]">
+              <span
+                className="inline-flex items-center gap-0.5 font-bold"
+                style={{ color: '#FAC775' }}
+              >
+                <Star size={9} fill="currentColor" /> {points} pts
+              </span>
+              <span style={{ color: 'rgba(255,255,255,0.3)' }}>|</span>
+              <span style={{ color: '#9FE1CB' }}>
+                Level {currentLevel.level} — {t(`beta.${currentLevel.name}`)}
+              </span>
+              <span style={{ color: 'rgba(255,255,255,0.3)' }}>|</span>
+              <span style={{ color: '#9FE1CB' }}>
+                {remaining} {t('beta.mission_banner.tasks_left')}
+              </span>
             </div>
 
-            {/* Row 2: progress bar + CTA */}
-            <div className="flex items-center gap-2">
-              <div className="flex-1">
-                {!allComplete ? (
-                  <div
-                    className="relative h-1.5 rounded-full overflow-hidden"
-                    style={{ background: 'rgba(255,255,255,0.12)' }}
-                  >
-                    <div
-                      className="h-full rounded-full transition-all duration-700"
-                      style={{
-                        width: `${percent}%`,
-                        background:
-                          'linear-gradient(90deg, #1D9E75, #5DCAA5)',
-                      }}
-                    />
-                  </div>
-                ) : (
-                  <span className="text-[10px] text-white font-bold">
-                    🎉 {t('beta.mission_banner.all_complete')}
-                  </span>
-                )}
+            {/* Slim progress bar */}
+            {!allComplete && (
+              <div
+                className="flex-1 min-w-0 overflow-hidden"
+                style={{
+                  height: '4px',
+                  borderRadius: '99px',
+                  background: 'rgba(255,255,255,0.15)',
+                }}
+              >
+                <div
+                  style={{
+                    width: `${percent}%`,
+                    height: '100%',
+                    borderRadius: '99px',
+                    background: '#1D9E75',
+                    transition: 'width 0.7s ease',
+                  }}
+                />
               </div>
-              {allComplete ? (
-                <button
-                  onClick={() => setShowFeedback(true)}
-                  className="px-2 py-1 rounded-md text-[10px] font-bold"
-                  style={{ background: '#1D9E75', color: 'white' }}
-                >
-                  {t('beta.mission_banner.submit_feedback')}
-                </button>
-              ) : nextTask ? (
-                <button
-                  onClick={() => navigateToTask(nextTask.title_key)}
-                  className="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold flex-shrink-0"
-                  style={{ background: '#BA7517', color: 'white' }}
-                >
-                  {t('beta.mission_banner.start_button')}{' '}
-                  <ArrowRight size={9} />
-                </button>
-              ) : null}
-            </div>
+            )}
           </div>
         </div>
       </div>
