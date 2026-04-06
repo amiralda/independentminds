@@ -34,13 +34,13 @@ const ALLOWED_TYPES = [
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
 ];
 
-const SUBJECT_MODES: { key: SubjectMode; icon: React.ElementType; en: string; ht: string; color: string }[] = [
-  { key: "general", icon: Sparkles, en: "All Subjects", ht: "Tout Matyè", color: "bg-primary/10 text-primary" },
-  { key: "math", icon: Calculator, en: "Math", ht: "Matematik", color: "bg-accent/10 text-accent" },
-  { key: "science", icon: FlaskConical, en: "Science", ht: "Syans", color: "bg-success/10 text-success" },
-  { key: "english", icon: BookOpen, en: "English", ht: "Angle", color: "bg-info/10 text-info" },
-  { key: "social", icon: Globe2, en: "Social Studies", ht: "Etid Sosyal", color: "bg-warning/10 text-warning" },
-  { key: "esl", icon: Languages, en: "ESL", ht: "ESL", color: "bg-secondary/10 text-secondary" },
+const SUBJECT_MODES: { key: SubjectMode; icon: React.ElementType; labelKey: string; color: string }[] = [
+  { key: "general", icon: Sparkles, labelKey: "tutor.allSubjects", color: "bg-primary/10 text-primary" },
+  { key: "math", icon: Calculator, labelKey: "tutor.math", color: "bg-accent/10 text-accent" },
+  { key: "science", icon: FlaskConical, labelKey: "tutor.science", color: "bg-success/10 text-success" },
+  { key: "english", icon: BookOpen, labelKey: "tutor.english", color: "bg-info/10 text-info" },
+  { key: "social", icon: Globe2, labelKey: "tutor.social", color: "bg-warning/10 text-warning" },
+  { key: "esl", icon: Languages, labelKey: "tutor.esl", color: "bg-secondary/10 text-secondary" },
 ];
 
 const quickPromptsByMode: Record<SubjectMode, { en: string; ht: string; emoji: string }[]> = {
