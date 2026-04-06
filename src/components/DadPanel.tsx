@@ -59,24 +59,23 @@ type DadTab = "activity" | "profile" | "progress" | "schedule" | "tracks" | "too
 interface NavItem {
   key: DadTab;
   icon: React.ElementType;
-  label: string;
-  labelHT: string;
+  labelKey: string;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { key: "activity", icon: Activity, label: "Feed", labelHT: "Aktivite" },
-  { key: "profile", icon: UserCircle, label: "Profile", labelHT: "Pwofil" },
-  { key: "progress", icon: BarChart3, label: "Today", labelHT: "Jodi a" },
-  { key: "schedule", icon: Calendar, label: "Schedule", labelHT: "Orè" },
-  { key: "tracks", icon: Settings, label: "Tracks", labelHT: "Matyè" },
-  { key: "tools", icon: Wrench, label: "Tools", labelHT: "Zouti" },
-  { key: "tutor", icon: Bot, label: "Mr A", labelHT: "Mr A" },
-  { key: "curriculum", icon: BookOpen, label: "Curriculum", labelHT: "Pwogram" },
-  { key: "weekly", icon: ClipboardList, label: "Weekly", labelHT: "Semèn" },
-  { key: "certificates", icon: Award, label: "Certificates", labelHT: "Sètifika" },
-  { key: "records", icon: FileText, label: "Records", labelHT: "Dosye" },
-  { key: "rewards", icon: Coins, label: "Rewards", labelHT: "Rekonpans" },
-  { key: "inbox", icon: Inbox, label: "Inbox", labelHT: "Bwat mesaj" },
+  { key: "activity", icon: Activity, labelKey: "nav.feed" },
+  { key: "profile", icon: UserCircle, labelKey: "role.parent" },
+  { key: "progress", icon: BarChart3, labelKey: "nav.progress" },
+  { key: "schedule", icon: Calendar, labelKey: "nav.schedule" },
+  { key: "tracks", icon: Settings, labelKey: "nav.tracks" },
+  { key: "tools", icon: Wrench, labelKey: "nav.library" },
+  { key: "tutor", icon: Bot, labelKey: "nav.telegram" },
+  { key: "curriculum", icon: BookOpen, labelKey: "nav.curriculum" },
+  { key: "weekly", icon: ClipboardList, labelKey: "nav.reports" },
+  { key: "certificates", icon: Award, labelKey: "nav.certificates" },
+  { key: "records", icon: FileText, labelKey: "nav.records" },
+  { key: "rewards", icon: Coins, labelKey: "inbox.rewards" },
+  { key: "inbox", icon: Inbox, labelKey: "nav.inbox" },
 ];
 
 export function DadPanel({ onAddStudent, initialTab }: Props) {
@@ -125,7 +124,7 @@ export function DadPanel({ onAddStudent, initialTab }: Props) {
               {/* Co-Guardians section (above students) */}
               <div className="p-3 space-y-1 border-b">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-2 py-1.5">
-                  {lang === "HT" ? "Ko-gadyen" : "Co-Guardians"}
+                  {t("dadpanel.coGuardians")}
                 </p>
                 <button
                   onClick={() => { setActiveTab("guardians"); setMenuOpen(false); }}
@@ -139,8 +138,8 @@ export function DadPanel({ onAddStudent, initialTab }: Props) {
                     <Shield size={18} className={activeTab === "guardians" ? "text-primary" : "text-muted-foreground"} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm">{lang === "HT" ? "Jere Ko-gadyen" : "Manage Co-Guardians"}</p>
-                    <p className="text-[10px] text-muted-foreground">{lang === "HT" ? "Envite ak pèmisyon" : "Invites & permissions"}</p>
+                    <p className="font-medium text-sm">{t("dadpanel.manageCoGuardians")}</p>
+                    <p className="text-[10px] text-muted-foreground">{t("dadpanel.invitesAndPermissions")}</p>
                   </div>
                   {activeTab === "guardians" && <Check size={16} className="text-primary flex-shrink-0" />}
                 </button>
@@ -149,7 +148,8 @@ export function DadPanel({ onAddStudent, initialTab }: Props) {
               {/* Students section */}
               <div className="p-3 space-y-1 border-b">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-2 py-1.5">
-                  {lang === "HT" ? "Elèv yo" : "Students"}
+                  {t("dadpanel.students")}
+                </p>
                 </p>
                 {students.map(s => (
                   <div key={s.student_id} className="flex items-center gap-1">
@@ -166,7 +166,7 @@ export function DadPanel({ onAddStudent, initialTab }: Props) {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-sm truncate">{s.display_name}</p>
-                        <p className="text-[10px] text-muted-foreground">Grade {s.grade_level}</p>
+                        <p className="text-[10px] text-muted-foreground">{t("student.grade")} {s.grade_level}</p>
                       </div>
                       {selectedStudentId === s.student_id && (
                         <Check size={16} className="text-primary flex-shrink-0" />
@@ -186,7 +186,7 @@ export function DadPanel({ onAddStudent, initialTab }: Props) {
                         } catch {}
                       }}
                       className="p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-accent-foreground transition-colors flex-shrink-0"
-                      title={lang === "HT" ? `Konekte kòm ${s.display_name}` : `Login as ${s.display_name}`}
+                      title={`${t("dadpanel.loginAs")} ${s.display_name}`}
                     >
                       <Eye size={16} />
                     </button>
@@ -206,9 +206,9 @@ export function DadPanel({ onAddStudent, initialTab }: Props) {
               {/* Navigation section */}
               <div className="p-3 space-y-0.5">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-2 py-1.5">
-                  {lang === "HT" ? "Navigasyon" : "Navigation"}
+                  {t("dadpanel.navigation")}
                 </p>
-                {NAV_ITEMS.map(({ key, icon: Icon, label, labelHT }) => (
+                {NAV_ITEMS.map(({ key, icon: Icon, labelKey }) => (
                   <button
                     key={key}
                     onClick={() => { setActiveTab(key); setMenuOpen(false); }}
@@ -219,7 +219,7 @@ export function DadPanel({ onAddStudent, initialTab }: Props) {
                     }`}
                   >
                     <Icon size={16} className={activeTab === key ? "text-primary" : "text-muted-foreground"} />
-                    <span className="flex-1">{lang === "HT" ? labelHT : label}</span>
+                    <span className="flex-1">{t(labelKey)}</span>
                     {activeTab === key && <ChevronRight size={14} className="text-primary" />}
                   </button>
                 ))}
@@ -242,7 +242,7 @@ export function DadPanel({ onAddStudent, initialTab }: Props) {
         <div className="text-center py-12 text-muted-foreground">
           <GraduationCap size={48} className="mx-auto mb-3 text-muted-foreground/50" />
           <p className="font-display text-lg">{t("action.selectStudent")}</p>
-          <p className="text-sm mt-1">{lang === "HT" ? "Tape ☰ pou chwazi yon elèv" : "Tap ☰ to choose a student"}</p>
+          <p className="text-sm mt-1">{t("dadpanel.selectStudent")}</p>
         </div>
       ) : (
         <>
@@ -254,7 +254,7 @@ export function DadPanel({ onAddStudent, initialTab }: Props) {
             <div className="flex items-center gap-2 px-1">
               <activeNavItem.icon size={16} className="text-primary" />
               <h3 className="font-display font-semibold text-base">
-                {lang === "HT" ? activeNavItem.labelHT : activeNavItem.label}
+                {t(activeNavItem.labelKey)}
               </h3>
             </div>
           )}
@@ -266,13 +266,13 @@ export function DadPanel({ onAddStudent, initialTab }: Props) {
               <StudentProfileCard studentId={studentId} />
               <div className="space-y-3">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-1">
-                  {lang === "HT" ? "Notifikasyon" : "Notification Settings"}
+                  {t("dadpanel.notificationSettings")}
                 </p>
                 <TelegramSettings />
               </div>
               <div className="space-y-3">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-1">
-                  {lang === "HT" ? "Paramèt Kont" : "Account Settings"}
+                  {t("dadpanel.accountSettings")}
                 </p>
                 <MfaSettings />
                 <AccountMergeRequest />
