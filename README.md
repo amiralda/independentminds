@@ -1,7 +1,7 @@
 # 🎓 Independent Minds EDU
 
 <!-- Replace OWNER/REPO below once the GitHub repository is connected -->
-![CI](https://github.com/OWNER/REPO/actions/workflows/test.yml/badge.svg?branch=main)
+![CI](https://github.com/amiralda/lek-l-fasil-companion-18/actions/workflows/test.yml/badge.svg?branch=main)
 
 **A Multi-Tenant Academic Management & Milestone Tracking SaaS Platform**
 
