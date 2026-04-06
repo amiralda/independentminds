@@ -74,7 +74,6 @@ jobs:
     name: Database RLS audit (SQL)
     runs-on: ubuntu-latest
     needs: unit-tests
-    environment: db
     steps:
       - name: Check if DB secrets are configured
         id: check-secrets
