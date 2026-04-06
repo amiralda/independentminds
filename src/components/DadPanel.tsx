@@ -148,7 +148,8 @@ export function DadPanel({ onAddStudent, initialTab }: Props) {
               {/* Students section */}
               <div className="p-3 space-y-1 border-b">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-2 py-1.5">
-                  {lang === "HT" ? "Elèv yo" : "Students"}
+                  {t("dadpanel.students")}
+                </p>
                 </p>
                 {students.map(s => (
                   <div key={s.student_id} className="flex items-center gap-1">
