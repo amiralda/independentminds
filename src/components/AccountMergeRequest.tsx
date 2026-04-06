@@ -11,7 +11,7 @@ import { GitMerge, Plus, Clock, CheckCircle, XCircle, AlertTriangle } from "luci
 import { toast } from "sonner";
 
 export function AccountMergeRequest() {
-  const { lang } = useI18n();
+  const { t } = useI18n();
   const { user } = useAuth();
   const qc = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -35,11 +35,11 @@ export function AccountMergeRequest() {
 
   const handleSubmit = async () => {
     if (!user?.email || !sourceEmail.trim()) {
-      toast.error(lang === "HT" ? "Tanpri antre imèl la" : "Please enter the email");
+      toast.error(t("merge.enterEmail"));
       return;
     }
     if (sourceEmail.trim().toLowerCase() === user.email.toLowerCase()) {
-      toast.error(lang === "HT" ? "Pa ka mèje ak menm kont" : "Cannot merge with the same account");
+      toast.error(t("merge.cannotSame"));
       return;
     }
     setSubmitting(true);
@@ -52,10 +52,10 @@ export function AccountMergeRequest() {
     } as any);
     setSubmitting(false);
     if (error) {
-      toast.error(lang === "HT" ? "Echèk soumèt demann" : "Failed to submit request");
+      toast.error(t("merge.submitFailed"));
       return;
     }
-    toast.success(lang === "HT" ? "Demann mèj soumèt! Admin ap revize." : "Merge request submitted! Admin will review.");
+    toast.success(t("merge.submitted"));
     setDialogOpen(false);
     setSourceEmail("");
     setReason("");
@@ -71,10 +71,7 @@ export function AccountMergeRequest() {
   };
 
   const getStatusLabel = (status: string) => {
-    if (lang === "HT") {
-      return status === "approved" ? "Apwouve" : status === "rejected" ? "Rejte" : "An atant";
-    }
-    return status === "approved" ? "Approved" : status === "rejected" ? "Rejected" : "Pending";
+    return status === "approved" ? t("merge.approved") : status === "rejected" ? t("merge.rejected") : t("merge.pending");
   };
 
   return (
@@ -83,33 +80,31 @@ export function AccountMergeRequest() {
         <div className="flex items-center gap-2">
           <GitMerge size={16} className="text-primary" />
           <h3 className="font-display font-semibold text-sm">
-            {lang === "HT" ? "Mèj Kont" : "Merge Accounts"}
+            {t("merge.title")}
           </h3>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button size="sm" variant="outline" className="text-xs font-display">
-              <Plus size={12} className="mr-1" /> {lang === "HT" ? "Demann" : "Request"}
+              <Plus size={12} className="mr-1" /> {t("merge.request")}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle className="font-display">
-                {lang === "HT" ? "Demann Mèj Kont" : "Request Account Merge"}
+                {t("merge.requestTitle")}
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div className="rounded-lg bg-warning/10 border border-warning/20 p-3 flex gap-2">
                 <AlertTriangle size={16} className="text-warning flex-shrink-0 mt-0.5" />
                 <p className="text-xs text-muted-foreground">
-                  {lang === "HT"
-                    ? "Sa a pral voye yon demann bay admin pou transfere tout done elèv soti nan ansyen kont ou ale nan kont aktyèl ou. Ansyen kont la ap dezaktive apre mèj la."
-                    : "This will send a request to the admin to transfer all student data from your old account to your current one. The old account will be deactivated after merge."}
+                  {t("merge.warning")}
                 </p>
               </div>
               <div>
                 <label className="text-sm font-medium">
-                  {lang === "HT" ? "Imèl ansyen kont" : "Old account email"}
+                  {t("merge.oldEmail")}
                 </label>
                 <Input
                   type="email"
@@ -121,18 +116,18 @@ export function AccountMergeRequest() {
               </div>
               <div>
                 <label className="text-sm font-medium">
-                  {lang === "HT" ? "Imèl kont aktyèl" : "Current account email"}
+                  {t("merge.currentEmail")}
                 </label>
                 <Input value={user?.email || ""} disabled className="mt-1 bg-muted" />
               </div>
               <div>
                 <label className="text-sm font-medium">
-                  {lang === "HT" ? "Rezon (opsyonèl)" : "Reason (optional)"}
+                  {t("merge.reasonOptional")}
                 </label>
                 <Textarea
                   value={reason}
                   onChange={e => setReason(e.target.value)}
-                  placeholder={lang === "HT" ? "Eksplike poukisa ou bezwen mèj kont yo" : "Explain why you need to merge accounts"}
+                  placeholder={t("merge.reasonPlaceholder")}
                   className="mt-1"
                   rows={3}
                 />
@@ -140,8 +135,8 @@ export function AccountMergeRequest() {
               <Button onClick={handleSubmit} disabled={submitting || !sourceEmail.trim()} className="w-full font-display">
                 <GitMerge size={14} className="mr-1" />
                 {submitting
-                  ? (lang === "HT" ? "Ap soumèt..." : "Submitting...")
-                  : (lang === "HT" ? "Soumèt Demann" : "Submit Request")}
+                  ? t("merge.submitting")
+                  : t("merge.submitRequest")}
               </Button>
             </div>
           </DialogContent>
@@ -149,9 +144,7 @@ export function AccountMergeRequest() {
       </div>
 
       <p className="text-xs text-muted-foreground">
-        {lang === "HT"
-          ? "Si ou gen de kont, ou ka mande pou mèj yo. Admin ap revize epi apwouve."
-          : "If you have duplicate accounts, request a merge. Admin will review and approve."}
+        {t("merge.duplicateDesc")}
       </p>
 
       {requests.length > 0 && (

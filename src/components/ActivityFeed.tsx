@@ -23,7 +23,7 @@ interface CompletedBlock {
 }
 
 export function ActivityFeed({ studentId }: { studentId: string }) {
-  const { t, lang } = useI18n();
+  const { t } = useI18n();
   const { data: logs = [], isLoading: logsLoading } = useAllActivityLogs(studentId);
   const { data: tracks = [] } = useSubjectTracks(studentId);
   const { undoActivity, overrideActivity } = useTrackMutations(studentId);
@@ -56,12 +56,12 @@ export function ActivityFeed({ studentId }: { studentId: string }) {
   }, {});
 
   const handleUndo = async (log: ActivityLog) => {
-    if (!confirm(lang === "HT" ? "Retire antre aktivite sa a?" : "Remove this activity entry?")) return;
+    if (!confirm(t("activity.removeConfirm"))) return;
     try {
       await undoActivity.mutateAsync(log.id);
-      toast.success(lang === "HT" ? "Antre retire" : "Activity entry removed");
+      toast.success(t("activity.removed"));
     } catch {
-      toast.error(lang === "HT" ? "Echèk" : "Failed to undo");
+      toast.error(t("error.generic"));
     }
   };
 
@@ -73,10 +73,10 @@ export function ActivityFeed({ studentId }: { studentId: string }) {
         status: editStatus,
         score: editScore ? parseInt(editScore) : undefined,
       });
-      toast.success(lang === "HT" ? "Aktivite korije" : "Activity overridden");
+      toast.success(t("activity.overridden"));
       setEditingLog(null);
     } catch {
-      toast.error(lang === "HT" ? "Echèk" : "Failed to override");
+      toast.error(t("error.generic"));
     }
   };
 
@@ -94,7 +94,7 @@ export function ActivityFeed({ studentId }: { studentId: string }) {
   return (
     <div className="space-y-4">
       <h3 className="font-display font-semibold text-lg">
-        {lang === "HT" ? "Aktivite Jodi a" : "Today's Activity Feed"}
+        {t("activity.todayFeed")}
       </h3>
 
       {hasActivityLogs ? (
@@ -110,10 +110,10 @@ export function ActivityFeed({ studentId }: { studentId: string }) {
                 <p className="font-medium text-sm truncate">{trackMap[log.track_id] || "Unknown Track"}</p>
                 <div className="flex gap-2 text-[10px] text-muted-foreground">
                   {log.started_at && (
-                    <span>{lang === "HT" ? "Kòmanse" : "Started"}: {new Date(log.started_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                    <span>{t("activity.started")}: {new Date(log.started_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
                   )}
                   {log.completed_at && (
-                    <span>{lang === "HT" ? "Fini" : "Completed"}: {new Date(log.completed_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                    <span>{t("activity.completed")}: {new Date(log.completed_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
                   )}
                   {log.score != null && <span>Score: {log.score}%</span>}
                 </div>
@@ -144,10 +144,10 @@ export function ActivityFeed({ studentId }: { studentId: string }) {
                 <p className="font-medium text-sm truncate">{block.subject}</p>
                 <div className="flex gap-2 text-[10px] text-muted-foreground">
                   {block.actual_start && (
-                    <span>{lang === "HT" ? "Kòmanse" : "Started"}: {new Date(block.actual_start).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                    <span>{t("activity.started")}: {new Date(block.actual_start).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
                   )}
                   {block.actual_end && (
-                    <span>{lang === "HT" ? "Fini" : "Completed"}: {new Date(block.actual_end).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                    <span>{t("activity.completed")}: {new Date(block.actual_end).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
                   )}
                   {block.self_rating != null && <span>⭐ {block.self_rating}/5</span>}
                   {block.time4learning_score != null && <span>Score: {block.time4learning_score}%</span>}
@@ -163,7 +163,7 @@ export function ActivityFeed({ studentId }: { studentId: string }) {
       ) : (
         <div className="text-center py-12 text-muted-foreground">
           <Clock size={36} className="mx-auto mb-3" />
-          <p className="font-display">{lang === "HT" ? "Pa gen aktivite jodi a" : "No activities logged today"}</p>
+          <p className="font-display">{t("activity.noToday")}</p>
         </div>
       )}
 
@@ -172,7 +172,7 @@ export function ActivityFeed({ studentId }: { studentId: string }) {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="font-display">
-              {lang === "HT" ? "Korije Aktivite" : "Override Activity"}
+              {t("activity.overrideTitle")}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
@@ -192,12 +192,12 @@ export function ActivityFeed({ studentId }: { studentId: string }) {
               </Select>
             </div>
             <div>
-              <label className="text-sm font-medium">Score ({lang === "HT" ? "opsyonèl" : "optional"})</label>
+              <label className="text-sm font-medium">Score ({t("activity.optional")})</label>
               <Input type="number" min={0} max={100} value={editScore}
                 onChange={e => setEditScore(e.target.value)} placeholder="0-100" />
             </div>
             <Button onClick={handleOverride} disabled={overrideActivity.isPending} className="w-full font-display">
-              {overrideActivity.isPending ? (lang === "HT" ? "Ap anrejistre..." : "Saving...") : (lang === "HT" ? "Anrejistre" : "Save Override")}
+              {overrideActivity.isPending ? t("activity.saving") : t("activity.saveOverride")}
             </Button>
           </div>
         </DialogContent>
