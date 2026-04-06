@@ -126,7 +126,7 @@ const Index = () => {
     { key: "badges", icon: Trophy, label: t("nav.badges") },
     { key: "trophies", icon: Award, label: t("nav.trophies") },
     { key: "tutor", icon: Bot, label: "Mr A" },
-    { key: "profile", icon: UserCircle, label: lang === "HT" ? "Pwofil" : "Profile" },
+    { key: "profile", icon: UserCircle, label: t("nav.settings") },
   ];
 
   return (
