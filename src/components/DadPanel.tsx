@@ -208,7 +208,7 @@ export function DadPanel({ onAddStudent, initialTab }: Props) {
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-2 py-1.5">
                   {t("dadpanel.navigation")}
                 </p>
-                {NAV_ITEMS.map(({ key, icon: Icon, label, labelHT }) => (
+                {NAV_ITEMS.map(({ key, icon: Icon, labelKey }) => (
                   <button
                     key={key}
                     onClick={() => { setActiveTab(key); setMenuOpen(false); }}
@@ -219,7 +219,7 @@ export function DadPanel({ onAddStudent, initialTab }: Props) {
                     }`}
                   >
                     <Icon size={16} className={activeTab === key ? "text-primary" : "text-muted-foreground"} />
-                    <span className="flex-1">{lang === "HT" ? labelHT : label}</span>
+                    <span className="flex-1">{t(labelKey)}</span>
                     {activeTab === key && <ChevronRight size={14} className="text-primary" />}
                   </button>
                 ))}
