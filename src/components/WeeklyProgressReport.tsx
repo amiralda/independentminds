@@ -38,7 +38,7 @@ function getWeekRange(offset: number) {
 }
 
 export function WeeklyProgressReport({ studentId }: { studentId: string }) {
-  const { lang } = useI18n();
+  const { lang, t } = useI18n();
   const [weekOffset, setWeekOffset] = useState(0);
   const [sending, setSending] = useState(false);
   const week = getWeekRange(weekOffset);
