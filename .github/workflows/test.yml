@@ -76,19 +76,23 @@ jobs:
     runs-on: ubuntu-latest
     needs: unit-tests
     environment: db
-    env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
     steps:
-      - name: Skip if no database URL configured
-        if: env.DATABASE_URL == ''
+      - name: Check if DB secrets are configured
+        id: check-secrets
         run: |
-          echo "DATABASE_URL not set — skipping DB tests"
-          echo "skip=true" >> "$GITHUB_OUTPUT"
-        id: check
+          if [ -z "${{ secrets.DATABASE_URL }}" ]; then
+            echo "DATABASE_URL not set — skipping DB tests"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/checkout@v4
-        if: steps.check.outputs.skip != 'true'
-      - run: psql "$DATABASE_URL" -f tests/db/rls/full_security_audit.sql
-        if: steps.check.outputs.skip != 'true'
+        if: steps.check-secrets.outputs.skip == 'false'
+      - name: Run SQL security audit
+        if: steps.check-secrets.outputs.skip == 'false'
+        run: psql "$DATABASE_URL" -f tests/db/rls/full_security_audit.sql
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
   summary:
     name: Test summary
