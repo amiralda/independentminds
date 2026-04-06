@@ -1,7 +1,7 @@
 // Trigger: Admin beta requests panel
 // Auth: JWT required, admin role
 // Rate limit: none
-// Side effects: Updates request, creates invite, optionally sends email, tracks referral
+// Side effects: Updates request, creates invite, optionally creates beta_tester, sends email, tracks referral
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -101,11 +101,87 @@ Deno.serve(async (req) => {
       }
     }
 
+    // AUTO-CREATE beta_testers if user already has an account
+    let testerCreated = false;
+    const { data: authUsers } = await db.auth.admin.listUsers();
+    const existingUser = authUsers?.users?.find(
+      (u: any) => u.email?.toLowerCase() === request.email.toLowerCase(),
+    );
+
+    if (existingUser) {
+      // Check if beta_testers row already exists
+      const { data: existingTester } = await db
+        .from('beta_testers')
+        .select('id')
+        .eq('user_id', existingUser.id)
+        .maybeSingle();
+
+      if (!existingTester) {
+        // Insert beta_testers row
+        const { data: newTester } = await db.from('beta_testers').insert({
+          user_id: existingUser.id,
+          tester_type: request.tester_type,
+          current_level: 'Explorer',
+          points_earned: 0,
+          first_login_shown: false,
+          session_count: 0,
+          joined_at: new Date().toISOString(),
+        }).select().single();
+
+        if (newTester) {
+          testerCreated = true;
+
+          // Seed task completions
+          const { data: tasks } = await db
+            .from('beta_tasks')
+            .select('id')
+            .eq('tester_type', request.tester_type);
+
+          if (tasks && tasks.length > 0) {
+            await db.from('beta_task_completions').insert(
+              tasks.map((t: any) => ({
+                tester_id: newTester.id,
+                task_id: t.id,
+                status: 'pending',
+              })),
+            );
+
+            // Update tasks_total
+            await db.from('beta_testers').update({
+              tasks_total: tasks.length,
+            }).eq('id', newTester.id);
+          }
+
+          // Update beta_config counter
+          const { data: currentConfig } = await db
+            .from('beta_config')
+            .select('current_testers')
+            .eq('id', 1)
+            .single();
+          await db.from('beta_config').update({
+            current_testers: (currentConfig?.current_testers ?? 0) + 1,
+          }).eq('id', 1);
+        }
+      }
+    }
+
     // Send email if possible
     const resendKey = Deno.env.get('RESEND_API_KEY');
     if (invite && resendKey) {
       const inviteUrl =
         `https://independentmindsedu.com/beta/accept?token=${invite.token}`;
+
+      // Get user's display name if they exist
+      let displayName = request.name;
+
+      const emailHtml = testerCreated
+        ? buildWelcomeMissionEmail(displayName)
+        : buildInviteEmail(displayName, inviteUrl);
+
+      const subject = testerCreated
+        ? "Your Beta Mission Awaits! 🚀"
+        : "You're approved to test Independent Minds EDU!";
+
       await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
@@ -113,13 +189,10 @@ Deno.serve(async (req) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          from: 'Independent Minds EDU <noreply@independentmindsedu.com>',
+          from: 'Independent Minds EDU <notify@independentmindsedu.com>',
           to: [request.email],
-          subject: "You're approved to test Independent Minds EDU!",
-          html: `<p>Hi ${request.name},</p>
-            <p>Your beta request has been approved!</p>
-            <p><a href="${inviteUrl}">Accept your invitation</a></p>
-            <p>This link expires in 14 days.</p>`,
+          subject,
+          html: emailHtml,
         }),
       });
       await db.from('beta_invite_logs').insert({
@@ -127,7 +200,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    return new Response(JSON.stringify({ success: true }), {
+    return new Response(JSON.stringify({ success: true, testerCreated }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (err: any) {
@@ -137,3 +210,79 @@ Deno.serve(async (req) => {
     });
   }
 });
+
+function buildInviteEmail(name: string, inviteUrl: string): string {
+  return `<p>Hi ${name},</p>
+    <p>Your beta request has been approved!</p>
+    <p><a href="${inviteUrl}">Accept your invitation</a></p>
+    <p>This link expires in 14 days.</p>`;
+}
+
+function buildWelcomeMissionEmail(name: string): string {
+  return `
+  <div style="font-family: -apple-system, sans-serif; max-width: 600px; margin: 0 auto; background: #f8f9fa; padding: 32px;">
+    <div style="background: #1A365D; border-radius: 12px; padding: 24px; color: white; text-align: center;">
+      <h1 style="margin: 0 0 8px; font-size: 24px; font-weight: 600;">Your Beta Mission Awaits! 🚀</h1>
+      <p style="margin: 0; opacity: 0.8; font-size: 14px;">You're one of our first testers. Let's get started.</p>
+    </div>
+
+    <div style="background: white; border-radius: 12px; padding: 24px; margin-top: 16px;">
+      <p style="margin: 0 0 16px; font-size: 16px;">Hi ${name},</p>
+      <p style="margin: 0 0 16px; font-size: 14px; color: #555;">
+        Welcome to the Independent Minds EDU beta! Complete these tasks to earn points and level up:
+      </p>
+
+      <div style="margin: 16px 0;">
+        <p style="font-weight: 600; margin: 0 0 12px; font-size: 14px;">Your Tasks:</p>
+
+        <div style="background: #FFF8E7; border: 1px solid #BA7517; border-radius: 8px; padding: 12px;">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+            <span style="background: #BA7517; color: white; border-radius: 50%; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold;">1</span>
+            <span style="font-size: 13px;">Set up first student — <strong>25 pts</strong></span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+            <span style="background: #BA7517; color: white; border-radius: 50%; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold;">2</span>
+            <span style="font-size: 13px;">Build weekly schedule — <strong>25 pts</strong></span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+            <span style="background: #BA7517; color: white; border-radius: 50%; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold;">3</span>
+            <span style="font-size: 13px;">Connect notifications — <strong>25 pts</strong></span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+            <span style="background: #BA7517; color: white; border-radius: 50%; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold;">4</span>
+            <span style="font-size: 13px;">Create a reward — <strong>25 pts</strong></span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+            <span style="background: #BA7517; color: white; border-radius: 50%; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold;">5</span>
+            <span style="font-size: 13px;">Invite a co-guardian — <strong>25 pts</strong></span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+            <span style="background: #BA7517; color: white; border-radius: 50%; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold;">6</span>
+            <span style="font-size: 13px;">Read one message — <strong>25 pts</strong></span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="background: #BA7517; color: white; border-radius: 50%; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold;">7</span>
+            <span style="font-size: 13px;">Download PDF report — <strong>25 pts</strong></span>
+          </div>
+        </div>
+      </div>
+
+      <div style="background: #f0f4f8; border-radius: 8px; padding: 12px; margin: 16px 0;">
+        <p style="margin: 0; font-size: 12px; color: #666; text-align: center;">
+          <strong>Level Progression:</strong><br/>
+          Explorer (0–50) → Tester (51–200) → Contributor (201–350) → <span style="color: #BA7517;">Champion (350+)</span>
+        </p>
+      </div>
+
+      <div style="text-align: center; margin-top: 24px;">
+        <a href="https://independentmindsedu.com" style="background: #1D9E75; color: white; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; display: inline-block;">
+          Start My Mission →
+        </a>
+      </div>
+    </div>
+
+    <p style="text-align: center; color: #999; font-size: 11px; margin-top: 16px;">
+      Independent Minds EDU — Built with Love by KòdLabo
+    </p>
+  </div>`;
+}
