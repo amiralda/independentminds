@@ -124,7 +124,7 @@ export function DadPanel({ onAddStudent, initialTab }: Props) {
               {/* Co-Guardians section (above students) */}
               <div className="p-3 space-y-1 border-b">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-2 py-1.5">
-                  {lang === "HT" ? "Ko-gadyen" : "Co-Guardians"}
+                  {t("dadpanel.coGuardians")}
                 </p>
                 <button
                   onClick={() => { setActiveTab("guardians"); setMenuOpen(false); }}
@@ -138,8 +138,8 @@ export function DadPanel({ onAddStudent, initialTab }: Props) {
                     <Shield size={18} className={activeTab === "guardians" ? "text-primary" : "text-muted-foreground"} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm">{lang === "HT" ? "Jere Ko-gadyen" : "Manage Co-Guardians"}</p>
-                    <p className="text-[10px] text-muted-foreground">{lang === "HT" ? "Envite ak pèmisyon" : "Invites & permissions"}</p>
+                    <p className="font-medium text-sm">{t("dadpanel.manageCoGuardians")}</p>
+                    <p className="text-[10px] text-muted-foreground">{t("dadpanel.invitesAndPermissions")}</p>
                   </div>
                   {activeTab === "guardians" && <Check size={16} className="text-primary flex-shrink-0" />}
                 </button>
