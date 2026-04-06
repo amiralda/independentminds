@@ -156,7 +156,7 @@ export function ActivityFeed({ studentId }: { studentId: string }) {
               </div>
               <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                 block.status === "Done" ? "bg-success/20 text-success" : "bg-warning/20 text-warning"
-              }`}>{block.status === "Done" ? (lang === "HT" ? "Fini" : "Done") : (lang === "HT" ? "Ap fè" : "In Progress")}</span>
+              }`}>{block.status === "Done" ? t("status.done") : t("activity.inProgress")}</span>
             </div>
           ))}
         </div>
