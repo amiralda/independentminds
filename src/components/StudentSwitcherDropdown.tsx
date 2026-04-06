@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export function StudentSwitcherDropdown() {
-  const { lang } = useI18n();
+  const { t } = useI18n();
   const { students, selectedStudentId, setSelectedStudentId } = useAuth();
 
   const selected = students.find(s => s.student_id === selectedStudentId);
@@ -27,7 +27,7 @@ export function StudentSwitcherDropdown() {
             {selected.display_name}
           </p>
           <p className="text-[10px] text-muted-foreground">
-            {lang === "HT" ? `Klas ${selected.grade_level}` : `Grade ${selected.grade_level}`}
+            {`${t("student.gradeLabel")} ${selected.grade_level}`}
           </p>
         </div>
       </div>
@@ -48,7 +48,7 @@ export function StudentSwitcherDropdown() {
             {selected.display_name}
           </p>
           <p className="text-[10px] text-muted-foreground">
-            {lang === "HT" ? `Klas ${selected.grade_level}` : `Grade ${selected.grade_level}`}
+            {`${t("student.gradeLabel")} ${selected.grade_level}`}
           </p>
         </div>
         <ChevronDown size={14} className="text-muted-foreground flex-shrink-0" />
@@ -68,7 +68,7 @@ export function StudentSwitcherDropdown() {
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium truncate">{s.display_name}</p>
               <p className="text-[10px] text-muted-foreground">
-                {lang === "HT" ? `Klas ${s.grade_level}` : `Grade ${s.grade_level}`}
+                {`${t("student.gradeLabel")} ${s.grade_level}`}
               </p>
             </div>
           </DropdownMenuItem>

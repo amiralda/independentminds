@@ -169,9 +169,9 @@ export function WeeklyProgressReport({ studentId }: { studentId: string }) {
         body: { type: "weekly_summary", student_id: studentId },
       });
       if (error) throw error;
-      toast.success(lang === "HT" ? "Rapò voye nan Telegram! 📬" : "Weekly report sent to Telegram! 📬");
+      toast.success(t("report.sent"));
     } catch {
-      toast.error(lang === "HT" ? "Echèk voye rapò" : "Failed to send report");
+      toast.error(t("report.sendFailed"));
     } finally {
       setSending(false);
     }
@@ -262,7 +262,7 @@ export function WeeklyProgressReport({ studentId }: { studentId: string }) {
     const studentName = studentId.replace(/[^a-zA-Z0-9]/g, "_");
     const weekLabel = week.label.replace(/[^a-zA-Z0-9]/g, "_");
     doc.save(`IME_Report_${studentName}_${weekLabel}.pdf`);
-    toast.success(lang === "HT" ? "PDF telechaje!" : "PDF downloaded!");
+    toast.success(t("report.pdfDownloaded"));
   };
 
   if (blocksLoading) {

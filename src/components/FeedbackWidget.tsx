@@ -78,7 +78,7 @@ export function FeedbackWidget() {
       } as any);
 
       setSubmitted(true);
-      toast.success('Thank you for your feedback!');
+      toast.success(t("feedback.thanksToast"));
       setTimeout(() => {
         setSubmitted(false);
         setOpen(false);
@@ -90,7 +90,7 @@ export function FeedbackWidget() {
         setScreenshotFile(null);
       }, 1500);
     } catch {
-      toast.error('Failed to submit feedback');
+      toast.error(t("feedback.failedSubmit"));
     } finally {
       setSubmitting(false);
     }
@@ -109,7 +109,7 @@ export function FeedbackWidget() {
             onClick={() => setOpen(true)}
             className="fixed bottom-4 right-4 z-40 flex items-center justify-center w-12 h-12 rounded-full shadow-lg transition-opacity hover:opacity-90"
             style={{ backgroundColor: '#1D9E75' }}
-            aria-label="Give feedback"
+            aria-label={t("feedback.giveFeedback")}
           >
             <MessageCircle size={20} className="text-white" />
           </motion.button>
@@ -127,11 +127,11 @@ export function FeedbackWidget() {
             className="fixed bottom-4 right-4 z-50 w-80 rounded-xl border border-border bg-background shadow-2xl"
           >
             <div className="flex items-center justify-between p-3 border-b border-border">
-              <h4 className="text-sm font-medium">Share Feedback</h4>
+              <h4 className="text-sm font-medium">{t("feedback.shareFeedback")}</h4>
               <button
                 onClick={() => setOpen(false)}
                 className="text-muted-foreground hover:text-foreground"
-                aria-label="Close feedback"
+                aria-label={t("feedback.closeFeedback")}
               >
                 <X size={16} />
               </button>
@@ -144,7 +144,7 @@ export function FeedbackWidget() {
                 className="p-6 text-center"
               >
                 <p className="text-sm font-medium" style={{ color: '#1D9E75' }}>
-                  Thank you! 🎉
+                  {t("feedback.thankyou")}
                 </p>
               </motion.div>
             ) : (
@@ -167,7 +167,7 @@ export function FeedbackWidget() {
                 {/* Rating tab */}
                 <TabsContent value="rate" className="space-y-3 mt-3">
                   <p className="text-xs text-muted-foreground text-center">
-                    How is your experience today?
+                    {t("feedback.howIsExperience")}
                   </p>
                   <div className="flex gap-2 justify-center">
                     {EMOJIS.map((e) => (
@@ -186,7 +186,7 @@ export function FeedbackWidget() {
                   <Textarea
                     value={comment}
                     onChange={(e) => setComment(e.target.value.slice(0, 200))}
-                    placeholder="Any comments? (optional)"
+                    placeholder={t("feedback.anyComments")}
                     className="text-sm h-16"
                     maxLength={200}
                   />
@@ -196,19 +196,19 @@ export function FeedbackWidget() {
                     disabled={rating === 0 || submitting}
                     onClick={() => submitFeedback('rating', { rating, message: comment })}
                   >
-                    {submitting ? 'Sending...' : 'Submit'}
+                    {submitting ? t("feedback.sending") : t("feedback.submit")}
                   </Button>
                 </TabsContent>
 
                 {/* Bug report tab */}
                 <TabsContent value="bug" className="space-y-3 mt-3">
                   <p className="text-xs text-muted-foreground text-center">
-                    What went wrong?
+                    {t("feedback.whatWentWrong")}
                   </p>
                   <Textarea
                     value={bugText}
                     onChange={(e) => setBugText(e.target.value.slice(0, 500))}
-                    placeholder="Describe the issue..."
+                    placeholder={t("feedback.describeIssue")}
                     className="text-sm h-20"
                     maxLength={500}
                   />
@@ -225,7 +225,7 @@ export function FeedbackWidget() {
                       className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
                     >
                       <Upload size={12} />
-                      {screenshotFile ? screenshotFile.name.slice(0, 20) : 'Screenshot (optional)'}
+                      {screenshotFile ? screenshotFile.name.slice(0, 20) : t("feedback.screenshotOptional")}
                     </button>
                   </div>
                   <Button
@@ -239,19 +239,19 @@ export function FeedbackWidget() {
                       })
                     }
                   >
-                    {submitting ? 'Sending...' : 'Report Problem'}
+                    {submitting ? t("feedback.sending") : t("feedback.reportProblem")}
                   </Button>
                 </TabsContent>
 
                 {/* Feature request tab */}
                 <TabsContent value="feature" className="space-y-3 mt-3">
                   <p className="text-xs text-muted-foreground text-center">
-                    What would make IME better?
+                    {t("feedback.whatWouldMakeBetter")}
                   </p>
                   <Textarea
                     value={featureText}
                     onChange={(e) => setFeatureText(e.target.value.slice(0, 500))}
-                    placeholder="Your suggestion..."
+                    placeholder={t("feedback.yourSuggestion")}
                     className="text-sm h-20"
                     maxLength={500}
                   />
@@ -275,7 +275,7 @@ export function FeedbackWidget() {
                       })
                     }
                   >
-                    {submitting ? 'Sending...' : 'Send Suggestion'}
+                    {submitting ? t("feedback.sending") : t("feedback.sendSuggestion")}
                   </Button>
                 </TabsContent>
               </Tabs>
