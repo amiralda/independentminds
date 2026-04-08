@@ -51,7 +51,7 @@ export function EducatorDashboard() {
         .in("educator_id", educatorIds);
       
       if (error) throw error;
-      return (data || []) as EducatorStudent[];
+      return (data || []) as unknown as EducatorStudent[];
     },
     enabled: !!user?.id,
   });
@@ -168,7 +168,7 @@ export function EducatorDashboard() {
           {tab === "checkins" && currentAssignment?.can_view_checkins && (
             <CheckInForm studentId={selectedStudentId} onDone={refreshBlocks} />
           )}
-          {tab === "reports" && currentAssignment?.can_view_reports && (
+          {tab === "reports" && currentAssignment?.can_view_reports && selectedStudentId && (
             <ReportsPanel />
           )}
           {tab === "tutor" && currentAssignment?.can_use_ai_tutor && (
