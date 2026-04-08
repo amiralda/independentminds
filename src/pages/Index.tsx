@@ -41,6 +41,7 @@ const Index = () => {
   const { profile, selectedStudentId, viewingAsStudent, setViewingAsStudent, students, user } = useAuth();
   const { isAdmin } = useAdminAuth();
   const { isBetaTester } = useBetaTester();
+  const { roles, activeRole, setActiveRole, hasMultipleRoles } = useRoleSwitcher();
   const [tab, setTab] = useState<StudentTab>("today");
   const [showAddStudent, setShowAddStudent] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
@@ -49,8 +50,10 @@ const Index = () => {
   const [parentTabKey, setParentTabKey] = useState(0);
 
   const actualRole = profile?.role || "student";
+  // Use role switcher's active role if user has multiple roles, otherwise use profile role
+  const effectiveRole = hasMultipleRoles ? activeRole : actualRole;
   // When parent is viewing as student, treat role as "student" for rendering
-  const role = (actualRole === "parent" && viewingAsStudent) ? "student" : actualRole;
+  const role = (effectiveRole === "parent" && viewingAsStudent) ? "student" : effectiveRole;
   const studentId = role === "student" && actualRole === "parent" ? selectedStudentId : (actualRole === "student" ? (profile?.studentId || null) : selectedStudentId);
   const viewingStudent = viewingAsStudent ? students.find(s => s.student_id === selectedStudentId) : null;
   const displayName = viewingAsStudent && viewingStudent ? viewingStudent.display_name : (profile?.username || profile?.displayName || "User");
