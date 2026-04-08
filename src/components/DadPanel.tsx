@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { StudentSwitcherDropdown } from "@/components/StudentSwitcherDropdown";
 import { CoGuardiansPanel } from "@/components/CoGuardiansPanel";
+import { EducatorsPanel } from "@/components/EducatorsPanel";
 import { InboxPanel } from "@/components/InboxPanel";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/contexts/AuthContext";
@@ -54,7 +55,7 @@ interface Props {
   initialTab?: DadTab;
 }
 
-type DadTab = "activity" | "profile" | "progress" | "schedule" | "tracks" | "tools" | "tutor" | "curriculum" | "weekly" | "certificates" | "records" | "rewards" | "guardians" | "inbox";
+type DadTab = "activity" | "profile" | "progress" | "schedule" | "tracks" | "tools" | "tutor" | "curriculum" | "weekly" | "certificates" | "records" | "rewards" | "guardians" | "educators" | "inbox";
 
 interface NavItem {
   key: DadTab;
@@ -75,6 +76,8 @@ const NAV_ITEMS: NavItem[] = [
   { key: "certificates", icon: Award, labelKey: "nav.certificates" },
   { key: "records", icon: FileText, labelKey: "nav.records" },
   { key: "rewards", icon: Coins, labelKey: "inbox.rewards" },
+  { key: "guardians", icon: Shield, labelKey: "guardians.title" },
+  { key: "educators", icon: GraduationCap, labelKey: "educators.title" },
   { key: "inbox", icon: Inbox, labelKey: "nav.inbox" },
 ];
 
@@ -290,6 +293,7 @@ export function DadPanel({ onAddStudent, initialTab }: Props) {
           {activeTab === "records" && <StudentRecords studentId={studentId} />}
           {activeTab === "rewards" && <RewardsManagement studentId={studentId} />}
           {activeTab === "guardians" && <CoGuardiansPanel studentId={studentId} />}
+          {activeTab === "educators" && <EducatorsPanel studentId={studentId} />}
           {activeTab === "inbox" && <InboxPanel />}
           
         </>

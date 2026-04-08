@@ -32,6 +32,7 @@ import AcceptInvite from "./pages/AcceptInvite";
 import BetaRequest from "./pages/BetaRequest";
 import BetaAccept from "./pages/BetaAccept";
 import Unsubscribe from "./pages/Unsubscribe";
+import AcceptEducatorInvite from "./pages/AcceptEducatorInvite";
 
 const queryClient = new QueryClient();
 
@@ -88,6 +89,7 @@ const App = () => (
                 <Route path="/beta" element={<BetaRequest />} />
                 <Route path="/beta/accept" element={<BetaAccept />} />
                 <Route path="/unsubscribe" element={<Unsubscribe />} />
+                <Route path="/accept-educator-invite" element={<AcceptEducatorInvite />} />
                 <Route path="/admin" element={<AuthGuard><AdminLayout /></AuthGuard>}>
                   <Route index element={<AdminOverview />} />
                   <Route path="students" element={<AdminStudents />} />
