@@ -278,6 +278,10 @@ const Index = () => {
             {tab === "tutor" && <TutorChat />}
             {tab === "profile" && studentId && <StudentProfileCard studentId={studentId} />}
           </>
+        ) : role === "educator" ? (
+          <div className="py-4">
+            <EducatorDashboard />
+          </div>
         ) : (
           <div className="py-4">
             <DadPanel onAddStudent={() => setShowAddStudent(true)} initialTab={parentTab as any} key={`dad-${parentTabKey}`} />
