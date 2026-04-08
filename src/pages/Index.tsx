@@ -172,6 +172,9 @@ const Index = () => {
                 )}
               </button>
             )}
+            {hasMultipleRoles && (
+              <RoleSwitcher roles={roles} activeRole={activeRole} onSwitch={setActiveRole} />
+            )}
             <LanguageToggle variant="dark" />
             {isAdmin && (
               <Link
