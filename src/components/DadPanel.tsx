@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { StudentSwitcherDropdown } from "@/components/StudentSwitcherDropdown";
 import { CoGuardiansPanel } from "@/components/CoGuardiansPanel";
+import { EducatorsPanel } from "@/components/EducatorsPanel";
 import { InboxPanel } from "@/components/InboxPanel";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/contexts/AuthContext";
@@ -292,6 +293,7 @@ export function DadPanel({ onAddStudent, initialTab }: Props) {
           {activeTab === "records" && <StudentRecords studentId={studentId} />}
           {activeTab === "rewards" && <RewardsManagement studentId={studentId} />}
           {activeTab === "guardians" && <CoGuardiansPanel studentId={studentId} />}
+          {activeTab === "educators" && <EducatorsPanel studentId={studentId} />}
           {activeTab === "inbox" && <InboxPanel />}
           
         </>
