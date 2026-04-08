@@ -10,10 +10,12 @@ import { ActivityFeed } from "@/components/ActivityFeed";
 import { CheckInForm } from "@/components/CheckInForm";
 import { TutorChat } from "@/components/TutorChat";
 import { ReportsPanel } from "@/components/ReportsPanel";
+import { EducatorGroupsPanel } from "@/components/EducatorGroupsPanel";
+import { EducatorParentInviteButton } from "@/components/EducatorParentInviteButton";
 import { useDailyBlocks, useRefreshBlocks } from "@/hooks/useDailyBlocks";
-import { BookOpen, CheckSquare, BarChart3, Bot, GraduationCap, Activity } from "lucide-react";
+import { BookOpen, CheckSquare, BarChart3, Bot, GraduationCap, Activity, Users } from "lucide-react";
 
-type EducatorTab = "schedule" | "activity" | "checkins" | "reports" | "tutor";
+type EducatorTab = "schedule" | "activity" | "checkins" | "reports" | "tutor" | "groups";
 
 interface EducatorStudent {
   id: string;
@@ -35,7 +37,6 @@ export function EducatorDashboard() {
   const { data: assignments = [], isLoading: loadingAssignments } = useQuery({
     queryKey: ["educator_assignments", user?.id],
     queryFn: async () => {
-      // First get educator record
       const { data: educators } = await supabase
         .from("educators" as any)
         .select("id")
@@ -56,19 +57,21 @@ export function EducatorDashboard() {
     enabled: !!user?.id,
   });
 
-  // Get student display names
-  const { data: studentNames = {} } = useQuery({
-    queryKey: ["educator_student_names", assignments.map(a => a.student_id).join(",")],
+  // Get student display names + parent_id
+  const { data: studentInfo = {} } = useQuery({
+    queryKey: ["educator_student_info", assignments.map(a => a.student_id).join(",")],
     queryFn: async () => {
       if (assignments.length === 0) return {};
       const ids = assignments.map(a => a.student_id);
       const { data } = await supabase
         .from("students")
-        .select("student_id, display_name")
+        .select("student_id, display_name, parent_id")
         .in("student_id", ids);
       
-      const map: Record<string, string> = {};
-      (data || []).forEach((s: any) => { map[s.student_id] = s.display_name; });
+      const map: Record<string, { name: string; parent_id: string | null }> = {};
+      (data || []).forEach((s: any) => {
+        map[s.student_id] = { name: s.display_name, parent_id: s.parent_id };
+      });
       return map;
     },
     enabled: assignments.length > 0,
@@ -91,6 +94,7 @@ export function EducatorDashboard() {
     { key: "checkins", icon: CheckSquare, label: t("nav.checkin") || "Check-ins", visible: currentAssignment?.can_view_checkins !== false },
     { key: "reports", icon: BarChart3, label: t("nav.reports") || "Reports", visible: currentAssignment?.can_view_reports !== false },
     { key: "tutor", icon: Bot, label: "Mr A", visible: currentAssignment?.can_use_ai_tutor === true },
+    { key: "groups", icon: Users, label: t("educators.groups") || "Groups", visible: true },
   ];
 
   if (loadingAssignments) {
@@ -106,7 +110,9 @@ export function EducatorDashboard() {
     return (
       <div className="py-12 text-center space-y-3">
         <GraduationCap size={48} className="mx-auto text-muted-foreground" />
-        <h2 className="font-display text-xl font-semibold">{t("educators.noStudentsAssigned") || "No Students Assigned"}</h2>
+        <h2 className="font-display text-xl font-semibold">
+          {t("educators.noStudentsAssigned") || "No Students Assigned"}
+        </h2>
         <p className="text-muted-foreground text-sm">
           {t("educators.waitForInvite") || "You'll see students here once a parent assigns you."}
         </p>
@@ -126,11 +132,19 @@ export function EducatorDashboard() {
           <SelectContent>
             {assignments.map(a => (
               <SelectItem key={a.student_id} value={a.student_id}>
-                {studentNames[a.student_id] || a.student_id}
+                {studentInfo[a.student_id]?.name || a.student_id}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
+
+        {/* Invite Parent button if student has no parent */}
+        {selectedStudentId && studentInfo[selectedStudentId] && !studentInfo[selectedStudentId].parent_id && (
+          <EducatorParentInviteButton
+            studentId={selectedStudentId}
+            studentName={studentInfo[selectedStudentId].name || selectedStudentId}
+          />
+        )}
       </div>
 
       {/* Tab navigation */}
@@ -152,7 +166,9 @@ export function EducatorDashboard() {
       </div>
 
       {/* Tab content */}
-      {selectedStudentId && (
+      {tab === "groups" ? (
+        <EducatorGroupsPanel />
+      ) : selectedStudentId && (
         <div className="mt-4">
           {tab === "schedule" && (
             blocksLoading ? (

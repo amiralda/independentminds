@@ -1044,6 +1044,85 @@ export type Database = {
         }
         Relationships: []
       }
+      educator_group_students: {
+        Row: {
+          group_id: string
+          id: string
+          joined_at: string
+          notes: string | null
+          student_id: string
+        }
+        Insert: {
+          group_id: string
+          id?: string
+          joined_at?: string
+          notes?: string | null
+          student_id: string
+        }
+        Update: {
+          group_id?: string
+          id?: string
+          joined_at?: string
+          notes?: string | null
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "educator_group_students_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "educator_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      educator_groups: {
+        Row: {
+          academic_year: string | null
+          color: string | null
+          created_at: string
+          description: string | null
+          educator_id: string
+          grade_level: string | null
+          group_type: string
+          id: string
+          name: string
+          subject: string | null
+        }
+        Insert: {
+          academic_year?: string | null
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          educator_id: string
+          grade_level?: string | null
+          group_type: string
+          id?: string
+          name: string
+          subject?: string | null
+        }
+        Update: {
+          academic_year?: string | null
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          educator_id?: string
+          grade_level?: string | null
+          group_type?: string
+          id?: string
+          name?: string
+          subject?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "educator_groups_educator_id_fkey"
+            columns: ["educator_id"]
+            isOneToOne: false
+            referencedRelation: "educators"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       educator_invites: {
         Row: {
           created_at: string
@@ -1079,6 +1158,47 @@ export type Database = {
           token_hash?: string
         }
         Relationships: []
+      }
+      educator_parent_invites: {
+        Row: {
+          created_at: string
+          educator_id: string
+          expires_at: string
+          id: string
+          parent_email: string
+          status: string
+          student_id: string
+          token_hash: string
+        }
+        Insert: {
+          created_at?: string
+          educator_id: string
+          expires_at?: string
+          id?: string
+          parent_email: string
+          status?: string
+          student_id: string
+          token_hash: string
+        }
+        Update: {
+          created_at?: string
+          educator_id?: string
+          expires_at?: string
+          id?: string
+          parent_email?: string
+          status?: string
+          student_id?: string
+          token_hash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "educator_parent_invites_educator_id_fkey"
+            columns: ["educator_id"]
+            isOneToOne: false
+            referencedRelation: "educators"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       educator_requests: {
         Row: {
