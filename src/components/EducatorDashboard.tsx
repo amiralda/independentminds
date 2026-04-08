@@ -169,7 +169,7 @@ export function EducatorDashboard() {
             <CheckInForm studentId={selectedStudentId} onDone={refreshBlocks} />
           )}
           {tab === "reports" && currentAssignment?.can_view_reports && selectedStudentId && (
-            <ReportsPanel />
+            <ReportsPanel studentId={selectedStudentId} />
           )}
           {tab === "tutor" && currentAssignment?.can_use_ai_tutor && (
             <TutorChat />
