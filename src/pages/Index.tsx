@@ -29,6 +29,9 @@ import { StudentHelpGuide } from "@/components/StudentHelpGuide";
 import { BetaMissionBanner } from "@/components/beta/BetaMissionBanner";
 import { BetaWelcomeModal } from "@/components/beta/BetaWelcomeModal";
 import { useBetaTester } from "@/hooks/useBetaTester";
+import { RoleSwitcher } from "@/components/RoleSwitcher";
+import { useRoleSwitcher } from "@/hooks/useRoleSwitcher";
+import { EducatorDashboard } from "@/components/EducatorDashboard";
 
 type StudentTab = "today" | "tracks" | "checkin" | "badges" | "trophies" | "library" | "tutor" | "profile" | "rewards";
 
