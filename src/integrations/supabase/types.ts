@@ -1044,6 +1044,143 @@ export type Database = {
         }
         Relationships: []
       }
+      educator_invites: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          invitee_email: string
+          parent_id: string
+          permissions: Json
+          status: string
+          student_id: string | null
+          token_hash: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          invitee_email: string
+          parent_id: string
+          permissions?: Json
+          status?: string
+          student_id?: string | null
+          token_hash: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          invitee_email?: string
+          parent_id?: string
+          permissions?: Json
+          status?: string
+          student_id?: string | null
+          token_hash?: string
+        }
+        Relationships: []
+      }
+      educator_requests: {
+        Row: {
+          created_at: string
+          email: string
+          expertise: string | null
+          id: string
+          message: string | null
+          name: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          expertise?: string | null
+          id?: string
+          message?: string | null
+          name: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          expertise?: string | null
+          id?: string
+          message?: string | null
+          name?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
+      educator_students: {
+        Row: {
+          can_edit_schedule: boolean
+          can_receive_sos: boolean
+          can_use_ai_tutor: boolean
+          can_view_checkins: boolean
+          can_view_reports: boolean
+          created_at: string
+          educator_id: string
+          id: string
+          student_id: string
+        }
+        Insert: {
+          can_edit_schedule?: boolean
+          can_receive_sos?: boolean
+          can_use_ai_tutor?: boolean
+          can_view_checkins?: boolean
+          can_view_reports?: boolean
+          created_at?: string
+          educator_id: string
+          id?: string
+          student_id: string
+        }
+        Update: {
+          can_edit_schedule?: boolean
+          can_receive_sos?: boolean
+          can_use_ai_tutor?: boolean
+          can_view_checkins?: boolean
+          can_view_reports?: boolean
+          created_at?: string
+          educator_id?: string
+          id?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "educator_students_educator_id_fkey"
+            columns: ["educator_id"]
+            isOneToOne: false
+            referencedRelation: "educators"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      educators: {
+        Row: {
+          created_at: string
+          id: string
+          invited_by: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          invited_by: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          invited_by?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       email_send_log: {
         Row: {
           created_at: string
@@ -2031,6 +2168,10 @@ export type Database = {
         Args: { _parent_id: string; _student_id: string }
         Returns: boolean
       }
+      has_educator_permission: {
+        Args: { _permission: string; _student_id: string; _user_id: string }
+        Returns: boolean
+      }
       has_guardian_permission: {
         Args: { permission: string; sid: string; uid: string }
         Returns: boolean
@@ -2044,6 +2185,10 @@ export type Database = {
           p_window_start: string
         }
         Returns: Json
+      }
+      is_my_educator_student: {
+        Args: { _student_id: string }
+        Returns: boolean
       }
       is_my_student: { Args: { _student_id: string }; Returns: boolean }
       move_to_dlq: {
