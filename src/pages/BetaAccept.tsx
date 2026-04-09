@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -16,7 +16,52 @@ export default function BetaAccept() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error' | 'needsAuth'>('loading');
   const [errorMsg, setErrorMsg] = useState('');
   const [testerType, setTesterType] = useState('');
+  const acceptedRef = useRef(false);
 
+  const acceptInvite = useCallback(async () => {
+    if (!token || acceptedRef.current) return;
+    acceptedRef.current = true;
+    setStatus('loading');
+    try {
+      const { data, error } = await supabase.functions.invoke('accept-beta-invite', {
+        body: { token },
+      });
+      if (error) {
+        setStatus('error');
+        setErrorMsg(data?.error || error.message);
+        acceptedRef.current = false;
+        return;
+      }
+      if (data?.error) {
+        setStatus('error');
+        setErrorMsg(data.error);
+        acceptedRef.current = false;
+        return;
+      }
+      setTesterType(data?.tester_type ?? '');
+      setStatus('success');
+      setTimeout(() => navigate('/'), 3000);
+    } catch (err: any) {
+      setStatus('error');
+      setErrorMsg(err.message);
+      acceptedRef.current = false;
+    }
+  }, [token, navigate]);
+
+  // Listen for SIGNED_IN event (fires after Google OAuth redirect)
+  useEffect(() => {
+    if (!token) return;
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, newSession) => {
+        if (event === 'SIGNED_IN' && newSession && token) {
+          acceptInvite();
+        }
+      }
+    );
+    return () => subscription.unsubscribe();
+  }, [token, acceptInvite]);
+
+  // Handle case where user is already logged in on mount
   useEffect(() => {
     if (authLoading) return;
     if (!token) {
@@ -29,33 +74,7 @@ export default function BetaAccept() {
       return;
     }
     acceptInvite();
-  }, [token, session, authLoading]);
-
-  const acceptInvite = async () => {
-    if (!token || !session?.user) return;
-    setStatus('loading');
-    try {
-      const { data, error } = await supabase.functions.invoke('accept-beta-invite', {
-        body: { token },
-      });
-      if (error) {
-        setStatus('error');
-        setErrorMsg(data?.error || error.message);
-        return;
-      }
-      if (data?.error) {
-        setStatus('error');
-        setErrorMsg(data.error);
-        return;
-      }
-      setTesterType(data?.tester_type ?? '');
-      setStatus('success');
-      setTimeout(() => navigate('/'), 3000);
-    } catch (err: any) {
-      setStatus('error');
-      setErrorMsg(err.message);
-    }
-  };
+  }, [token, session, authLoading, acceptInvite]);
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
