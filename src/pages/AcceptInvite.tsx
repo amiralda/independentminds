@@ -78,7 +78,7 @@ export default function AcceptInvite() {
             <p className="text-muted-foreground">
               Please sign in or create an account to accept this co-guardian invite.
             </p>
-            <Link to={`/login?redirect=/accept-invite?token=${token}`}>
+            <Link to={`/login?redirect=${encodeURIComponent(`/accept-invite?token=${token}`)}`}>
               <Button className="w-full">Sign In / Create Account</Button>
             </Link>
           </div>
