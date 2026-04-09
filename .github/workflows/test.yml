@@ -29,28 +29,34 @@ jobs:
     runs-on: ubuntu-latest
     needs: unit-tests
     steps:
-      - name: Check if E2E secrets are configured
-        id: check-secrets
+      - name: Check E2E secrets
+        id: secrets-check
         run: |
-          if [ -z "${{ secrets.PLAYWRIGHT_BASE_URL }}" ]; then
-            echo "PLAYWRIGHT_BASE_URL not set — skipping E2E tests"
-            echo "skip=true" >> "$GITHUB_OUTPUT"
+          if [ -z "$PLAYWRIGHT_URL" ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
           else
-            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "skip=false" >> $GITHUB_OUTPUT
           fi
+        env:
+          PLAYWRIGHT_URL: ${{ secrets.PLAYWRIGHT_BASE_URL }}
+
+      - name: Skip E2E (no secrets)
+        if: steps.secrets-check.outputs.skip == 'true'
+        run: echo "Skipping E2E tests — secrets not configured"
+
       - uses: actions/checkout@v4
-        if: steps.check-secrets.outputs.skip == 'false'
+        if: steps.secrets-check.outputs.skip == 'false'
       - uses: actions/setup-node@v4
-        if: steps.check-secrets.outputs.skip == 'false'
+        if: steps.secrets-check.outputs.skip == 'false'
         with:
           node-version: 20
           cache: npm
       - run: npm ci
-        if: steps.check-secrets.outputs.skip == 'false'
+        if: steps.secrets-check.outputs.skip == 'false'
       - run: npx playwright install --with-deps chromium
-        if: steps.check-secrets.outputs.skip == 'false'
+        if: steps.secrets-check.outputs.skip == 'false'
       - name: Run Playwright tests
-        if: steps.check-secrets.outputs.skip == 'false'
+        if: steps.secrets-check.outputs.skip == 'false'
         run: npm run test:e2e
         env:
           PLAYWRIGHT_BASE_URL: ${{ secrets.PLAYWRIGHT_BASE_URL }}
@@ -64,7 +70,7 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
       - uses: actions/upload-artifact@v4
-        if: always() && steps.check-secrets.outputs.skip == 'false'
+        if: always() && steps.secrets-check.outputs.skip == 'false'
         with:
           name: playwright-report
           path: playwright-report/
