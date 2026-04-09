@@ -91,16 +91,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Fetch profile when session changes
+  // Fetch profile when session changes — retry for new OAuth users
+  // whose profile may not exist yet (handle_new_user trigger delay)
   useEffect(() => {
     if (!session?.user) return;
+    let cancelled = false;
 
-    const fetchProfile = async () => {
+    const fetchProfile = async (retries = 3) => {
       const { data } = await supabase
         .from("profiles")
         .select("display_name, username, role, student_id, language_pref, onboarding_complete")
         .eq("id", session.user.id)
         .single();
+
+      if (cancelled) return;
 
       if (data) {
         setProfile({
@@ -111,19 +115,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           languagePref: (data as any).language_pref || "EN",
           onboardingComplete: (data as any).onboarding_complete || false,
         });
+        setLoading(false);
+      } else if (retries > 0) {
+        // Profile not ready yet — trigger may still be running (e.g. new Google OAuth user)
+        await new Promise(r => setTimeout(r, 1500));
+        if (!cancelled) await fetchProfile(retries - 1);
       } else {
-        // Profile not ready yet (trigger may be delayed) — sign out to prevent
-        // untrusted user_metadata from being used for role/studentId.
+        // After retries exhausted, sign out to prevent untrusted state
         await supabase.auth.signOut();
         setSession(null);
         setProfile(null);
         setLoading(false);
-        return;
       }
-      setLoading(false);
     };
 
     fetchProfile();
+    return () => { cancelled = true; };
   }, [session?.user?.id]);
 
   // Fetch students for parent users
