@@ -77,7 +77,7 @@ export default function AcceptEducatorInvite() {
             <p className="text-muted-foreground">
               Please sign in or create an account to accept this educator invitation.
             </p>
-            <Link to={`/login?redirect=/accept-educator-invite?token=${token}`}>
+            <Link to={`/login?redirect=${encodeURIComponent(`/accept-educator-invite?token=${token}`)}`}>
               <Button className="w-full bg-[#D85A30] hover:bg-[#C04E28]">Sign In / Create Account</Button>
             </Link>
           </div>

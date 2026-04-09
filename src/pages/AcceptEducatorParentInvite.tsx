@@ -78,7 +78,7 @@ export default function AcceptEducatorParentInvite() {
               An educator has set up a student profile for your child.
               Sign in or create an account to get full parent access.
             </p>
-            <Link to={`/login?redirect=/accept-educator-parent-invite?token=${token}`}>
+            <Link to={`/login?redirect=${encodeURIComponent(`/accept-educator-parent-invite?token=${token}`)}`}>
               <Button className="w-full">Accept & Create Account</Button>
             </Link>
           </div>
