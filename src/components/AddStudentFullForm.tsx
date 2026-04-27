@@ -159,8 +159,8 @@ export function AddStudentFullForm({ open, onClose, onBack }: Props) {
           .upload(path, photoFile, { upsert: true });
         if (uploadError) console.error("Photo upload error:", uploadError);
         else {
-          const { data: urlData } = supabase.storage.from("student-photos").getPublicUrl(path);
-          photoUrl = urlData.publicUrl;
+          // Store storage path; bucket is private and UI generates signed URLs.
+          photoUrl = path;
         }
       }
 

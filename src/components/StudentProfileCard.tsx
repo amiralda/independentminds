@@ -3,6 +3,7 @@ import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { resolveStudentPhotoUrl } from "@/lib/studentPhoto";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -50,6 +51,13 @@ export function StudentProfileCard({ studentId }: Props) {
       if (error) throw error;
       return data as unknown as StudentData;
     },
+  });
+
+  const { data: photoSignedUrl } = useQuery({
+    queryKey: ["student_photo_signed", studentId, student?.profile_photo_url],
+    queryFn: () => resolveStudentPhotoUrl(student?.profile_photo_url),
+    enabled: !!student?.profile_photo_url,
+    staleTime: 1000 * 60 * 30, // refresh every 30 min (signed URL valid 1h)
   });
 
   const { data: stats } = useQuery({
@@ -136,10 +144,10 @@ export function StudentProfileCard({ studentId }: Props) {
     const path = `${studentId}/avatar.${ext}`;
     const { error: uploadError } = await supabase.storage.from("student-photos").upload(path, file, { upsert: true });
     if (uploadError) { toast.error("Upload failed"); setUploading(false); return; }
-    const { data: urlData } = supabase.storage.from("student-photos").getPublicUrl(path);
-    const photoUrl = `${urlData.publicUrl}?t=${Date.now()}`;
-    await supabase.from("students").update({ profile_photo_url: photoUrl }).eq("student_id", studentId);
+    // Store the storage path (not a public URL) — bucket is private; UI signs on read.
+    await supabase.from("students").update({ profile_photo_url: path }).eq("student_id", studentId);
     queryClient.invalidateQueries({ queryKey: ["student_profile", studentId] });
+    queryClient.invalidateQueries({ queryKey: ["student_photo_signed", studentId] });
     toast.success("Photo updated!");
     setUploading(false);
   };
@@ -165,7 +173,7 @@ export function StudentProfileCard({ studentId }: Props) {
           <div className="absolute -bottom-12 left-6">
             <div className="relative group">
               <Avatar className="w-24 h-24 border-4 border-card shadow-lg">
-                <AvatarImage src={student.profile_photo_url || undefined} alt={student.display_name} />
+                <AvatarImage src={photoSignedUrl || undefined} alt={student.display_name} />
                 <AvatarFallback className="text-2xl font-display bg-secondary text-secondary-foreground">
                   {student.display_name.split(" ").map(n => n[0]).join("").slice(0, 2)}
                 </AvatarFallback>

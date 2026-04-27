@@ -2266,6 +2266,21 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_educator_student_summary: {
+        Args: { _student_id: string }
+        Returns: {
+          academic_year: string
+          created_at: string
+          display_name: string
+          grade_level: number
+          language_pref: string
+          monitoring_enabled: boolean
+          profile_photo_url: string
+          student_id: string
+          timezone: string
+          updated_at: string
+        }[]
+      }
       get_my_role: { Args: never; Returns: string }
       get_my_student_id: { Args: never; Returns: string }
       get_my_student_record: {
