@@ -1037,6 +1037,71 @@ const translations: Translations = {
   "label.score": { EN: "Score", HT: "Nòt", FR: "Note", ES: "Puntuación", PT: "Pontuação", AR: "الدرجة", ZH: "分数", DE: "Punktzahl", JA: "スコア", RU: "Оценка" },
   "label.schedule": { EN: "Schedule", HT: "Orè", FR: "Horaire", ES: "Horario", PT: "Agenda", AR: "جدول", ZH: "课程表", DE: "Stundenplan", JA: "スケジュール", RU: "Расписание" },
   "label.active": { EN: "Active", HT: "Aktif", FR: "Actif", ES: "Activo", PT: "Ativo", AR: "نشط", ZH: "活跃", DE: "Aktiv", JA: "アクティブ", RU: "Активный" },
+
+  // ===== Missing keys audit fix =====
+  // Action / common / error
+  "action.remove": { EN: "Remove", HT: "Retire", FR: "Retirer", ES: "Eliminar", PT: "Remover", AR: "إزالة", ZH: "移除", DE: "Entfernen", JA: "削除", RU: "Удалить" },
+  "common.close": { EN: "Close", HT: "Fèmen", FR: "Fermer", ES: "Cerrar", PT: "Fechar", AR: "إغلاق", ZH: "关闭", DE: "Schließen", JA: "閉じる", RU: "Закрыть" },
+  "common.sending": { EN: "Sending...", HT: "Ap voye...", FR: "Envoi en cours...", ES: "Enviando...", PT: "Enviando...", AR: "جارٍ الإرسال...", ZH: "发送中...", DE: "Senden...", JA: "送信中...", RU: "Отправка..." },
+  "error.generic": { EN: "Something went wrong", HT: "Yon bagay pa mache", FR: "Une erreur s'est produite", ES: "Algo salió mal", PT: "Algo deu errado", AR: "حدث خطأ ما", ZH: "出了点问题", DE: "Etwas ist schief gelaufen", JA: "問題が発生しました", RU: "Что-то пошло не так" },
+
+  // Student keys
+  "student.add": { EN: "Add Student", HT: "Ajoute Elèv", FR: "Ajouter un élève", ES: "Agregar estudiante", PT: "Adicionar aluno", AR: "إضافة طالب", ZH: "添加学生", DE: "Schüler hinzufügen", JA: "生徒を追加", RU: "Добавить ученика" },
+  "student.completeForm": { EN: "Complete Form", HT: "Fòm Konplè", FR: "Formulaire complet", ES: "Formulario completo", PT: "Formulário completo", AR: "نموذج كامل", ZH: "完整表单", DE: "Vollständiges Formular", JA: "完全なフォーム", RU: "Полная форма" },
+  "student.completeFormDesc": { EN: "Fill out the complete student profile with all details", HT: "Ranpli pwofil elèv la ak tout detay yo", FR: "Remplissez le profil complet de l'élève avec tous les détails", ES: "Complete el perfil completo del estudiante con todos los detalles", PT: "Preencha o perfil completo do aluno com todos os detalhes", AR: "املأ ملف الطالب الكامل بجميع التفاصيل", ZH: "填写包含所有详细信息的完整学生档案", DE: "Füllen Sie das vollständige Schülerprofil mit allen Details aus", JA: "すべての詳細を含む生徒プロフィールを記入", RU: "Заполните полный профиль ученика со всеми деталями" },
+  "student.createStudent": { EN: "Create Student", HT: "Kreye Elèv", FR: "Créer l'élève", ES: "Crear estudiante", PT: "Criar aluno", AR: "إنشاء طالب", ZH: "创建学生", DE: "Schüler erstellen", JA: "生徒を作成", RU: "Создать ученика" },
+  "student.dob": { EN: "Date of Birth", HT: "Dat Nesans", FR: "Date de naissance", ES: "Fecha de nacimiento", PT: "Data de nascimento", AR: "تاريخ الميلاد", ZH: "出生日期", DE: "Geburtsdatum", JA: "生年月日", RU: "Дата рождения" },
+  "student.nameIdRequired": { EN: "Name and ID are required", HT: "Non ak ID obligatwa", FR: "Le nom et l'ID sont requis", ES: "Se requieren nombre e ID", PT: "Nome e ID são obrigatórios", AR: "الاسم والمعرف مطلوبان", ZH: "需要姓名和ID", DE: "Name und ID sind erforderlich", JA: "名前とIDが必要です", RU: "Требуются имя и ID" },
+
+  // Educators
+  "educators.groups": { EN: "Groups", HT: "Gwoup", FR: "Groupes", ES: "Grupos", PT: "Grupos", AR: "مجموعات", ZH: "群组", DE: "Gruppen", JA: "グループ", RU: "Группы" },
+  "educators.newGroup": { EN: "New Group", HT: "Nouvo Gwoup", FR: "Nouveau groupe", ES: "Nuevo grupo", PT: "Novo grupo", AR: "مجموعة جديدة", ZH: "新建群组", DE: "Neue Gruppe", JA: "新しいグループ", RU: "Новая группа" },
+  "educators.createGroup": { EN: "Create Group", HT: "Kreye Gwoup", FR: "Créer un groupe", ES: "Crear grupo", PT: "Criar grupo", AR: "إنشاء مجموعة", ZH: "创建群组", DE: "Gruppe erstellen", JA: "グループを作成", RU: "Создать группу" },
+  "educators.groupName": { EN: "Group Name", HT: "Non Gwoup", FR: "Nom du groupe", ES: "Nombre del grupo", PT: "Nome do grupo", AR: "اسم المجموعة", ZH: "群组名称", DE: "Gruppenname", JA: "グループ名", RU: "Название группы" },
+  "educators.description": { EN: "Description", HT: "Deskripsyon", FR: "Description", ES: "Descripción", PT: "Descrição", AR: "الوصف", ZH: "描述", DE: "Beschreibung", JA: "説明", RU: "Описание" },
+  "educators.gradeLevel": { EN: "Grade Level", HT: "Nivo Klas", FR: "Niveau scolaire", ES: "Nivel de grado", PT: "Nível escolar", AR: "المستوى الدراسي", ZH: "年级", DE: "Klassenstufe", JA: "学年", RU: "Класс" },
+  "educators.academicYear": { EN: "Academic Year", HT: "Ane Akademik", FR: "Année scolaire", ES: "Año académico", PT: "Ano letivo", AR: "العام الدراسي", ZH: "学年", DE: "Schuljahr", JA: "学年度", RU: "Учебный год" },
+  "educators.color": { EN: "Color", HT: "Koulè", FR: "Couleur", ES: "Color", PT: "Cor", AR: "اللون", ZH: "颜色", DE: "Farbe", JA: "色", RU: "Цвет" },
+  "educators.class": { EN: "Class", HT: "Klas", FR: "Classe", ES: "Clase", PT: "Classe", AR: "فصل", ZH: "班级", DE: "Klasse", JA: "クラス", RU: "Класс" },
+  "educators.subjectGroup": { EN: "Subject Group", HT: "Gwoup Matyè", FR: "Groupe de matière", ES: "Grupo de materia", PT: "Grupo de disciplina", AR: "مجموعة المادة", ZH: "科目组", DE: "Fachgruppe", JA: "科目グループ", RU: "Предметная группа" },
+  "educators.students": { EN: "Students", HT: "Elèv yo", FR: "Élèves", ES: "Estudiantes", PT: "Alunos", AR: "الطلاب", ZH: "学生", DE: "Schüler", JA: "生徒", RU: "Ученики" },
+  "educators.addStudent": { EN: "Add Student", HT: "Ajoute Elèv", FR: "Ajouter un élève", ES: "Agregar estudiante", PT: "Adicionar aluno", AR: "إضافة طالب", ZH: "添加学生", DE: "Schüler hinzufügen", JA: "生徒を追加", RU: "Добавить ученика" },
+  "educators.addStudentToGroup": { EN: "Add Student to Group", HT: "Ajoute Elèv nan Gwoup", FR: "Ajouter un élève au groupe", ES: "Agregar estudiante al grupo", PT: "Adicionar aluno ao grupo", AR: "إضافة طالب إلى المجموعة", ZH: "将学生添加到群组", DE: "Schüler zur Gruppe hinzufügen", JA: "生徒をグループに追加", RU: "Добавить ученика в группу" },
+  "educators.allStudentsAdded": { EN: "All students already added", HT: "Tout elèv yo deja ajoute", FR: "Tous les élèves sont déjà ajoutés", ES: "Todos los estudiantes ya añadidos", PT: "Todos os alunos já adicionados", AR: "جميع الطلاب مضافون بالفعل", ZH: "所有学生已添加", DE: "Alle Schüler bereits hinzugefügt", JA: "すべての生徒は既に追加されています", RU: "Все ученики уже добавлены" },
+  "educators.noGroups": { EN: "No groups yet", HT: "Pa gen gwoup pou kounye a", FR: "Aucun groupe pour le moment", ES: "Aún no hay grupos", PT: "Ainda não há grupos", AR: "لا توجد مجموعات بعد", ZH: "暂无群组", DE: "Noch keine Gruppen", JA: "まだグループがありません", RU: "Пока нет групп" },
+  "educators.noStudentsInGroup": { EN: "No students in this group", HT: "Pa gen elèv nan gwoup sa a", FR: "Aucun élève dans ce groupe", ES: "No hay estudiantes en este grupo", PT: "Nenhum aluno neste grupo", AR: "لا يوجد طلاب في هذه المجموعة", ZH: "该群组中没有学生", DE: "Keine Schüler in dieser Gruppe", JA: "このグループには生徒がいません", RU: "В этой группе нет учеников" },
+  "educators.groupCreated": { EN: "Group created", HT: "Gwoup kreye", FR: "Groupe créé", ES: "Grupo creado", PT: "Grupo criado", AR: "تم إنشاء المجموعة", ZH: "群组已创建", DE: "Gruppe erstellt", JA: "グループが作成されました", RU: "Группа создана" },
+  "educators.groupDeleted": { EN: "Group deleted", HT: "Gwoup efase", FR: "Groupe supprimé", ES: "Grupo eliminado", PT: "Grupo excluído", AR: "تم حذف المجموعة", ZH: "群组已删除", DE: "Gruppe gelöscht", JA: "グループが削除されました", RU: "Группа удалена" },
+  "educators.studentAdded": { EN: "Student added", HT: "Elèv ajoute", FR: "Élève ajouté", ES: "Estudiante agregado", PT: "Aluno adicionado", AR: "تمت إضافة الطالب", ZH: "学生已添加", DE: "Schüler hinzugefügt", JA: "生徒が追加されました", RU: "Ученик добавлен" },
+  "educators.studentRemoved": { EN: "Student removed", HT: "Elèv retire", FR: "Élève retiré", ES: "Estudiante eliminado", PT: "Aluno removido", AR: "تمت إزالة الطالب", ZH: "学生已移除", DE: "Schüler entfernt", JA: "生徒が削除されました", RU: "Ученик удален" },
+  "educators.inviteParent": { EN: "Invite Parent", HT: "Envite Paran", FR: "Inviter un parent", ES: "Invitar al padre", PT: "Convidar responsável", AR: "دعوة الوالد", ZH: "邀请家长", DE: "Eltern einladen", JA: "保護者を招待", RU: "Пригласить родителя" },
+  "educators.inviteParentDesc": { EN: "Send an invitation to the student's parent to connect their account", HT: "Voye yon envitasyon bay paran elèv la pou konekte kont yo", FR: "Envoyez une invitation au parent de l'élève pour connecter son compte", ES: "Envíe una invitación al padre del estudiante para conectar su cuenta", PT: "Envie um convite ao responsável do aluno para conectar a conta", AR: "أرسل دعوة إلى والد الطالب لربط حسابه", ZH: "向学生家长发送邀请以连接其账户", DE: "Senden Sie eine Einladung an die Eltern des Schülers, um ihr Konto zu verbinden", JA: "生徒の保護者にアカウント接続の招待を送信", RU: "Отправьте приглашение родителю ученика для подключения его аккаунта" },
+  "educators.inviteParentFor": { EN: "Invite parent for", HT: "Envite paran pou", FR: "Inviter le parent de", ES: "Invitar al padre de", PT: "Convidar responsável de", AR: "دعوة والد", ZH: "邀请家长 -", DE: "Eltern einladen für", JA: "の保護者を招待", RU: "Пригласить родителя для" },
+
+  // Guardians
+  "guardians.coGuardian": { EN: "Co-Guardian", HT: "Ko-Gadyen", FR: "Co-tuteur", ES: "Co-tutor", PT: "Co-responsável", AR: "وصي مشارك", ZH: "共同监护人", DE: "Mitvormund", JA: "共同保護者", RU: "Со-опекун" },
+  "guardians.lessons": { EN: "Lessons", HT: "Leson", FR: "Leçons", ES: "Lecciones", PT: "Lições", AR: "الدروس", ZH: "课程", DE: "Lektionen", JA: "レッスン", RU: "Уроки" },
+  "guardians.link_copied": { EN: "Invitation link copied", HT: "Lyen envitasyon kopye", FR: "Lien d'invitation copié", ES: "Enlace de invitación copiado", PT: "Link de convite copiado", AR: "تم نسخ رابط الدعوة", ZH: "邀请链接已复制", DE: "Einladungslink kopiert", JA: "招待リンクをコピーしました", RU: "Ссылка-приглашение скопирована" },
+  "guardians.sosShort": { EN: "SOS", HT: "SOS", FR: "SOS", ES: "SOS", PT: "SOS", AR: "نجدة", ZH: "求助", DE: "SOS", JA: "SOS", RU: "SOS" },
+
+  // Merge & nav
+  "merge.submitFailed": { EN: "Failed to submit merge request", HT: "Echèk pou voye demann fizyon", FR: "Échec de l'envoi de la demande de fusion", ES: "Error al enviar la solicitud de fusión", PT: "Falha ao enviar solicitação de mesclagem", AR: "فشل إرسال طلب الدمج", ZH: "提交合并请求失败", DE: "Zusammenführungsanfrage konnte nicht gesendet werden", JA: "マージリクエストの送信に失敗しました", RU: "Не удалось отправить запрос на объединение" },
+  "nav.rewards": { EN: "Rewards", HT: "Rekonpans", FR: "Récompenses", ES: "Recompensas", PT: "Recompensas", AR: "المكافآت", ZH: "奖励", DE: "Belohnungen", JA: "報酬", RU: "Награды" },
+
+  // Notifications
+  "notifications.settings": { EN: "Notification Settings", HT: "Paramèt Notifikasyon", FR: "Paramètres de notification", ES: "Configuración de notificaciones", PT: "Configurações de notificação", AR: "إعدادات الإشعارات", ZH: "通知设置", DE: "Benachrichtigungseinstellungen", JA: "通知設定", RU: "Настройки уведомлений" },
+  "notifications.enableWhatsapp": { EN: "Enable WhatsApp", HT: "Aktive WhatsApp", FR: "Activer WhatsApp", ES: "Activar WhatsApp", PT: "Ativar WhatsApp", AR: "تفعيل واتساب", ZH: "启用 WhatsApp", DE: "WhatsApp aktivieren", JA: "WhatsAppを有効化", RU: "Включить WhatsApp" },
+  "notifications.invalidWhatsapp": { EN: "Invalid WhatsApp number", HT: "Nimewo WhatsApp pa valab", FR: "Numéro WhatsApp invalide", ES: "Número de WhatsApp inválido", PT: "Número de WhatsApp inválido", AR: "رقم واتساب غير صالح", ZH: "WhatsApp 号码无效", DE: "Ungültige WhatsApp-Nummer", JA: "無効なWhatsApp番号", RU: "Неверный номер WhatsApp" },
+  "notifications.e164Format": { EN: "Use E.164 format (e.g. +14155552671)", HT: "Itilize fòma E.164 (egzanp +14155552671)", FR: "Utilisez le format E.164 (ex : +14155552671)", ES: "Use formato E.164 (ej. +14155552671)", PT: "Use o formato E.164 (ex.: +14155552671)", AR: "استخدم تنسيق E.164 (مثال: +14155552671)", ZH: "使用 E.164 格式(例如 +14155552671)", DE: "E.164-Format verwenden (z. B. +14155552671)", JA: "E.164形式を使用 (例: +14155552671)", RU: "Используйте формат E.164 (например, +14155552671)" },
+  "notifications.urgentHelp": { EN: "Urgent Help (SOS)", HT: "Èd Ijan (SOS)", FR: "Aide urgente (SOS)", ES: "Ayuda urgente (SOS)", PT: "Ajuda urgente (SOS)", AR: "مساعدة عاجلة (نجدة)", ZH: "紧急求助 (SOS)", DE: "Dringende Hilfe (SOS)", JA: "緊急支援 (SOS)", RU: "Срочная помощь (SOS)" },
+  "notifications.trackUpdates": { EN: "Track Updates", HT: "Mizajou Pis", FR: "Mises à jour des pistes", ES: "Actualizaciones de pistas", PT: "Atualizações de trilhas", AR: "تحديثات المسارات", ZH: "轨道更新", DE: "Kurs-Updates", JA: "トラックの更新", RU: "Обновления треков" },
+  "notifications.dailyReports": { EN: "Daily Reports", HT: "Rapò Chak Jou", FR: "Rapports quotidiens", ES: "Informes diarios", PT: "Relatórios diários", AR: "تقارير يومية", ZH: "每日报告", DE: "Tagesberichte", JA: "日次レポート", RU: "Ежедневные отчёты" },
+  "notifications.badgeAlerts": { EN: "Badge Alerts", HT: "Alèt Badj", FR: "Alertes de badges", ES: "Alertas de insignias", PT: "Alertas de insígnias", AR: "تنبيهات الشارات", ZH: "徽章提醒", DE: "Abzeichen-Benachrichtigungen", JA: "バッジ通知", RU: "Оповещения о значках" },
+  "notifications.hourlyMonitor": { EN: "Hourly Monitor", HT: "Siveyans Chak Lè", FR: "Surveillance horaire", ES: "Monitor por hora", PT: "Monitor por hora", AR: "مراقبة كل ساعة", ZH: "每小时监控", DE: "Stündliche Überwachung", JA: "毎時モニター", RU: "Почасовой мониторинг" },
+  "notifications.hourlyMonitorDesc": { EN: "Receive a status update every hour during school time", HT: "Resevwa yon mizajou chak lè pandan tan lekòl la", FR: "Recevez une mise à jour chaque heure pendant les heures de classe", ES: "Reciba una actualización cada hora durante el horario escolar", PT: "Receba uma atualização a cada hora durante o horário escolar", AR: "احصل على تحديث كل ساعة خلال وقت الدراسة", ZH: "在上学时间每小时接收一次状态更新", DE: "Erhalten Sie stündlich ein Status-Update während der Schulzeit", JA: "学校時間中、毎時ステータス更新を受信", RU: "Получайте обновления статуса каждый час во время школьных занятий" },
+
+  // Points
+  "points.customize": { EN: "Customize Points", HT: "Pèsonalize Pwen", FR: "Personnaliser les points", ES: "Personalizar puntos", PT: "Personalizar pontos", AR: "تخصيص النقاط", ZH: "自定义积分", DE: "Punkte anpassen", JA: "ポイントをカスタマイズ", RU: "Настроить очки" },
 };
 
 interface I18nContextType {
