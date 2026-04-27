@@ -3,6 +3,7 @@ import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { resolveStudentPhotoUrl } from "@/lib/studentPhoto";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -136,10 +137,10 @@ export function StudentProfileCard({ studentId }: Props) {
     const path = `${studentId}/avatar.${ext}`;
     const { error: uploadError } = await supabase.storage.from("student-photos").upload(path, file, { upsert: true });
     if (uploadError) { toast.error("Upload failed"); setUploading(false); return; }
-    const { data: urlData } = supabase.storage.from("student-photos").getPublicUrl(path);
-    const photoUrl = `${urlData.publicUrl}?t=${Date.now()}`;
-    await supabase.from("students").update({ profile_photo_url: photoUrl }).eq("student_id", studentId);
+    // Store the storage path (not a public URL) — bucket is private; UI signs on read.
+    await supabase.from("students").update({ profile_photo_url: path }).eq("student_id", studentId);
     queryClient.invalidateQueries({ queryKey: ["student_profile", studentId] });
+    queryClient.invalidateQueries({ queryKey: ["student_photo_signed", studentId] });
     toast.success("Photo updated!");
     setUploading(false);
   };
