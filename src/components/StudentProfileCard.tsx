@@ -53,6 +53,13 @@ export function StudentProfileCard({ studentId }: Props) {
     },
   });
 
+  const { data: photoSignedUrl } = useQuery({
+    queryKey: ["student_photo_signed", studentId, student?.profile_photo_url],
+    queryFn: () => resolveStudentPhotoUrl(student?.profile_photo_url),
+    enabled: !!student?.profile_photo_url,
+    staleTime: 1000 * 60 * 30, // refresh every 30 min (signed URL valid 1h)
+  });
+
   const { data: stats } = useQuery({
     queryKey: ["student_profile_stats", studentId],
     queryFn: async () => {
@@ -166,7 +173,7 @@ export function StudentProfileCard({ studentId }: Props) {
           <div className="absolute -bottom-12 left-6">
             <div className="relative group">
               <Avatar className="w-24 h-24 border-4 border-card shadow-lg">
-                <AvatarImage src={student.profile_photo_url || undefined} alt={student.display_name} />
+                <AvatarImage src={photoSignedUrl || undefined} alt={student.display_name} />
                 <AvatarFallback className="text-2xl font-display bg-secondary text-secondary-foreground">
                   {student.display_name.split(" ").map(n => n[0]).join("").slice(0, 2)}
                 </AvatarFallback>
