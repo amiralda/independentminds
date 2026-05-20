@@ -1,0 +1,13 @@
+# Independent Minds EDU
+
+> Multilingual, mobile-first homeschool management platform for families and educators worldwide. Parents organize lessons, monitor progress, and celebrate milestones; students log daily activities, earn points, and chat with an AI tutor (Mr A).
+
+Independent Minds EDU is a PWA built by KòdLabo. It supports 10 languages (EN, HT, FR, ES, PT, AR, ZH, DE, JA, RU), works offline, and is COPPA-compliant. Adults create and manage student accounts — students do not self-register.
+
+## Pages
+
+- [Home](/): Overview and sign-in entry point.
+- [Sign in](/login): Parent and educator sign-in and sign-up.
+- [Beta program](/beta): Request access to the beta program.
+- [Privacy Policy](/privacy): How we collect, store, and protect family data.
+- [Terms of Service](/terms): Rules for using the platform.
