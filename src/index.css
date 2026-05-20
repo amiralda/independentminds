@@ -100,3 +100,32 @@
 .badge-accepted { background-color: #EAF3DE; color: #3B6D11; }
 .badge-expired { background-color: #F1EFE8; color: #5F5E5A; }
 .badge-revoked { background-color: #FCEBEB; color: #A32D2D; }
+
+/* ── Admin dark theme scope ──
+   Overrides design tokens inside the admin panel so every component
+   (Cards, Tables, Tabs, muted text) renders legibly on the dark navy bg.
+   Anything not explicitly themed inherits white text from <main>. */
+[data-admin-theme] {
+  --background: 220 20% 12%;
+  --foreground: 0 0% 100%;
+  --card: 220 20% 16%;
+  --card-foreground: 0 0% 100%;
+  --popover: 220 20% 16%;
+  --popover-foreground: 0 0% 100%;
+  --muted: 220 15% 22%;
+  --muted-foreground: 220 10% 78%;
+  --secondary: 220 15% 22%;
+  --secondary-foreground: 0 0% 100%;
+  --accent: 220 15% 24%;
+  --accent-foreground: 0 0% 100%;
+  --border: 220 15% 24%;
+  --input: 220 15% 24%;
+  --ring: 160 68% 50%;
+}
+
+/* Defensive: any element that explicitly uses the legacy dark foreground
+   token inside admin scope still reads as white. */
+[data-admin-theme] .text-foreground { color: hsl(0 0% 100%); }
+[data-admin-theme] .text-muted-foreground { color: hsl(220 10% 78%); }
+[data-admin-theme] .text-card-foreground { color: hsl(0 0% 100%); }
+
