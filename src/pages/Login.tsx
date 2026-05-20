@@ -11,6 +11,7 @@ import logo from "@/assets/logo.svg";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
 import { LanguageToggle } from "@/components/LanguageToggle";
+import { SEO } from "@/components/SEO";
 
 export default function Login() {
   const { t, lang } = useI18n();
@@ -88,6 +89,11 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-primary flex items-center justify-center p-4">
+      <SEO
+        title="Sign in — Independent Minds EDU"
+        description="Sign in or create a parent account on Independent Minds EDU to manage homeschool lessons, track progress, and celebrate milestones."
+        path="/login"
+      />
       <div className="w-full max-w-sm space-y-6">
         {/* Brand Header */}
         <div className="text-center">
