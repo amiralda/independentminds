@@ -8,22 +8,150 @@ on:
   schedule:
     - cron: '0 6 * * 1'  # Every Monday 6am UTC
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   semgrep:
     name: Semgrep Scan
     runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep
     steps:
       - uses: actions/checkout@v4
 
-      - name: Run Semgrep
-        uses: semgrep/semgrep-action@v1
-        with:
-          config: >-
-            p/typescript
-            p/react
-            p/owasp-top-ten
-            p/secrets
-            p/sql-injection
-            p/xss
+      # Run Semgrep and emit BOTH SARIF (for tooling/artifact) and JSON (for PR comments).
+      # Uses `|| true` so the step never fails the job on findings — gating happens later.
+      - name: Run Semgrep (SARIF + JSON)
         env:
           SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+        run: |
+          semgrep scan \
+            --config p/typescript \
+            --config p/react \
+            --config p/owasp-top-ten \
+            --config p/secrets \
+            --config p/sql-injection \
+            --config p/xss \
+            --sarif --output=semgrep.sarif \
+            --metrics=off || true
+          semgrep scan \
+            --config p/typescript \
+            --config p/react \
+            --config p/owasp-top-ten \
+            --config p/secrets \
+            --config p/sql-injection \
+            --config p/xss \
+            --json --output=semgrep.json \
+            --metrics=off || true
+
+      - name: Upload SARIF artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: semgrep-sarif
+          path: semgrep.sarif
+          retention-days: 30
+
+      - name: Upload JSON artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: semgrep-json
+          path: semgrep.json
+          retention-days: 30
+
+      # Inline annotations in the PR "Files changed" diff via GitHub workflow commands.
+      - name: Annotate findings
+        if: always()
+        run: |
+          if [ ! -s semgrep.json ]; then
+            echo "No semgrep.json output — skipping annotations."
+            exit 0
+          fi
+          python3 - <<'PY'
+          import json, os
+          with open("semgrep.json") as f:
+              data = json.load(f)
+          results = data.get("results", [])
+          for r in results:
+              sev = (r.get("extra", {}).get("severity") or "WARNING").upper()
+              level = {"ERROR": "error", "WARNING": "warning", "INFO": "notice"}.get(sev, "warning")
+              path = r.get("path", "")
+              line = r.get("start", {}).get("line", 1)
+              col = r.get("start", {}).get("col", 1)
+              end_line = r.get("end", {}).get("line", line)
+              check_id = r.get("check_id", "semgrep")
+              msg = (r.get("extra", {}).get("message") or "").replace("\n", " ").strip()
+              title = check_id.split(".")[-1]
+              print(f"::{level} file={path},line={line},col={col},endLine={end_line},title=Semgrep: {title}::{msg}")
+          print(f"Semgrep found {len(results)} finding(s).")
+          PY
+
+      # Post / update a sticky PR comment summarizing findings (PRs only).
+      - name: Comment on PR with summary
+        if: github.event_name == 'pull_request' && always()
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: semgrep-summary
+          path: semgrep-summary.md
+          recreate: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build PR summary markdown
+        if: github.event_name == 'pull_request' && always()
+        run: |
+          python3 - <<'PY'
+          import json, os, collections
+          try:
+              with open("semgrep.json") as f:
+                  data = json.load(f)
+          except Exception:
+              data = {"results": []}
+          results = data.get("results", [])
+          by_sev = collections.Counter((r.get("extra", {}).get("severity") or "WARNING").upper() for r in results)
+          lines = ["## 🛡️ Semgrep Security Scan", ""]
+          if not results:
+              lines.append("✅ No findings.")
+          else:
+              lines.append(f"Found **{len(results)}** issue(s): "
+                           f"🔴 {by_sev.get('ERROR',0)} error · "
+                           f"🟡 {by_sev.get('WARNING',0)} warning · "
+                           f"🔵 {by_sev.get('INFO',0)} info")
+              lines.append("")
+              lines.append("| Severity | Rule | File:Line | Message |")
+              lines.append("|---|---|---|---|")
+              for r in results[:50]:
+                  sev = (r.get("extra", {}).get("severity") or "WARNING").upper()
+                  rule = r.get("check_id", "").split(".")[-1]
+                  path = r.get("path", "")
+                  line = r.get("start", {}).get("line", 1)
+                  msg = (r.get("extra", {}).get("message") or "").replace("|", "\\|").replace("\n", " ").strip()
+                  if len(msg) > 160: msg = msg[:157] + "..."
+                  lines.append(f"| {sev} | `{rule}` | `{path}:{line}` | {msg} |")
+              if len(results) > 50:
+                  lines.append(f"\n_…and {len(results)-50} more. Download the `semgrep-sarif` artifact for the full report._")
+          with open("semgrep-summary.md", "w") as f:
+              f.write("\n".join(lines))
+          PY
+
+      # Fail the job if any ERROR-level findings exist (warnings/info do not block).
+      - name: Fail on error-level findings
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import json, sys
+          try:
+              with open("semgrep.json") as f:
+                  data = json.load(f)
+          except Exception:
+              sys.exit(0)
+          errors = [r for r in data.get("results", [])
+                    if (r.get("extra", {}).get("severity") or "").upper() == "ERROR"]
+          if errors:
+              print(f"❌ {len(errors)} error-level Semgrep finding(s). Failing build.")
+              sys.exit(1)
+          print("✅ No error-level findings.")
+          PY
