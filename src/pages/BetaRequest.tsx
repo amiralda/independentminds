@@ -99,6 +99,11 @@ export default function BetaRequest() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex flex-col">
+      <SEO
+        title="Beta program — Independent Minds EDU"
+        description="Request access to the Independent Minds EDU beta program and help shape the next generation of multilingual homeschool tools."
+        path="/beta"
+      />
       {/* Hero strip */}
       <div className="bg-primary/10 border-b border-primary/15">
         <div className="max-w-lg mx-auto flex justify-between items-center px-5 py-3">
