@@ -387,6 +387,7 @@ export type Database = {
           telegram_chat_id: string | null
           tester_type: string
           token: string
+          token_hash: string | null
         }
         Insert: {
           accepted_at?: string | null
@@ -401,6 +402,7 @@ export type Database = {
           telegram_chat_id?: string | null
           tester_type: string
           token?: string
+          token_hash?: string | null
         }
         Update: {
           accepted_at?: string | null
@@ -415,6 +417,7 @@ export type Database = {
           telegram_chat_id?: string | null
           tester_type?: string
           token?: string
+          token_hash?: string | null
         }
         Relationships: []
       }
@@ -2124,6 +2127,7 @@ export type Database = {
           expires_at: string
           id: string
           token: string
+          token_hash: string | null
           used: boolean
           user_id: string
         }
@@ -2133,6 +2137,7 @@ export type Database = {
           expires_at?: string
           id?: string
           token: string
+          token_hash?: string | null
           used?: boolean
           user_id: string
         }
@@ -2142,6 +2147,7 @@ export type Database = {
           expires_at?: string
           id?: string
           token?: string
+          token_hash?: string | null
           used?: boolean
           user_id?: string
         }
