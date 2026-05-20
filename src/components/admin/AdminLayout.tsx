@@ -114,7 +114,7 @@ export default function AdminLayout() {
   }
 
   return (
-    <div className="min-h-screen flex bg-[hsl(220,20%,12%)]">
+    <div data-admin-theme className="min-h-screen flex bg-[hsl(220,20%,12%)]">
       {/* Desktop Sidebar — hidden on mobile */}
       <aside className="hidden md:flex w-64 flex-shrink-0 bg-[hsl(220,20%,14%)] border-r border-white/10 flex-col">
         <div className="p-5 flex items-center justify-between border-b border-white/10">
@@ -155,7 +155,7 @@ export default function AdminLayout() {
       </div>
 
       {/* Main content */}
-      <main className="flex-1 overflow-y-auto pt-14 md:pt-0">
+      <main className="flex-1 overflow-y-auto pt-14 md:pt-0 text-white">
         <div className="p-3 sm:p-6">
           <Outlet />
         </div>
