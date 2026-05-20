@@ -39,17 +39,16 @@ serve(async (req) => {
       });
     }
 
-    // Check role
+    // Check admin role via SECURITY DEFINER RPC (consistent with other admin functions)
     const adminClient = createClient(supabaseUrl, supabaseKey, {
       auth: { persistSession: false },
     });
-    const { data: profile } = await adminClient
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
+    const { data: isAdmin, error: roleError } = await adminClient.rpc("has_role", {
+      _user_id: user.id,
+      _role: "admin",
+    });
 
-    if (!profile || profile.role !== "parent") {
+    if (roleError || !isAdmin) {
       return new Response(JSON.stringify({ error: "Admin access required" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
