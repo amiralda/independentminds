@@ -30,7 +30,7 @@ export function TelegramSettings() {
     const load = async () => {
       const { data } = await supabase
         .from("parent_settings")
-        .select("telegram_bot_token, telegram_chat_id, whatsapp_number, whatsapp_enabled, notification_channel")
+        .select("telegram_chat_id, whatsapp_number, whatsapp_enabled, notification_channel")
         .eq("user_id", user.id)
         .single();
       if (data) {
