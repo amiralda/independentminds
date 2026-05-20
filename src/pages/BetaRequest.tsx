@@ -10,6 +10,7 @@ import { LanguageToggle } from '@/components/LanguageToggle';
 import { CheckCircle, Loader2, Users, Sparkles, BookOpen, Shield } from 'lucide-react';
 import { motion } from 'framer-motion';
 import logo from '@/assets/logo.svg';
+import { SEO } from '@/components/SEO';
 
 export default function BetaRequest() {
   const { t } = useI18n();

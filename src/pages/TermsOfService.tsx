@@ -2,6 +2,7 @@ import { useI18n } from "@/lib/i18n";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { Link } from "react-router-dom";
 import { ArrowLeft, FileText } from "lucide-react";
+import { SEO } from "@/components/SEO";
 
 export default function TermsOfService() {
   const { lang } = useI18n();
@@ -10,6 +11,11 @@ export default function TermsOfService() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Terms of Service — Independent Minds EDU"
+        description="Terms and conditions for using Independent Minds EDU, the multilingual homeschool management platform for families and educators."
+        path="/terms"
+      />
       <header className="sticky top-0 z-50 bg-primary shadow-md">
         <div className="container py-3 flex items-center justify-between">
           <Link to="/login" className="text-primary-foreground/70 hover:text-primary-foreground p-1" aria-label="Back to login">

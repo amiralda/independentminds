@@ -11,6 +11,7 @@ import logo from "@/assets/logo.svg";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
 import { LanguageToggle } from "@/components/LanguageToggle";
+import { SEO } from "@/components/SEO";
 
 export default function Login() {
   const { t, lang } = useI18n();

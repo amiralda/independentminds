@@ -2,6 +2,7 @@ import { useI18n } from "@/lib/i18n";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Shield } from "lucide-react";
+import { SEO } from "@/components/SEO";
 
 export default function PrivacyPolicy() {
   const { lang } = useI18n();
@@ -11,6 +12,11 @@ export default function PrivacyPolicy() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Privacy Policy — Independent Minds EDU"
+        description="How Independent Minds EDU collects, stores, and protects family and student data. COPPA-compliant homeschool management."
+        path="/privacy"
+      />
       <header className="sticky top-0 z-50 bg-primary shadow-md">
         <div className="container py-3 flex items-center justify-between">
           <Link to="/login" className="text-primary-foreground/70 hover:text-primary-foreground p-1" aria-label="Back to login">
