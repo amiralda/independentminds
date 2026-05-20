@@ -16,6 +16,20 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Verify request originated from Telegram by checking the secret header set
+  // when registering the webhook via setWebhook?secret_token=...
+  // If TELEGRAM_WEBHOOK_SECRET is configured, the header must match.
+  const expectedSecret = Deno.env.get('TELEGRAM_WEBHOOK_SECRET');
+  if (expectedSecret) {
+    const incomingSecret = req.headers.get('X-Telegram-Bot-Api-Secret-Token');
+    if (incomingSecret !== expectedSecret) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+  }
+
   try {
     const body = await req.json();
     const message = body.message;

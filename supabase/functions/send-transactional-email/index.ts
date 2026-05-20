@@ -30,9 +30,11 @@ function generateToken(): string {
     .join('')
 }
 
-// Auth note: this function uses verify_jwt = true in config.toml, so Supabase's
-// gateway validates the caller's JWT (anon or service_role) before the request
-// reaches this code. No in-function auth check is needed.
+// Auth: verify_jwt = true in config.toml validates JWT signature only — it does not
+// distinguish the public anon key from a real user. We additionally require either:
+//   (a) the caller's Bearer token equals SUPABASE_SERVICE_ROLE_KEY (internal callers), OR
+//   (b) the caller is an authenticated admin user.
+// This prevents abuse of the email endpoint by anyone holding the public anon key.
 
 Deno.serve(async (req) => {
   // Handle CORS preflight
@@ -42,13 +44,51 @@ Deno.serve(async (req) => {
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
   const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+  const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')
 
-  if (!supabaseUrl || !supabaseServiceKey) {
+  if (!supabaseUrl || !supabaseServiceKey || !supabaseAnonKey) {
     console.error('Missing required environment variables')
     return new Response(
       JSON.stringify({ error: 'Server configuration error' }),
       {
         status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      }
+    )
+  }
+
+  // --- Caller authorization ---
+  const authHeader = req.headers.get('Authorization') || ''
+  const bearer = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : ''
+  let callerAuthorized = false
+
+  if (bearer && bearer === supabaseServiceKey) {
+    // Internal call from another edge function using service role
+    callerAuthorized = true
+  } else if (bearer) {
+    // Real user — must be an admin
+    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+      auth: { persistSession: false },
+    })
+    const { data: { user } } = await userClient.auth.getUser()
+    if (user) {
+      const adminCheck = createClient(supabaseUrl, supabaseServiceKey, {
+        auth: { persistSession: false },
+      })
+      const { data: isAdmin } = await adminCheck.rpc('has_role', {
+        _user_id: user.id,
+        _role: 'admin',
+      })
+      if (isAdmin) callerAuthorized = true
+    }
+  }
+
+  if (!callerAuthorized) {
+    return new Response(
+      JSON.stringify({ error: 'Forbidden: admin or service role required' }),
+      {
+        status: 403,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     )
