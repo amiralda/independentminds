@@ -2,10 +2,14 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAutoRefresh } from "@/hooks/useAutoRefresh";
 import StatCard from "@/components/admin/StatCard";
-import { Eye, EyeOff, Calendar, Filter } from "lucide-react";
+import { Eye, EyeOff, Calendar as CalendarIcon, Filter } from "lucide-react";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface LogEntry {
   id: string;
@@ -99,21 +103,49 @@ export default function AdminAuditLogs() {
           </div>
           <div className="flex-1">
             <label className="text-white/50 text-xs mb-1 block">From Date</label>
-            <Input
-              type="date"
-              value={dateFrom}
-              onChange={e => setDateFrom(e.target.value)}
-              className="bg-white/5 border-white/10 text-white"
-            />
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className={cn("w-full justify-start text-xs", !dateFrom && "text-white/50")}
+                >
+                  <CalendarIcon size={14} className="mr-2" />
+                  {dateFrom ? format(new Date(dateFrom + "T00:00:00"), "MMM d, yyyy") : "Pick a date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={dateFrom ? new Date(dateFrom + "T00:00:00") : undefined}
+                  onSelect={(d) => d && setDateFrom(format(d, "yyyy-MM-dd"))}
+                  className="p-3 pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
           </div>
           <div className="flex-1">
             <label className="text-white/50 text-xs mb-1 block">To Date</label>
-            <Input
-              type="date"
-              value={dateTo}
-              onChange={e => setDateTo(e.target.value)}
-              className="bg-white/5 border-white/10 text-white"
-            />
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className={cn("w-full justify-start text-xs", !dateTo && "text-white/50")}
+                >
+                  <CalendarIcon size={14} className="mr-2" />
+                  {dateTo ? format(new Date(dateTo + "T00:00:00"), "MMM d, yyyy") : "Pick a date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={dateTo ? new Date(dateTo + "T00:00:00") : undefined}
+                  onSelect={(d) => d && setDateTo(format(d, "yyyy-MM-dd"))}
+                  className="p-3 pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
           </div>
           <div className="flex items-end">
             <Button
@@ -121,7 +153,7 @@ export default function AdminAuditLogs() {
               variant="outline"
               className="border-white/20 text-white hover:bg-white/10"
             >
-              <Calendar size={16} className="mr-2" />
+              <CalendarIcon size={16} className="mr-2" />
               Apply
             </Button>
           </div>
