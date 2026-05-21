@@ -181,7 +181,7 @@ export default function AdminSystem() {
               <h2 className="text-white font-semibold">Platform Errors</h2>
               <div className="flex-1" />
               <select
-                className="bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-white/70 text-xs"
+                className="bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-white/70 text-xs [&>option]:text-slate-900 [&>option]:bg-white"
                 value={errorFilter.resolved}
                 onChange={(e) => setErrorFilter((f) => ({ ...f, resolved: e.target.value }))}
               >
@@ -190,7 +190,7 @@ export default function AdminSystem() {
                 <option value="all">All</option>
               </select>
               <select
-                className="bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-white/70 text-xs"
+                className="bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-white/70 text-xs [&>option]:text-slate-900 [&>option]:bg-white"
                 value={errorFilter.role}
                 onChange={(e) => setErrorFilter((f) => ({ ...f, role: e.target.value }))}
               >
