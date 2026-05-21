@@ -2,10 +2,14 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAutoRefresh } from "@/hooks/useAutoRefresh";
 import StatCard from "@/components/admin/StatCard";
-import { Eye, EyeOff, Calendar, Filter } from "lucide-react";
+import { Eye, EyeOff, Calendar as CalendarIcon, Filter } from "lucide-react";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface LogEntry {
   id: string;
