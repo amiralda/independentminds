@@ -23,20 +23,30 @@ Deno.serve(async (req) => {
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const anonKey = Deno.env.get('SUPABASE_ANON_KEY') || Deno.env.get('SUPABASE_PUBLISHABLE_KEY')!;
 
-    // Auth check
+    // Auth check — REQUIRED. Reject anonymous callers to prevent spam of platform_errors/admin_notifications.
     const authHeader = req.headers.get('Authorization');
-    let userId: string | null = null;
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const anonClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+      auth: { persistSession: false },
+    });
+    const { data: { user } } = await anonClient.auth.getUser();
+    if (!user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const userId: string = user.id;
     let userRole = 'anonymous';
     let isBetaTester = false;
-
-    if (authHeader) {
-      const anonClient = createClient(supabaseUrl, anonKey, {
-        global: { headers: { Authorization: authHeader } },
-        auth: { persistSession: false },
-      });
-      const { data: { user } } = await anonClient.auth.getUser();
-      if (user) userId = user.id;
-    }
 
     const db = createClient(supabaseUrl, serviceKey, {
       auth: { persistSession: false },
