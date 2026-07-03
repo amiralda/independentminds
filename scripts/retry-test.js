@@ -14,7 +14,7 @@
  *   e2e-grep   - Playwright test by title (-g)
  */
 
-const { execSync } = require('child_process');
+import { execSync } from 'child_process';
 
 const type = process.argv[2];
 const target = process.argv[3];
