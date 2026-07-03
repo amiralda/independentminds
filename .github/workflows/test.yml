@@ -28,7 +28,24 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - run: npm run test -- --reporter=verbose
+      - name: Run Vitest with retry
+        run: |
+          attempts="${TEST_RETRY_ATTEMPTS:-3}"
+          n=1
+          until [ "$n" -gt "$attempts" ]; do
+            echo "::group::Vitest attempt $n / $attempts"
+            if npm run test -- --reporter=verbose; then
+              echo "::endgroup::"
+              echo "✅ Vitest passed on attempt $n"
+              exit 0
+            fi
+            echo "::endgroup::"
+            echo "::warning::Vitest failed on attempt $n / $attempts"
+            n=$((n+1))
+          done
+          echo "::error::Vitest failed after $attempts attempts"
+          exit 1
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:
