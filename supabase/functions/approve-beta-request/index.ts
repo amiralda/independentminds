@@ -211,8 +211,19 @@ Deno.serve(async (req) => {
   }
 });
 
+function escapeHtml(s: string): string {
+  return String(s ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .slice(0, 200);
+}
+
 function buildInviteEmail(name: string, inviteUrl: string): string {
-  return `<p>Hi ${name},</p>
+  const safeName = escapeHtml(name);
+  return `<p>Hi ${safeName},</p>
     <p>Your beta request has been approved!</p>
     <p><a href="${inviteUrl}">Accept your invitation</a></p>
     <p>This link expires in 14 days.</p>`;
