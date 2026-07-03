@@ -7,6 +7,41 @@
 
 ---
 
+## Running a Single Failing Test Quickly
+
+When a CI run is red, use these helper scripts to iterate on just the failing test without re-running the whole suite.
+
+### Unit / Vitest
+
+| Goal | Command |
+|------|---------|
+| Single test file | `npm run test:file -- src/test/example.test.ts` |
+| Single test by name | `npm run test:grep -- "should render dashboard"` |
+| Watch a single file | `npx vitest --reporter=verbose src/test/example.test.ts` |
+
+### E2E / Playwright
+
+| Goal | Command |
+|------|---------|
+| Single spec file | `npm run test:e2e:file -- tests/e2e/auth/login.spec.ts` |
+| Single test by name | `npm run test:e2e:grep -- "parent can log in"` |
+| Run on a specific project | `npm run test:e2e:file -- tests/e2e/auth/login.spec.ts --project=chromium` |
+| Debug in headed mode | `npm run test:e2e:file -- tests/e2e/auth/login.spec.ts --headed --workers=1` |
+
+### Database / SQL
+
+| Goal | Command |
+|------|---------|
+| Single SQL audit file | `DATABASE_URL="<url>" npm run test:db:file -- tests/db/rls/auth_rls.sql` |
+
+### Tips
+
+- Always pass the file path or test name **after** the `--` separator so npm forwards it to the underlying command.
+- For flaky E2E tests, add `--workers=1 --retries=0` to disable parallel retries while debugging.
+- The CI workflow runs unit tests first, then e2e and db tests in parallel. Reproduce the failing job locally using the commands above with the same environment variables.
+
+---
+
 ## How to Use with GitHub Issues
 
 1. Connect this repo to GitHub via **Project Settings → GitHub**

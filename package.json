@@ -11,10 +11,15 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:file": "vitest run --reporter=verbose",
+    "test:grep": "vitest run --reporter=verbose -t",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
-    "test:coverage": "vitest run --coverage"
+    "test:e2e:file": "playwright test",
+    "test:e2e:grep": "playwright test -g",
+    "test:coverage": "vitest run --coverage",
+    "test:db:file": "psql \"$DATABASE_URL\" -f"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
