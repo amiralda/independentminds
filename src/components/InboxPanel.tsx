@@ -59,7 +59,8 @@ export function InboxPanel() {
   useEffect(() => {
     if (!user) return;
     const channel = supabase
-      .channel("inbox_realtime")
+      .channel(`inbox_realtime:${user.id}`)
+
       .on("postgres_changes", {
         event: "*",
         schema: "public",
