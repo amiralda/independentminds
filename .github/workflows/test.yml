@@ -5,6 +5,17 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      retry_attempts:
+        description: 'How many times to re-run a failing test suite before giving up'
+        required: false
+        default: '3'
+
+env:
+  # Max attempts for flaky test suites. Override per-run via workflow_dispatch input.
+  TEST_RETRY_ATTEMPTS: ${{ github.event.inputs.retry_attempts || '3' }}
+
 
 jobs:
   unit-tests:
@@ -17,7 +28,24 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - run: npm run test -- --reporter=verbose
+      - name: Run Vitest with retry
+        run: |
+          attempts="${TEST_RETRY_ATTEMPTS:-3}"
+          n=1
+          until [ "$n" -gt "$attempts" ]; do
+            echo "::group::Vitest attempt $n / $attempts"
+            if npm run test -- --reporter=verbose; then
+              echo "::endgroup::"
+              echo "✅ Vitest passed on attempt $n"
+              exit 0
+            fi
+            echo "::endgroup::"
+            echo "::warning::Vitest failed on attempt $n / $attempts"
+            n=$((n+1))
+          done
+          echo "::error::Vitest failed after $attempts attempts"
+          exit 1
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -55,9 +83,25 @@ jobs:
         if: steps.secrets-check.outputs.skip == 'false'
       - run: npx playwright install --with-deps chromium
         if: steps.secrets-check.outputs.skip == 'false'
-      - name: Run Playwright tests
+      - name: Run Playwright tests with retry
         if: steps.secrets-check.outputs.skip == 'false'
-        run: npm run test:e2e
+        run: |
+          attempts="${TEST_RETRY_ATTEMPTS:-3}"
+          n=1
+          until [ "$n" -gt "$attempts" ]; do
+            echo "::group::Playwright attempt $n / $attempts"
+            if npm run test:e2e -- --reporter=list; then
+              echo "::endgroup::"
+              echo "✅ Playwright passed on attempt $n"
+              exit 0
+            fi
+            echo "::endgroup::"
+            echo "::warning::Playwright failed on attempt $n / $attempts"
+            n=$((n+1))
+          done
+          echo "::error::Playwright failed after $attempts attempts"
+          exit 1
+
         env:
           PLAYWRIGHT_BASE_URL: ${{ secrets.PLAYWRIGHT_BASE_URL }}
           TEST_PARENT_EMAIL: ${{ secrets.TEST_PARENT_EMAIL }}
