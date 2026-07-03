@@ -106,11 +106,12 @@ const Index = () => {
     fetchUnread();
 
     const channel = supabase
-      .channel(`inbox-badge:${profile.id}`)
+      .channel(`inbox-badge:${user?.id ?? "anon"}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "inbox_messages" }, () => {
         fetchUnread();
       })
       .subscribe();
+
 
 
     return () => { supabase.removeChannel(channel); };
