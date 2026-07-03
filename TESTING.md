@@ -42,6 +42,31 @@ When a CI run is red, use these helper scripts to iterate on just the failing te
 
 ---
 
+## Retrying a Test to Confirm Flakiness
+
+To verify whether a failure is flaky or reproducible, run a single test up to **N** times with verbose output. The command exits non-zero if any run fails, making it safe to use in CI scripts.
+
+### Unit / Vitest
+
+| Goal | Command |
+|------|---------|
+| Retry a test file | `npm run test:retry -- src/test/example.test.ts 10` |
+| Retry a test by name | `npm run test:retry:grep -- "should render dashboard" 10` |
+
+### E2E / Playwright
+
+| Goal | Command |
+|------|---------|
+| Retry a spec file | `npm run test:e2e:retry -- tests/e2e/auth/login.spec.ts 10` |
+| Retry a test by title | `npm run test:e2e:retry:grep -- "parent can log in" 10` |
+
+### Output
+
+Each retry run is clearly labeled, and the final summary shows the pass/fail ratio (e.g., `8/10 runs passed (2 failed)`). Use the verbose output to identify whether failures are deterministic or intermittent before changing code or test logic.
+
+
+---
+
 ## How to Use with GitHub Issues
 
 1. Connect this repo to GitHub via **Project Settings → GitHub**
