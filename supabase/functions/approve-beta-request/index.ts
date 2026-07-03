@@ -211,8 +211,19 @@ Deno.serve(async (req) => {
   }
 });
 
+function escapeHtml(s: string): string {
+  return String(s ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .slice(0, 200);
+}
+
 function buildInviteEmail(name: string, inviteUrl: string): string {
-  return `<p>Hi ${name},</p>
+  const safeName = escapeHtml(name);
+  return `<p>Hi ${safeName},</p>
     <p>Your beta request has been approved!</p>
     <p><a href="${inviteUrl}">Accept your invitation</a></p>
     <p>This link expires in 14 days.</p>`;
@@ -227,7 +238,7 @@ function buildWelcomeMissionEmail(name: string): string {
     </div>
 
     <div style="background: white; border-radius: 12px; padding: 24px; margin-top: 16px;">
-      <p style="margin: 0 0 16px; font-size: 16px;">Hi ${name},</p>
+      <p style="margin: 0 0 16px; font-size: 16px;">Hi ${escapeHtml(name)},</p>
       <p style="margin: 0 0 16px; font-size: 14px; color: #555;">
         Welcome to the Independent Minds EDU beta! Complete these tasks to earn points and level up:
       </p>

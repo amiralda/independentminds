@@ -113,7 +113,25 @@ serve(async (req) => {
     const remaining = rateData ? Math.max(0, 30 - rateData.count) : 30;
     const { messages, subjectMode, studentId: reqStudentId } = await req.json();
 
-    const effectiveStudentId = reqStudentId || profile.student_id || userId;
+    // Ownership check: verify the caller owns/is the requested student
+    let effectiveStudentId: string;
+    if (reqStudentId) {
+      const { data: ownedStudent } = await serviceClient
+        .from("students")
+        .select("student_id")
+        .eq("student_id", reqStudentId)
+        .eq("parent_id", userId)
+        .maybeSingle();
+      const isOwnStudentProfile = profile.student_id === reqStudentId;
+      if (!ownedStudent && !isOwnStudentProfile) {
+        return new Response(JSON.stringify({ error: "Forbidden: student access denied" }), {
+          status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      effectiveStudentId = reqStudentId;
+    } else {
+      effectiveStudentId = profile.student_id || userId;
+    }
     const subject = subjectMode || "general";
 
     // Load last 20 messages from conversation history
