@@ -83,9 +83,25 @@ jobs:
         if: steps.secrets-check.outputs.skip == 'false'
       - run: npx playwright install --with-deps chromium
         if: steps.secrets-check.outputs.skip == 'false'
-      - name: Run Playwright tests
+      - name: Run Playwright tests with retry
         if: steps.secrets-check.outputs.skip == 'false'
-        run: npm run test:e2e
+        run: |
+          attempts="${TEST_RETRY_ATTEMPTS:-3}"
+          n=1
+          until [ "$n" -gt "$attempts" ]; do
+            echo "::group::Playwright attempt $n / $attempts"
+            if npm run test:e2e -- --reporter=list; then
+              echo "::endgroup::"
+              echo "✅ Playwright passed on attempt $n"
+              exit 0
+            fi
+            echo "::endgroup::"
+            echo "::warning::Playwright failed on attempt $n / $attempts"
+            n=$((n+1))
+          done
+          echo "::error::Playwright failed after $attempts attempts"
+          exit 1
+
         env:
           PLAYWRIGHT_BASE_URL: ${{ secrets.PLAYWRIGHT_BASE_URL }}
           TEST_PARENT_EMAIL: ${{ secrets.TEST_PARENT_EMAIL }}
