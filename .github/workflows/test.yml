@@ -5,6 +5,17 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      retry_attempts:
+        description: 'How many times to re-run a failing test suite before giving up'
+        required: false
+        default: '3'
+
+env:
+  # Max attempts for flaky test suites. Override per-run via workflow_dispatch input.
+  TEST_RETRY_ATTEMPTS: ${{ github.event.inputs.retry_attempts || '3' }}
+
 
 jobs:
   unit-tests:
