@@ -238,7 +238,7 @@ function buildWelcomeMissionEmail(name: string): string {
     </div>
 
     <div style="background: white; border-radius: 12px; padding: 24px; margin-top: 16px;">
-      <p style="margin: 0 0 16px; font-size: 16px;">Hi ${name},</p>
+      <p style="margin: 0 0 16px; font-size: 16px;">Hi ${escapeHtml(name)},</p>
       <p style="margin: 0 0 16px; font-size: 14px; color: #555;">
         Welcome to the Independent Minds EDU beta! Complete these tasks to earn points and level up:
       </p>
