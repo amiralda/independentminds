@@ -3,7 +3,7 @@ import { NavLink, Outlet, Navigate, Link } from "react-router-dom";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import {
   LayoutDashboard, Users, TrendingUp, Gift, Activity,
-  MessageSquare, Shield, LogOut, Home, Menu, X, Eye, FlaskConical, Bell
+  MessageSquare, Shield, LogOut, Home, Menu, X, Eye, FlaskConical, Bell, Globe
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.svg";
