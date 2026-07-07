@@ -1047,6 +1047,39 @@ export type Database = {
         }
         Relationships: []
       }
+      dns_monitor_state: {
+        Row: {
+          a_records: string[]
+          details: string | null
+          domain: string
+          last_changed_at: string
+          last_checked_at: string
+          previous_status: string | null
+          status: string
+          txt_records: string[]
+        }
+        Insert: {
+          a_records?: string[]
+          details?: string | null
+          domain: string
+          last_changed_at?: string
+          last_checked_at?: string
+          previous_status?: string | null
+          status: string
+          txt_records?: string[]
+        }
+        Update: {
+          a_records?: string[]
+          details?: string | null
+          domain?: string
+          last_changed_at?: string
+          last_checked_at?: string
+          previous_status?: string | null
+          status?: string
+          txt_records?: string[]
+        }
+        Relationships: []
+      }
       educator_group_students: {
         Row: {
           group_id: string
