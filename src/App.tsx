@@ -104,6 +104,7 @@ const App = () => (
                   <Route path="users" element={<AdminUsers />} />
                   <Route path="audit" element={<AdminAuditLogs />} />
                   <Route path="beta" element={<AdminBeta />} />
+                  <Route path="dns" element={<AdminDnsStatus />} />
                 </Route>
                 <Route path="/" element={<AuthGuard><Index /></AuthGuard>} />
                 <Route path="*" element={<NotFound />} />
