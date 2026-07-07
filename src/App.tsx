@@ -28,6 +28,7 @@ import AdminUsers from "./pages/admin/AdminUsers";
 import AdminAuditLogs from "./pages/admin/AdminAuditLogs";
 import AdminBeta from "./pages/admin/AdminBeta";
 import AdminNotificationCenter from "./pages/admin/AdminNotificationCenter";
+import AdminDnsStatus from "./pages/admin/AdminDnsStatus";
 import AcceptInvite from "./pages/AcceptInvite";
 import BetaRequest from "./pages/BetaRequest";
 import BetaAccept from "./pages/BetaAccept";
@@ -103,6 +104,7 @@ const App = () => (
                   <Route path="users" element={<AdminUsers />} />
                   <Route path="audit" element={<AdminAuditLogs />} />
                   <Route path="beta" element={<AdminBeta />} />
+                  <Route path="dns" element={<AdminDnsStatus />} />
                 </Route>
                 <Route path="/" element={<AuthGuard><Index /></AuthGuard>} />
                 <Route path="*" element={<NotFound />} />
