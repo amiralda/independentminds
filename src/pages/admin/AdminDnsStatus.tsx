@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { RefreshCw, CheckCircle2, XCircle, AlertTriangle, Loader2 } from "lucide-react";
+import { DnsHistoryPanel } from "@/components/admin/DnsHistoryPanel";
 
 const DEFAULT_DOMAIN = "independentmindsedu.com";
 const EXPECTED_A = "185.158.133.1";
@@ -243,6 +244,8 @@ export default function AdminDnsStatus() {
           );
         })}
       </div>
+
+      <DnsHistoryPanel domain={domain} />
     </div>
   );
 }
