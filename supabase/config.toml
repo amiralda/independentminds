@@ -45,3 +45,5 @@ project_id = "wkvattbvybvgaeobtidl"
     verify_jwt = false
   [functions.handle-email-suppression]
     verify_jwt = false
+  [functions.dns-monitor]
+    verify_jwt = false
