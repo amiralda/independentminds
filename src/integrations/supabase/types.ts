@@ -1047,6 +1047,48 @@ export type Database = {
         }
         Relationships: []
       }
+      dns_monitor_history: {
+        Row: {
+          a_records: string[]
+          checked_at: string
+          details: string | null
+          domain: string
+          id: string
+          ns_status: number | null
+          previous_status: string | null
+          root_status: number | null
+          status: string
+          status_changed: boolean
+          txt_records: string[]
+        }
+        Insert: {
+          a_records?: string[]
+          checked_at?: string
+          details?: string | null
+          domain: string
+          id?: string
+          ns_status?: number | null
+          previous_status?: string | null
+          root_status?: number | null
+          status: string
+          status_changed?: boolean
+          txt_records?: string[]
+        }
+        Update: {
+          a_records?: string[]
+          checked_at?: string
+          details?: string | null
+          domain?: string
+          id?: string
+          ns_status?: number | null
+          previous_status?: string | null
+          root_status?: number | null
+          status?: string
+          status_changed?: boolean
+          txt_records?: string[]
+        }
+        Relationships: []
+      }
       dns_monitor_state: {
         Row: {
           a_records: string[]

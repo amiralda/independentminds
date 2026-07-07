@@ -129,6 +129,19 @@ Deno.serve(async (req) => {
     previous_status: changed ? prev?.status ?? null : prev?.previous_status ?? null,
   }, { onConflict: "domain" });
 
+  await supabase.from("dns_monitor_history").insert({
+    domain: DOMAIN,
+    status: check.overall,
+    previous_status: prev?.status ?? null,
+    status_changed: changed,
+    a_records: check.aRecords,
+    txt_records: check.txtRecords,
+    ns_status: check.nsStatus,
+    root_status: check.rootStatus,
+    details: check.details,
+    checked_at: now,
+  });
+
   const alerts: any = { email: null, whatsapp: null };
   if (changed) {
     const from = prev?.status ?? "unknown";
