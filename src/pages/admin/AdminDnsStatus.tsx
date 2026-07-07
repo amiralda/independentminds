@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { RefreshCw, CheckCircle2, XCircle, AlertTriangle, Loader2 } from "lucide-react";
 import { DnsHistoryPanel } from "@/components/admin/DnsHistoryPanel";
+import { DnsSetupWizard } from "@/components/admin/DnsSetupWizard";
 
 const DEFAULT_DOMAIN = "independentmindsedu.com";
 const EXPECTED_A = "185.158.133.1";
@@ -245,6 +246,7 @@ export default function AdminDnsStatus() {
         })}
       </div>
 
+      <DnsSetupWizard domain={domain} />
       <DnsHistoryPanel domain={domain} />
     </div>
   );
