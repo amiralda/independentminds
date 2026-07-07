@@ -21,6 +21,7 @@ const navItems = [
   { to: "/admin/users", icon: Shield, label: "Users" },
   { to: "/admin/audit", icon: Eye, label: "Audit Logs" },
   { to: "/admin/beta", icon: FlaskConical, label: "Beta" },
+  { to: "/admin/dns", icon: Globe, label: "DNS Status" },
 ];
 
 function SidebarNav({ onNavigate, systemAlertCount }: { onNavigate?: () => void; systemAlertCount?: number }) {
