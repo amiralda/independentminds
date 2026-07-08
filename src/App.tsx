@@ -16,6 +16,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
+import DeploymentHealth from "./pages/DeploymentHealth";
 import NotFound from "./pages/NotFound";
 import AdminLayout from "./components/admin/AdminLayout";
 import AdminOverview from "./pages/admin/AdminOverview";
@@ -87,6 +88,7 @@ const App = () => (
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/privacy" element={<PrivacyPolicy />} />
                 <Route path="/terms" element={<TermsOfService />} />
+                <Route path="/health" element={<DeploymentHealth />} />
                 <Route path="/accept-invite" element={<AcceptInvite />} />
                 <Route path="/beta" element={<BetaRequest />} />
                 <Route path="/beta/accept" element={<BetaAccept />} />

@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { UserPlus, Shield, Trash2, Mail, Copy, Check, ChevronDown, ChevronUp } from "lucide-react";
+import { buildAppUrl } from "@/lib/siteUrl";
 
 interface Props {
   studentId: string;
@@ -30,10 +31,8 @@ export function CoGuardiansPanel({ studentId }: Props) {
     is_full_access: false,
   });
 
-  const siteUrl = "https://independentmindsedu.com";
-
   const copyInviteLink = async (token: string, id: string) => {
-    const link = `${siteUrl}/accept-invite?token=${token}`;
+    const link = buildAppUrl(`/accept-invite?token=${token}`);
     await navigator.clipboard.writeText(link);
     setCopiedId(id);
     toast.success(t("guardians.link_copied") || "Invite link copied!");

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useI18n } from '@/lib/i18n';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { buildAppUrl } from '@/lib/siteUrl';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -148,7 +149,7 @@ export default function AdminBeta() {
 
   const copyInviteUrl = async (token: string) => {
     await navigator.clipboard.writeText(
-      `https://independentmindsedu.com/beta/accept?token=${token}`,
+      buildAppUrl(`/beta/accept?token=${token}`),
     );
     toast.success(t('invite_panel.copied'));
   };

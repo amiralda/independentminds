@@ -1,4 +1,5 @@
 import { Helmet } from "react-helmet-async";
+import { buildAppUrl } from "@/lib/siteUrl";
 
 interface SEOProps {
   title: string;
@@ -11,7 +12,7 @@ interface SEOProps {
  * Per-route head tags. Sets unique title, description, canonical and og:* per page.
  */
 export function SEO({ title, description, path, ogType = "website" }: SEOProps) {
-  const url = `https://independentmindsedu.com${path}`;
+  const url = buildAppUrl(path);
   return (
     <Helmet>
       <title>{title}</title>

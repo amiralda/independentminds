@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useI18n } from '@/lib/i18n';
+import { buildAppUrl } from '@/lib/siteUrl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -136,7 +137,7 @@ export function AdminInvitePanel({
     (!channels.has('email') || email);
 
   // Message previews
-  const inviteUrlPreview = 'https://independentmindsedu.com/beta/accept?token=...';
+  const inviteUrlPreview = buildAppUrl('/beta/accept?token=...');
   const notesShort = (notes || '').slice(0, 80);
 
   const previews: Record<Channel, string> = {
@@ -179,8 +180,7 @@ export function AdminInvitePanel({
 
       if (insertErr) throw insertErr;
 
-      const url =
-        `https://independentmindsedu.com/beta/accept?token=${invite.token}`;
+      const url = buildAppUrl(`/beta/accept?token=${invite.token}`);
       const msgParam = notes
         ? `&msg=${encodeURIComponent(notes.slice(0, 200))}`
         : '';

@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Copy, Check, Gift, Users } from 'lucide-react';
 import { toast } from 'sonner';
+import { buildAppUrl } from '@/lib/siteUrl';
 
 export function BetaReferralPanel() {
   const { t } = useI18n();
@@ -46,7 +47,7 @@ export function BetaReferralPanel() {
 
   if (!tester || !referralCode) return null;
 
-  const referralUrl = `https://independentmindsedu.com/beta?ref=${referralCode}`;
+  const referralUrl = buildAppUrl(`/beta?ref=${referralCode}`);
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(referralUrl);

@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
 import logo from "@/assets/logo.svg";
 import { Mail, ArrowLeft } from "lucide-react";
+import { buildAppUrl } from "@/lib/siteUrl";
 
 export default function ForgotPassword() {
   const { t } = useI18n();
@@ -19,7 +20,7 @@ export default function ForgotPassword() {
     e.preventDefault();
     setLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: buildAppUrl("/reset-password"),
     });
     setLoading(false);
     if (error) {

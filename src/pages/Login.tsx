@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +11,7 @@ import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { SEO } from "@/components/SEO";
+import { buildAppUrl } from "@/lib/siteUrl";
 
 export default function Login() {
   const { t, lang } = useI18n();
@@ -64,7 +64,7 @@ export default function Login() {
           adult_confirmed: true,
           adult_confirmed_at: new Date().toISOString(),
         },
-        emailRedirectTo: window.location.origin,
+        emailRedirectTo: buildAppUrl("/"),
       },
     });
     setLoading(false);
@@ -77,13 +77,24 @@ export default function Login() {
 
   const handleGoogleAuth = async () => {
     const targetUrl = redirectPath
-      ? `${window.location.origin}${redirectPath}`
-      : window.location.origin;
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: targetUrl,
+      ? buildAppUrl(redirectPath)
+      : buildAppUrl("/");
+
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: targetUrl,
+        queryParams: {
+          access_type: "offline",
+          prompt: "consent",
+        },
+      },
     });
-    if (result.error) {
-      toast.error(result.error.message || "Google sign-in failed");
+    setLoading(false);
+
+    if (error) {
+      toast.error(error.message || "Google sign-in failed");
     }
   };
 

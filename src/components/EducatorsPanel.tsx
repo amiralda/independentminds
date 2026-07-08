@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { UserPlus, BookOpenCheck, Trash2, Mail, Copy, Check, ChevronDown, ChevronUp } from "lucide-react";
+import { buildAppUrl } from "@/lib/siteUrl";
 
 interface Props {
   studentId: string;
@@ -29,8 +30,6 @@ export function EducatorsPanel({ studentId }: Props) {
     can_view_reports: true,
     can_receive_sos: false,
   });
-
-  const siteUrl = "https://independentmindsedu.com";
 
   const { data: educators = [] } = useQuery({
     queryKey: ["educator_students", studentId],
