@@ -1120,13 +1120,16 @@ const I18nContext = createContext<I18nContextType>({
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [lang, setLangState] = useState<Lang>(() => {
-    const saved = localStorage.getItem("im_lang");
+    if (typeof window === "undefined") return "EN";
+    const saved = window.localStorage.getItem("im_lang");
     return (saved && VALID_LANGS.includes(saved as Lang)) ? saved as Lang : "EN";
   });
 
   const setLang = useCallback((l: Lang) => {
     setLangState(l);
-    localStorage.setItem("im_lang", l);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("im_lang", l);
+    }
   }, []);
 
   const t = useCallback((key: string) => translations[key]?.[lang] || translations[key]?.["EN"] || key, [lang]);

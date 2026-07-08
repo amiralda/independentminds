@@ -62,7 +62,7 @@ export function useRoleSwitcher(): RoleSwitcherState {
       setRoles(detectedRoles.length > 0 ? detectedRoles : [profile.role as ActiveRole]);
 
       // Restore saved role
-      const saved = localStorage.getItem("im_active_role") as ActiveRole | null;
+      const saved = typeof window !== "undefined" ? window.localStorage.getItem("im_active_role") as ActiveRole | null : null;
       if (saved && detectedRoles.includes(saved)) {
         setActiveRoleState(saved);
       } else {
@@ -77,7 +77,9 @@ export function useRoleSwitcher(): RoleSwitcherState {
 
   const setActiveRole = useCallback((role: ActiveRole) => {
     setActiveRoleState(role);
-    localStorage.setItem("im_active_role", role);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("im_active_role", role);
+    }
   }, []);
 
   return {

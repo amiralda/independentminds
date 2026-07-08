@@ -144,7 +144,7 @@ export function TrophyRoom() {
     if (achievements.length === 0) return;
 
     const storedKey = `seen_badges_${studentId}`;
-    const stored = localStorage.getItem(storedKey);
+    const stored = typeof window !== "undefined" ? window.localStorage.getItem(storedKey) : null;
     const seenSet = stored ? new Set<string>(JSON.parse(stored)) : new Set<string>();
     seenRef.current = seenSet;
 
@@ -155,7 +155,9 @@ export function TrophyRoom() {
 
       // Mark as seen
       const allIds = achievements.map(a => a.id);
-      localStorage.setItem(storedKey, JSON.stringify(allIds));
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(storedKey, JSON.stringify(allIds));
+      }
 
       // Stop confetti after 3 seconds
       const timer = setTimeout(() => setShowConfetti(false), 3000);

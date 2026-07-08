@@ -79,39 +79,43 @@ export function CertificatesPanel({ studentId }: { studentId: string }) {
     str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 
   const generatePDF = (chapter: ChapterProgress) => {
-    const w = window.open("", "_blank");
+    const w = window.open("", "_blank", "noopener,noreferrer");
     if (!w) return;
+
     const safeChapter = escapeHtml(chapter.chapter);
     const safeSubject = escapeHtml(chapter.subject);
+    const safeName = escapeHtml("Student");
     const dateStr = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
-    w.document.write(`
-      <!DOCTYPE html>
-      <html><head><title>Certificate</title>
-      <style>
-        body { font-family: Georgia, serif; text-align: center; padding: 60px; background: #fffef5; }
-        .border { border: 8px double #1F3B73; padding: 60px; margin: 20px; }
-        h1 { color: #1F3B73; font-size: 36px; margin-bottom: 8px; }
-        h2 { color: #F4C542; font-size: 24px; }
-        .name { font-size: 32px; color: #1F3B73; margin: 30px 0; font-style: italic; }
-        .detail { color: #555; font-size: 16px; margin: 10px 0; }
-        .date { margin-top: 40px; color: #888; }
-        @media print { body { padding: 0; } }
-      </style></head><body>
-        <div class="border">
-          <h2>★ Independent Minds ★</h2>
-          <h1>Chapter Champion Certificate</h1>
-          <p class="detail">This certifies that</p>
-          <p class="name">Christian</p>
-          <p class="detail">has successfully completed all activities in</p>
-          <p class="name">${safeChapter}</p>
-          <p class="detail">${safeSubject}</p>
-          <p class="date">${dateStr}</p>
-          <p class="detail" style="margin-top:40px">Independent Minds v1.0 — Built with Love @2026</p>
-        </div>
-        <script>setTimeout(() => window.print(), 500);</script>
-      </body></html>
-    `);
+    const style = w.document.createElement("style");
+    style.textContent = `
+      body { font-family: Georgia, serif; text-align: center; padding: 60px; background: #fffef5; }
+      .border { border: 8px double #1F3B73; padding: 60px; margin: 20px; }
+      h1 { color: #1F3B73; font-size: 36px; margin-bottom: 8px; }
+      h2 { color: #F4C542; font-size: 24px; }
+      .name { font-size: 32px; color: #1F3B73; margin: 30px 0; font-style: italic; }
+      .detail { color: #555; font-size: 16px; margin: 10px 0; }
+      .date { margin-top: 40px; color: #888; }
+      @media print { body { padding: 0; } }
+    `;
+
+    w.document.title = "Certificate";
+    w.document.head.appendChild(style);
+    w.document.body.innerHTML = `
+      <div class="border">
+        <h2>★ Independent Minds ★</h2>
+        <h1>Chapter Champion Certificate</h1>
+        <p class="detail">This certifies that</p>
+        <p class="name">${safeName}</p>
+        <p class="detail">has successfully completed all activities in</p>
+        <p class="name">${safeChapter}</p>
+        <p class="detail">${safeSubject}</p>
+        <p class="date">${dateStr}</p>
+        <p class="detail" style="margin-top:40px">Independent Minds v1.0 — Built with Love @2026</p>
+      </div>
+    `;
     w.document.close();
+    w.focus();
+    setTimeout(() => w.print(), 250);
   };
 
   if (isLoading) return <Skeleton className="h-40 w-full rounded-xl" />;

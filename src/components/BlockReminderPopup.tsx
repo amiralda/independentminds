@@ -26,7 +26,7 @@ export function BlockReminderPopup({ studentId }: Props) {
     if (!studentId) return;
 
     const checkAndRemind = async () => {
-      const lastShown = localStorage.getItem(STORAGE_KEY);
+      const lastShown = typeof window !== "undefined" ? window.localStorage.getItem(STORAGE_KEY) : null;
       const now = Date.now();
 
       if (lastShown && now - parseInt(lastShown) < REMINDER_INTERVAL) return;
@@ -57,7 +57,9 @@ export function BlockReminderPopup({ studentId }: Props) {
 
       if (overdueBlocks.length === 0 && !currentBlock) return;
 
-      localStorage.setItem(STORAGE_KEY, now.toString());
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(STORAGE_KEY, now.toString());
+      }
 
       let title = "";
       let description = "";

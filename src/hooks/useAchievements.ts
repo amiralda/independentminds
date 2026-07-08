@@ -37,33 +37,36 @@ export function useCheckAndAwardBadges(studentId: string) {
     mutationFn: async () => {
       const today = new Date().toISOString().split("T")[0];
 
-      // Check daily: 20+ Done blocks today
-      const { data: todayBlocks } = await supabase
+      const { data: todayBlocks, error: todayBlocksError } = await supabase
         .from("daily_plan")
         .select("status")
         .eq("student_id", studentId)
         .eq("plan_date", today);
 
+      if (todayBlocksError) throw todayBlocksError;
+
       const doneToday = todayBlocks?.filter(b => b.status === "Done").length || 0;
 
       if (doneToday >= 20) {
-        // Check if already awarded today
-        const { data: existing } = await supabase
+        const { data: existing, error: existingError } = await supabase
           .from("achievements")
           .select("id")
           .eq("student_id", studentId)
           .eq("name", "20-Lesson Legend")
           .gte("criteria_met_at", today + "T00:00:00");
 
+        if (existingError) throw existingError;
+
         if (!existing || existing.length === 0) {
-          await supabase.from("achievements").insert({
+          const { error: insertError } = await supabase.from("achievements").insert({
             student_id: studentId,
             type: "badge",
             name: "20-Lesson Legend",
             description: "Completed 20+ lessons in a single day!",
           });
 
-          // Trigger parent notification
+          if (insertError) throw insertError;
+
           try {
             await supabase.functions.invoke("parent-alerts", {
               body: { type: "badge_earned", student_id: studentId, badge_name: "20-Lesson Legend" },
@@ -75,39 +78,43 @@ export function useCheckAndAwardBadges(studentId: string) {
         }
       }
 
-      // Check weekly: 120+ Done blocks this week (Mon-Sat)
       const now = new Date();
       const dayOfWeek = now.getDay();
-      if (dayOfWeek === 6) { // Saturday
-        const monday = new Date(now);
-        monday.setDate(now.getDate() - 5);
-        const monStr = monday.toISOString().split("T")[0];
+      const daysSinceMonday = (dayOfWeek + 6) % 7;
+      const monday = new Date(now);
+      monday.setDate(now.getDate() - daysSinceMonday);
+      const monStr = monday.toISOString().split("T")[0];
 
-        const { data: weekBlocks } = await supabase
-          .from("daily_plan")
-          .select("status")
+      const { data: weekBlocks, error: weekBlocksError } = await supabase
+        .from("daily_plan")
+        .select("status")
+        .eq("student_id", studentId)
+        .gte("plan_date", monStr)
+        .lte("plan_date", today);
+
+      if (weekBlocksError) throw weekBlocksError;
+
+      const doneWeek = weekBlocks?.filter(b => b.status === "Done").length || 0;
+
+      if (doneWeek >= 120) {
+        const { data: existingWeekly, error: weeklyError } = await supabase
+          .from("achievements")
+          .select("id")
           .eq("student_id", studentId)
-          .gte("plan_date", monStr)
-          .lte("plan_date", today);
+          .eq("name", "Weekly Warrior")
+          .gte("criteria_met_at", monStr + "T00:00:00");
 
-        const doneWeek = weekBlocks?.filter(b => b.status === "Done").length || 0;
+        if (weeklyError) throw weeklyError;
 
-        if (doneWeek >= 120) {
-          const { data: existingWeekly } = await supabase
-            .from("achievements")
-            .select("id")
-            .eq("student_id", studentId)
-            .eq("name", "Weekly Warrior")
-            .gte("criteria_met_at", monStr + "T00:00:00");
+        if (!existingWeekly || existingWeekly.length === 0) {
+          const { error: insertError } = await supabase.from("achievements").insert({
+            student_id: studentId,
+            type: "badge",
+            name: "Weekly Warrior",
+            description: "Completed 120+ lessons in one week!",
+          });
 
-          if (!existingWeekly || existingWeekly.length === 0) {
-            await supabase.from("achievements").insert({
-              student_id: studentId,
-              type: "badge",
-              name: "Weekly Warrior",
-              description: "Completed 120+ lessons in one week!",
-            });
-          }
+          if (insertError) throw insertError;
         }
       }
     },

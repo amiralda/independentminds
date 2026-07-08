@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Session, User } from "@supabase/supabase-js";
+import { resolveProfileDisplayName } from "@/lib/profile";
 
 type Role = "student" | "parent";
 
@@ -11,6 +12,15 @@ interface Profile {
   studentId: string | null;
   languagePref: string;
   onboardingComplete: boolean;
+}
+
+interface ProfileRow {
+  display_name: string | null;
+  username: string | null;
+  role: string | null;
+  student_id: string | null;
+  language_pref: string | null;
+  onboarding_complete: boolean | null;
 }
 
 interface StudentRecord {
@@ -64,22 +74,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setStudents([]);
         setSelectedStudentId(null);
         setLoading(false);
+        return;
       }
+
       // Update last_active_at on sign-in & fix Google OAuth display name
       if (_event === "SIGNED_IN" && session?.user) {
         const meta = session.user.user_metadata;
         const googleName = meta?.full_name || meta?.name;
-        const updates: Record<string, any> = { last_active_at: new Date().toISOString() };
-        // If display_name is generic "User..." pattern, update with Google name
+        const updates: Record<string, string> = { last_active_at: new Date().toISOString() };
         if (googleName) {
           updates.display_name = googleName;
           updates.username = googleName;
         }
-        supabase
+
+        void supabase
           .from("profiles")
-          .update(updates as any)
+          .update(updates)
           .eq("id", session.user.id)
-          .then(() => {});
+          .then(({ error }) => {
+            if (error) console.error("Failed to update profile metadata", error);
+          });
       }
     });
 
@@ -98,38 +112,64 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let cancelled = false;
 
     const fetchProfile = async (retries = 3) => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("profiles")
         .select("display_name, username, role, student_id, language_pref, onboarding_complete")
         .eq("id", session.user.id)
-        .single();
+        .maybeSingle<ProfileRow>();
 
       if (cancelled) return;
 
+      if (error) {
+        console.error("Failed to load profile", error);
+        if (retries > 0) {
+          await new Promise(resolve => setTimeout(resolve, 1500));
+          if (!cancelled) await fetchProfile(retries - 1);
+        } else {
+          const fallbackName = resolveProfileDisplayName(null, session.user.user_metadata, session.user.email);
+          setProfile({
+            displayName: fallbackName,
+            username: fallbackName,
+            role: "student",
+            studentId: null,
+            languagePref: "EN",
+            onboardingComplete: false,
+          });
+          setLoading(false);
+        }
+        return;
+      }
+
       if (data) {
+        const fallbackName = resolveProfileDisplayName(data.display_name, session.user.user_metadata, session.user.email);
         setProfile({
-          displayName: data.display_name,
-          username: (data as any).username || data.display_name,
+          displayName: fallbackName,
+          username: resolveProfileDisplayName(data.username || data.display_name, session.user.user_metadata, session.user.email),
           role: (data.role as Role) || "student",
           studentId: data.student_id,
-          languagePref: (data as any).language_pref || "EN",
-          onboardingComplete: (data as any).onboarding_complete || false,
+          languagePref: data.language_pref || "EN",
+          onboardingComplete: data.onboarding_complete || false,
         });
         setLoading(false);
       } else if (retries > 0) {
         // Profile not ready yet — trigger may still be running (e.g. new Google OAuth user)
-        await new Promise(r => setTimeout(r, 1500));
+        await new Promise(resolve => setTimeout(resolve, 1500));
         if (!cancelled) await fetchProfile(retries - 1);
       } else {
-        // After retries exhausted, sign out to prevent untrusted state
-        await supabase.auth.signOut();
-        setSession(null);
-        setProfile(null);
+        const fallbackName = resolveProfileDisplayName(null, session.user.user_metadata, session.user.email);
+        setProfile({
+          displayName: fallbackName,
+          username: fallbackName,
+          role: "student",
+          studentId: null,
+          languagePref: "EN",
+          onboardingComplete: false,
+        });
         setLoading(false);
       }
     };
 
-    fetchProfile();
+    void fetchProfile();
     return () => { cancelled = true; };
   }, [session?.user?.id]);
 
@@ -146,13 +186,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [session?.user?.id, profile?.role]);
 
   const fetchStudentOwnRecord = async (studentId: string) => {
-    const { data } = await supabase.rpc('get_my_student_record' as any);
+    const { data, error } = await supabase.rpc("get_my_student_record");
+    if (error) {
+      console.error("Failed to load student record", error);
+      return;
+    }
+
     if (data && Array.isArray(data) && data.length > 0) {
-      const rec = data[0] as any;
+      const rec = data[0] as Record<string, unknown>;
       setStudents([{
-        student_id: rec.student_id,
-        display_name: rec.display_name,
-        grade_level: rec.grade_level,
+        student_id: String(rec.student_id ?? studentId),
+        display_name: String(rec.display_name ?? "Student"),
+        grade_level: Number(rec.grade_level ?? 0),
         parent_id: null,
       }]);
     }
@@ -169,8 +214,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .order("display_name");
 
     // Fetch co-guardian students via security definer function (PII-filtered)
-    const { data: coStudents } = await supabase
-      .rpc('get_co_guardian_students', { _guardian_id: session.user.id } as any);
+    const { data: coStudents, error: coStudentsError } = await supabase
+      .rpc("get_co_guardian_students", { _guardian_id: session.user.id });
+
+    if (coStudentsError) {
+      console.error("Failed to load co-guardian students", coStudentsError);
+    }
 
     let allStudents = (ownStudents || []) as StudentRecord[];
 
@@ -188,7 +237,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     setStudents(allStudents);
     if (!selectedStudentId && allStudents.length > 0) {
-      const saved = localStorage.getItem("im_selected_student");
+      const saved = typeof window !== "undefined" ? window.localStorage.getItem("im_selected_student") : null;
       const found = allStudents.find(s => s.student_id === saved);
       setSelectedStudentId(found ? found.student_id : allStudents[0].student_id);
     }
@@ -200,11 +249,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const updateProfile = async (updates: Partial<{ language_pref: string; onboarding_complete: boolean }>) => {
     if (!session?.user) return;
-    await supabase
+
+    const { error } = await supabase
       .from("profiles")
-      .update(updates as any)
+      .update(updates)
       .eq("id", session.user.id);
-    
+
+    if (error) {
+      console.error("Failed to update profile", error);
+      throw error;
+    }
+
     if (updates.language_pref && profile) {
       setProfile({ ...profile, languagePref: updates.language_pref });
     }
@@ -215,8 +270,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Persist selected student
   useEffect(() => {
-    if (selectedStudentId) {
-      localStorage.setItem("im_selected_student", selectedStudentId);
+    if (selectedStudentId && typeof window !== "undefined") {
+      window.localStorage.setItem("im_selected_student", selectedStudentId);
     }
   }, [selectedStudentId]);
 

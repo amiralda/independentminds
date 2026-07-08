@@ -95,33 +95,35 @@ export function StudentRecords({ studentId }: Props) {
   const handlePrint = () => {
     const content = printRef.current;
     if (!content) return;
-    const printWindow = window.open("", "_blank");
+
+    const printWindow = window.open("", "_blank", "noopener,noreferrer");
     if (!printWindow) return;
+
     const safeName = escapeHtml(student?.display_name || studentId);
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html><head><title>Student Records - ${safeName}</title>
-      <style>
-        body { font-family: system-ui, sans-serif; padding: 24px; color: #1a1a1a; }
-        h1 { font-size: 20px; margin-bottom: 4px; }
-        h2 { font-size: 16px; margin-top: 20px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
-        h3 { font-size: 14px; margin-top: 16px; color: #555; }
-        .meta { color: #666; font-size: 12px; margin-bottom: 16px; }
-        .stats { display: flex; gap: 24px; margin: 12px 0; }
-        .stat { text-align: center; }
-        .stat-val { font-size: 24px; font-weight: bold; }
-        .stat-label { font-size: 11px; color: #888; }
-        table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
-        th, td { border: 1px solid #ddd; padding: 6px 8px; text-align: left; }
-        th { background: #f5f5f5; font-weight: 600; }
-        .done { color: #16a34a; } .missed { color: #dc2626; } .planned { color: #888; }
-        .checkin { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 8px 12px; margin: 6px 0; font-size: 12px; }
-        @media print { body { padding: 12px; } }
-      </style></head><body>
-      ${content.innerHTML}
-      </body></html>
-    `);
+    const style = printWindow.document.createElement("style");
+    style.textContent = `
+      body { font-family: system-ui, sans-serif; padding: 24px; color: #1a1a1a; }
+      h1 { font-size: 20px; margin-bottom: 4px; }
+      h2 { font-size: 16px; margin-top: 20px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+      h3 { font-size: 14px; margin-top: 16px; color: #555; }
+      .meta { color: #666; font-size: 12px; margin-bottom: 16px; }
+      .stats { display: flex; gap: 24px; margin: 12px 0; }
+      .stat { text-align: center; }
+      .stat-val { font-size: 24px; font-weight: bold; }
+      .stat-label { font-size: 11px; color: #888; }
+      table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+      th, td { border: 1px solid #ddd; padding: 6px 8px; text-align: left; }
+      th { background: #f5f5f5; font-weight: 600; }
+      .done { color: #16a34a; } .missed { color: #dc2626; } .planned { color: #888; }
+      .checkin { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 8px 12px; margin: 6px 0; font-size: 12px; }
+      @media print { body { padding: 12px; } }
+    `;
+
+    printWindow.document.title = `Student Records - ${safeName}`;
+    printWindow.document.head.appendChild(style);
+    printWindow.document.body.innerHTML = content.innerHTML;
     printWindow.document.close();
+    printWindow.focus();
     printWindow.print();
   };
 
