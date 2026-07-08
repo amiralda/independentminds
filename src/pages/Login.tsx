@@ -12,6 +12,7 @@ import { useI18n } from "@/lib/i18n";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { SEO } from "@/components/SEO";
 import { buildAppUrl } from "@/lib/siteUrl";
+import { buildOAuthRedirectUrl } from "@/lib/oauth";
 
 export default function Login() {
   const { t, lang } = useI18n();
@@ -76,9 +77,8 @@ export default function Login() {
   };
 
   const handleGoogleAuth = async () => {
-    const targetUrl = redirectPath
-      ? buildAppUrl(redirectPath)
-      : buildAppUrl("/");
+    const nextPath = redirectPath || "/";
+    const targetUrl = buildOAuthRedirectUrl(nextPath);
 
     setLoading(true);
     const { error } = await supabase.auth.signInWithOAuth({
