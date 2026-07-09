@@ -75,8 +75,8 @@ const sectionsEN = [
   {
     title: "Introduction",
     content: [
-      "Independent Minds EDU is a bilingual homeschool management platform built by KòdLabo. This Privacy Policy explains how we collect, use, and protect your information when you use our platform at independentminds.org.",
-      "For questions about this policy, contact us at privacy@independentminds.org.",
+      "Independent Minds EDU is a bilingual homeschool management platform built by KòdLabo. This Privacy Policy explains how we collect, use, and protect your information when you use our platform at independentmindsedu.org.",
+      "For questions about this policy, contact us at privacy@independentmindsedu.org.",
     ],
   },
   {
@@ -103,7 +103,7 @@ const sectionsEN = [
       "All student accounts are created exclusively by verified adult parents who have confirmed they are 18 years of age or older. Students cannot self-register.",
       "We do not knowingly collect personal information from unknown child without verifiable parental consent.",
       "Parents have the right to review, modify, and delete all data for their children at unknown time through the platform dashboard.",
-      "To request data access or deletion, contact privacy@independentminds.org.",
+      "To request data access or deletion, contact privacy@independentmindsedu.org.",
     ],
   },
   {
@@ -141,7 +141,7 @@ const sectionsEN = [
       "Access — Parents can view all student data through the dashboard.",
       "Correction — Parents can edit all student information at unknown time.",
       "Deletion — Parents can delete individual students or their entire account.",
-      "Portability — Contact privacy@independentminds.org for a data export.",
+      "Portability — Contact privacy@independentmindsedu.org for a data export.",
     ],
   },
   {
@@ -153,8 +153,8 @@ const sectionsEN = [
   {
     title: "Contact",
     content: [
-      "Email: privacy@independentminds.org",
-      "Website: independentminds.org",
+      "Email: privacy@independentmindsedu.org",
+      "Website: independentmindsedu.org",
     ],
   },
 ];
@@ -163,8 +163,8 @@ const sectionsHT = [
   {
     title: "Entwodiksyon",
     content: [
-      "Independent Minds EDU se yon platfòm jesyon lekòl kay bileng ki te bati pa KòdLabo. Politik Konfidansyalite sa a eksplike kijan nou kolekte, itilize, epi pwoteje enfòmasyon ou lè ou itilize platfòm nou an sou independentminds.org.",
-      "Pou kesyon sou politik sa a, kontakte nou nan privacy@independentminds.org.",
+      "Independent Minds EDU se yon platfòm jesyon lekòl kay bileng ki te bati pa KòdLabo. Politik Konfidansyalite sa a eksplike kijan nou kolekte, itilize, epi pwoteje enfòmasyon ou lè ou itilize platfòm nou an sou independentmindsedu.org.",
+      "Pou kesyon sou politik sa a, kontakte nou nan privacy@independentmindsedu.org.",
     ],
   },
   {
@@ -191,7 +191,7 @@ const sectionsHT = [
       "Tout kont elèv kreye eksklizivman pa paran adilt ki verifye ki gen 18 an oswa plis. Elèv pa ka oto-enskri.",
       "Nou pa kolekte enfòmasyon pèsonèl nan men okenn timoun san konsantman paran verifye.",
       "Paran gen dwa revize, modifye, epi efase tout done pou pitit yo nenpòt ki lè atravè tablo bò platfòm nan.",
-      "Pou mande aksè done oswa sipresyon, kontakte privacy@independentminds.org.",
+      "Pou mande aksè done oswa sipresyon, kontakte privacy@independentmindsedu.org.",
     ],
   },
   {
@@ -229,7 +229,7 @@ const sectionsHT = [
       "Aksè — Paran ka wè tout done elèv atravè tablo bò a.",
       "Koreksyon — Paran ka modifye tout enfòmasyon elèv nenpòt ki lè.",
       "Sipresyon — Paran ka efase elèv endividyèl oswa tout kont yo.",
-      "Pòtabilite — Kontakte privacy@independentminds.org pou yon ekspòtasyon done.",
+      "Pòtabilite — Kontakte privacy@independentmindsedu.org pou yon ekspòtasyon done.",
     ],
   },
   {
@@ -241,8 +241,8 @@ const sectionsHT = [
   {
     title: "Kontak",
     content: [
-      "Imèl: privacy@independentminds.org",
-      "Sit wèb: independentminds.org",
+      "Imèl: privacy@independentmindsedu.org",
+      "Sit wèb: independentmindsedu.org",
     ],
   },
 ];

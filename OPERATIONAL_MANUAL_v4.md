@@ -3,8 +3,8 @@
 **Version:** 4.1  
 **Date:** March 2026  
 **Author:** Dany Augustin  
-**Platform URL:** https://independentminds.org  
-**Contact:** privacy@independentminds.org  
+**Platform URL:** https://www.independentmindsedu.org  
+**Contact:** privacy@independentmindsedu.org  
 **Built by:** KòdLabo
 
 ---
@@ -757,7 +757,7 @@ Full Terms of Service are live at `/terms`, accessible without authentication. K
 
 ### FERPA Disclaimer
 
-"Independent Minds EDU is designed for private family use. It is not a school records system under FERPA. If you represent an institution receiving federal funding, contact legal@independentminds.org before use."
+"Independent Minds EDU is designed for private family use. It is not a school records system under FERPA. If you represent an institution receiving federal funding, contact legal@independentmindsedu.org before use."
 
 ### Data Retention Automation (v4.0)
 
@@ -947,7 +947,7 @@ All 12 checks pass as of v4.0.
 | Database | Lovable Cloud (PostgreSQL 15) |
 | Edge Functions | Lovable Cloud (Deno) |
 | File Storage | Lovable Cloud |
-| Domain | independentminds.org |
+| Domain | independentmindsedu.org |
 | SSL | Automatic via Lovable |
 
 ---

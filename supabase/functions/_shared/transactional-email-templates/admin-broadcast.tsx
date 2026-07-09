@@ -30,7 +30,7 @@ const AdminBroadcastEmail: React.FC<AdminBroadcastProps> = ({
             </p>
             <div style={{ marginTop: 32, textAlign: 'center' as const }}>
               <a
-                href="https://independentminds.org"
+                href="https://www.independentmindsedu.org"
                 style={{
                   display: 'inline-block',
                   background: '#1D9E75',

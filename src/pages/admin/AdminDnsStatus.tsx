@@ -7,7 +7,7 @@ import { RefreshCw, CheckCircle2, XCircle, AlertTriangle, Loader2 } from "lucide
 import { DnsHistoryPanel } from "@/components/admin/DnsHistoryPanel";
 import { DnsSetupWizard } from "@/components/admin/DnsSetupWizard";
 
-const DEFAULT_DOMAIN = "independentminds.org";
+const DEFAULT_DOMAIN = "independentmindsedu.org";
 const EXPECTED_A = "185.158.133.1";
 
 type DohAnswer = { name: string; type: number; TTL: number; data: string };

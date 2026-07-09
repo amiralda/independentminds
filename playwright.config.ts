@@ -14,7 +14,7 @@ export default defineConfig({
   use: {
     baseURL:
       process.env.PLAYWRIGHT_BASE_URL ||
-      'https://independentminds.org',
+      'https://www.independentmindsedu.org',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',

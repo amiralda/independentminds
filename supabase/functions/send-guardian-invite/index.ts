@@ -124,7 +124,7 @@ Deno.serve(async (req) => {
     }
 
     // Build invite link
-    const siteUrl = "https://independentminds.org";
+    const siteUrl = "https://www.independentmindsedu.org";
     const inviteLink = `${siteUrl}/accept-invite?token=${rawToken}`;
 
     const parentName = user.user_metadata?.display_name || "A parent";

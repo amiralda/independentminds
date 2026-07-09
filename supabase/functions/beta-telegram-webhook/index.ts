@@ -147,7 +147,7 @@ Deno.serve(async (req) => {
       .eq('id', invite.id);
 
     const inviteUrl =
-      `https://independentminds.org/beta/accept?token=${invite.token}`;
+      `https://www.independentmindsedu.org/beta/accept?token=${invite.token}`;
 
     await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: 'POST',

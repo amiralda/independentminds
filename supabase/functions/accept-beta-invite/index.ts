@@ -215,7 +215,7 @@ Deno.serve(async (req) => {
   </tr>
   <tr>
     <td style="padding:24px;text-align:center;">
-      <a href="https://independentminds.org" style="display:inline-block;background:#1D9E75;color:white;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:16px;">Start My Mission →</a>
+      <a href="https://www.independentmindsedu.org" style="display:inline-block;background:#1D9E75;color:white;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:16px;">Start My Mission →</a>
     </td>
   </tr>
   <tr>

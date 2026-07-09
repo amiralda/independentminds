@@ -52,7 +52,7 @@ function buildProgressEmail(data: {
           </tr>
           <tr>
             <td colspan="2" style="padding-top:8px;">
-              <a href="https://independentminds.org" style="color:#BA7517;font-weight:bold;text-decoration:none;font-size:13px;">→ Do this now</a>
+              <a href="https://www.independentmindsedu.org" style="color:#BA7517;font-weight:bold;text-decoration:none;font-size:13px;">→ Do this now</a>
             </td>
           </tr>
         </table>
@@ -124,7 +124,7 @@ function buildProgressEmail(data: {
   <!-- CTA -->
   <tr>
     <td style="padding:24px;text-align:center;">
-      <a href="https://independentminds.org" style="display:inline-block;background:#1D9E75;color:white;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:16px;">Continue My Mission →</a>
+      <a href="https://www.independentmindsedu.org" style="display:inline-block;background:#1D9E75;color:white;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:16px;">Continue My Mission →</a>
     </td>
   </tr>
   <!-- Footer -->

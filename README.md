@@ -5,7 +5,7 @@
 
 **A Multi-Tenant Academic Management & Milestone Tracking SaaS Platform**
 
-> *Learn Smart. Grow Every Day.* — independentminds.org
+> *Learn Smart. Grow Every Day.* — independentmindsedu.org
 
 ---
 

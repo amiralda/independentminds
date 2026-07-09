@@ -84,7 +84,7 @@ Deno.serve(async (req) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          from: 'Independent Minds EDU <noreply@independentminds.org>',
+          from: 'Independent Minds EDU <noreply@independentmindsedu.org>',
           to: [adminEmail],
           subject: `Beta Digest — ${new Date().toLocaleDateString()}`,
           html,

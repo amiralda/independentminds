@@ -84,7 +84,7 @@ Deno.serve(async (req) => {
     if (invErr) throw invErr;
 
     const inviteUrl =
-      `https://independentminds.org/beta/accept?token=${invite.token}`;
+      `https://www.independentmindsedu.org/beta/accept?token=${invite.token}`;
     const notesShort = (notes || '').slice(0, 80);
 
     // If copy only, just log and return
@@ -122,7 +122,7 @@ Deno.serve(async (req) => {
                 'Content-Type': 'application/json',
               },
               body: JSON.stringify({
-                from: 'Independent Minds EDU <noreply@independentminds.org>',
+                from: 'Independent Minds EDU <noreply@independentmindsedu.org>',
                 to: [email],
                 subject: `You're invited to test Independent Minds EDU`,
                 html: `<p>Hi ${name},</p>

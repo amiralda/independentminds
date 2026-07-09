@@ -110,7 +110,7 @@ async function sendWelcomeMission(db: unknown) {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            from: 'Independent Minds EDU <notify@independentminds.org>',
+            from: 'Independent Minds EDU <notify@independentmindsedu.org>',
             to: [email],
             subject: 'Your Beta Mission Awaits! 🚀',
             html: buildWelcomeMissionEmail(name),
@@ -208,7 +208,7 @@ function buildWelcomeMissionEmail(name: string): string {
         </p>
       </div>
       <div style="text-align: center; margin-top: 24px;">
-        <a href="https://independentminds.org" style="background: #1D9E75; color: white; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; display: inline-block;">
+        <a href="https://www.independentmindsedu.org" style="background: #1D9E75; color: white; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; display: inline-block;">
           Start My Mission →
         </a>
       </div>
