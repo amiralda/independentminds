@@ -95,7 +95,7 @@ export function useTrackMutations(studentId: string) {
 
   const addTrack = useMutation({
     mutationFn: async (track: Omit<SubjectTrack, "id" | "created_at" | "updated_at">) => {
-      const { error } = await supabase.from("subject_tracks").insert(track as any);
+      const { error } = await supabase.from("subject_tracks").insert(track as unknown);
       if (error) throw error;
     },
     onSuccess: invalidate,
@@ -105,7 +105,7 @@ export function useTrackMutations(studentId: string) {
     mutationFn: async ({ id, ...updates }: Partial<SubjectTrack> & { id: string }) => {
       const { error } = await supabase
         .from("subject_tracks")
-        .update(updates as any)
+        .update(updates as unknown)
         .eq("id", id);
       if (error) throw error;
     },
@@ -130,7 +130,7 @@ export function useTrackMutations(studentId: string) {
         completed_at: new Date().toISOString(),
         notes: log.notes || null,
         score: log.score || null,
-      } as any);
+      } as unknown);
       if (error) throw error;
     },
     onSuccess: invalidate,
@@ -148,7 +148,7 @@ export function useTrackMutations(studentId: string) {
     mutationFn: async ({ id, ...updates }: { id: string; status?: string; notes?: string; score?: number }) => {
       const { error } = await supabase
         .from("activity_logs")
-        .update(updates as any)
+        .update(updates as unknown)
         .eq("id", id);
       if (error) throw error;
     },

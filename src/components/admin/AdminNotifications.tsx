@@ -10,7 +10,7 @@ interface AdminNotification {
   body: string;
   notification_type: string;
   is_read: boolean;
-  metadata: any;
+  metadata: unknown;
   created_at: string;
 }
 
@@ -32,10 +32,10 @@ export function AdminNotifications() {
 
   const fetchNotifications = async () => {
     const { data } = await supabase
-      .from("admin_notifications" as any)
+      .from("admin_notifications" as unknown)
       .select("*")
       .order("created_at", { ascending: false })
-      .limit(50) as any;
+      .limit(50) as unknown;
     if (data) setNotifications(data);
   };
 
@@ -66,8 +66,8 @@ export function AdminNotifications() {
 
   const markRead = async (id: string) => {
     await supabase
-      .from("admin_notifications" as any)
-      .update({ is_read: true } as any)
+      .from("admin_notifications" as unknown)
+      .update({ is_read: true } as unknown)
       .eq("id", id);
     setNotifications(prev =>
       prev.map(n => n.id === id ? { ...n, is_read: true } : n)
@@ -78,8 +78,8 @@ export function AdminNotifications() {
     const unreadIds = notifications.filter(n => !n.is_read).map(n => n.id);
     if (unreadIds.length === 0) return;
     await supabase
-      .from("admin_notifications" as any)
-      .update({ is_read: true } as any)
+      .from("admin_notifications" as unknown)
+      .update({ is_read: true } as unknown)
       .in("id", unreadIds);
     setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
   };

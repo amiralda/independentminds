@@ -1,7 +1,7 @@
 // Shared WhatsApp notification utility using Twilio
 // Uses TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_WHATSAPP_FROM secrets
 
-export async function sendWhatsApp(toNumber: string, message: string): Promise<{ ok: boolean; data: any }> {
+export async function sendWhatsApp(toNumber: string, message: string): Promise<{ ok: boolean; data: unknown }> {
   const accountSid = Deno.env.get("TWILIO_ACCOUNT_SID") || Deno.env.get("twilioSID");
   const authToken = Deno.env.get("TWILIO_AUTH_TOKEN") || Deno.env.get("twilioSecret");
   const fromNumber = Deno.env.get("TWILIO_WHATSAPP_FROM");

@@ -54,8 +54,8 @@ function parseJwtClaims(token: string): Record<string, unknown> | null {
 
 // Move a message to the dead letter queue and log the reason.
 async function moveToDlq(
-  // deno-lint-ignore no-explicit-any
-  supabase: any,
+  // deno-lint-ignore no-explicit-unknown
+  supabase: unknown,
   queue: string,
   msg: { msg_id: number; message: Record<string, unknown> },
   reason: string

@@ -42,7 +42,7 @@ export function usePointsBalance(studentId: string | null) {
         .select("points")
         .eq("student_id", studentId);
       if (error) throw error;
-      return (data || []).reduce((sum, r) => sum + (r as any).points, 0) as number;
+      return (data || []).reduce((sum, r) => sum + (r as unknown).points, 0) as number;
     },
     enabled: !!studentId,
   });

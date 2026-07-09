@@ -68,7 +68,7 @@ export function AddStudentQuickCreate({ open, onClose, onBack }: Props) {
         parent_id: user.id,
         parent_name: user.user_metadata?.display_name || user.email,
         parent_email: user.email,
-      } as any);
+      } as unknown);
 
       if (studentError) throw studentError;
 
@@ -78,14 +78,14 @@ export function AddStudentQuickCreate({ open, onClose, onBack }: Props) {
         student_id: studentId.toUpperCase(),
         enabled: true,
       }));
-      const { error: tracksError } = await supabase.from("subject_tracks").insert(tracks as any);
+      const { error: tracksError } = await supabase.from("subject_tracks").insert(tracks as unknown);
       if (tracksError) console.error("Track creation error:", tracksError);
 
       setSelectedStudentId(studentId.toUpperCase());
       refreshStudents();
       setCreated(true);
       toast.success(t("student.created"));
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast.error(err.message || "Failed to add student");
     } finally {
       setSaving(false);

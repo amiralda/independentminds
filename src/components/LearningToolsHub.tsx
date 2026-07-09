@@ -76,7 +76,7 @@ export function LearningToolsHub({ studentId }: Props) {
         category: tool.category,
         description: tool.description || null,
         is_suggested: tool.is_suggested || false,
-      } as any);
+      } as unknown);
       if (error) throw error;
     },
     onSuccess: () => {

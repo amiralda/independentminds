@@ -1,10 +1,10 @@
 import type { FC } from 'npm:react@18.3.1'
 
 export interface TemplateEntry {
-  component: FC<any>
-  subject: string | ((data: any) => string)
+  component: FC<unknown>
+  subject: string | ((data: unknown) => string)
   displayName?: string
-  previewData?: Record<string, any>
+  previewData?: Record<string, unknown>
   to?: string
 }
 

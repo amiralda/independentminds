@@ -76,12 +76,12 @@ Return a JSON object with a "schedule" array. Each item must have:
 - "subject": string (subject name)
 - "start_time": string (HH:MM format, 24-hour)
 - "end_time": string (HH:MM format, 24-hour)
-- "notes": string (any additional info like teacher name, room, platform link)
+- "notes": string (unknown additional info like teacher name, room, platform link)
 
 If the content is base64-encoded binary (PDF/image), describe what you can interpret from the text.
 If it's CSV/text, parse the rows directly.
 
-If you cannot extract any schedule data, return {"schedule": []}.
+If you cannot extract unknown schedule data, return {"schedule": []}.
 
 File: ${fileName} (${fileType})
 Content${isBase64 ? " (base64)" : ""}:

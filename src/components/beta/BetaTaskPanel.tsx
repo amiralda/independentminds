@@ -38,15 +38,15 @@ export function BetaTaskPanel({ open, onClose }: BetaTaskPanelProps) {
         .from('beta_task_completions')
         .select('id, task_id, status, started_at, completed_at, task:beta_tasks(title_key, description_key, feature_area, is_required)')
         .eq('tester_id', tester.id)
-        .order('task:beta_tasks(task_order)' as any);
-      if (data) setTasks(data as any);
+        .order('task:beta_tasks(task_order)' as unknown);
+      if (data) setTasks(data as unknown);
     };
     fetchTasks();
   }, [tester?.id]);
 
   const updateTask = async (id: string, status: string) => {
     const now = new Date().toISOString();
-    const update: any = { status };
+    const update: unknown = { status };
     if (status === 'completed') update.completed_at = now;
     if (status === 'pending') update.started_at = now;
 

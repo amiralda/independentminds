@@ -35,11 +35,11 @@ export function EducatorsPanel({ studentId }: Props) {
     queryKey: ["educator_students", studentId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("educator_students" as any)
+        .from("educator_students" as unknown)
         .select("*, educator:educators(*)")
         .eq("student_id", studentId);
       if (error) throw error;
-      return (data || []) as any[];
+      return (data || []) as unknown[];
     },
   });
 
@@ -47,12 +47,12 @@ export function EducatorsPanel({ studentId }: Props) {
     queryKey: ["educator_invites", studentId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("educator_invites" as any)
+        .from("educator_invites" as unknown)
         .select("*")
         .eq("student_id", studentId)
         .eq("status", "pending");
       if (error) throw error;
-      return (data || []) as any[];
+      return (data || []) as unknown[];
     },
   });
 
@@ -74,7 +74,7 @@ export function EducatorsPanel({ studentId }: Props) {
       setShowPermissions(false);
       setInvitePerms({ can_edit_schedule: false, can_view_checkins: true, can_use_ai_tutor: false, can_view_reports: true, can_receive_sos: false });
       queryClient.invalidateQueries({ queryKey: ["educator_invites", studentId] });
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast.error(err.message);
     } finally {
       setSending(false);
@@ -83,8 +83,8 @@ export function EducatorsPanel({ studentId }: Props) {
 
   const updatePermission = async (esId: string, field: string, value: boolean) => {
     const { error } = await supabase
-      .from("educator_students" as any)
-      .update({ [field]: value } as any)
+      .from("educator_students" as unknown)
+      .update({ [field]: value } as unknown)
       .eq("id", esId);
     if (error) toast.error(error.message);
     else queryClient.invalidateQueries({ queryKey: ["educator_students", studentId] });
@@ -92,7 +92,7 @@ export function EducatorsPanel({ studentId }: Props) {
 
   const removeEducator = async (esId: string) => {
     const { error } = await supabase
-      .from("educator_students" as any)
+      .from("educator_students" as unknown)
       .delete()
       .eq("id", esId);
     if (error) toast.error(error.message);
@@ -104,8 +104,8 @@ export function EducatorsPanel({ studentId }: Props) {
 
   const revokeInvite = async (inviteId: string) => {
     const { error } = await supabase
-      .from("educator_invites" as any)
-      .update({ status: "revoked" } as any)
+      .from("educator_invites" as unknown)
+      .update({ status: "revoked" } as unknown)
       .eq("id", inviteId);
     if (error) toast.error(error.message);
     else queryClient.invalidateQueries({ queryKey: ["educator_invites", studentId] });
@@ -175,7 +175,7 @@ export function EducatorsPanel({ studentId }: Props) {
       {/* Pending invites */}
       {invites.length > 0 && (
         <div className="space-y-2">
-          {invites.map((inv: any) => (
+          {invites.map((inv: unknown) => (
             <div key={inv.id} className="flex items-center justify-between bg-muted/50 rounded-lg px-4 py-3">
               <div className="flex items-center gap-2 min-w-0 flex-1">
                 <Mail size={16} className="text-muted-foreground flex-shrink-0" />
@@ -199,7 +199,7 @@ export function EducatorsPanel({ studentId }: Props) {
         </p>
       )}
 
-      {educators.map((es: any) => (
+      {educators.map((es: unknown) => (
         <div key={es.id} className="border rounded-xl p-4 space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">

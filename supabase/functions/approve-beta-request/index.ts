@@ -105,7 +105,7 @@ Deno.serve(async (req) => {
     let testerCreated = false;
     const { data: authUsers } = await db.auth.admin.listUsers();
     const existingUser = authUsers?.users?.find(
-      (u: any) => u.email?.toLowerCase() === request.email.toLowerCase(),
+      (u: unknown) => u.email?.toLowerCase() === request.email.toLowerCase(),
     );
 
     if (existingUser) {
@@ -139,7 +139,7 @@ Deno.serve(async (req) => {
 
           if (tasks && tasks.length > 0) {
             await db.from('beta_task_completions').insert(
-              tasks.map((t: any) => ({
+              tasks.map((t: unknown) => ({
                 tester_id: newTester.id,
                 task_id: t.id,
                 status: 'pending',
@@ -172,7 +172,7 @@ Deno.serve(async (req) => {
         `https://independentmindsedu.com/beta/accept?token=${invite.token}`;
 
       // Get user's display name if they exist
-      let displayName = request.name;
+      const displayName = request.name;
 
       const emailHtml = testerCreated
         ? buildWelcomeMissionEmail(displayName)
@@ -203,7 +203,7 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ success: true, testerCreated }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

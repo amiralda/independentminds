@@ -194,10 +194,10 @@ export function AdminInvitePanel({
         invite_id: invite.id,
         channel: 'copy',
         status: 'copied',
-      } as any);
+      } as unknown);
 
       toast.success(t('invite_panel.success_copy'));
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast.error(err.message || 'Failed to create invite');
     } finally {
       setSending(false);
@@ -265,7 +265,7 @@ export function AdminInvitePanel({
         );
         setTimeout(onClose, 2000);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast.error(err.message);
     } finally {
       setSending(false);

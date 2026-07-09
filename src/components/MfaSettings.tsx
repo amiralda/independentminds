@@ -39,7 +39,7 @@ export function MfaSettings() {
       setQrUri(data.totp.qr_code);
       setFactorId(data.id);
       setEnrolling(true);
-    } catch (e: any) {
+    } catch (e: unknown) {
       toast.error(e.message || "Failed to start MFA enrollment");
     }
     setLoading(false);
@@ -64,7 +64,7 @@ export function MfaSettings() {
       setQrUri(null);
       setVerifyCode("");
       toast.success(t("mfa.mfaEnabled"));
-    } catch (e: any) {
+    } catch (e: unknown) {
       toast.error(e.message || "Verification failed");
     }
     setLoading(false);
@@ -95,7 +95,7 @@ export function MfaSettings() {
       setDisableMode(false);
       setDisablePassword("");
       toast.success(t("mfa.mfaDisabled"));
-    } catch (e: any) {
+    } catch (e: unknown) {
       toast.error(e.message || "Failed to disable MFA");
     }
     setLoading(false);

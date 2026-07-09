@@ -24,12 +24,12 @@ export function AccountMergeRequest() {
     enabled: !!user,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("merge_requests" as any)
+        .from("merge_requests" as unknown)
         .select("*")
         .order("created_at", { ascending: false })
         .limit(10);
       if (error) throw error;
-      return data as any[];
+      return data as unknown[];
     },
   });
 
@@ -43,13 +43,13 @@ export function AccountMergeRequest() {
       return;
     }
     setSubmitting(true);
-    const { error } = await supabase.from("merge_requests" as any).insert({
+    const { error } = await supabase.from("merge_requests" as unknown).insert({
       requester_id: user.id,
       source_email: sourceEmail.trim().toLowerCase(),
       target_email: user.email,
       reason: reason.trim() || null,
       status: "pending",
-    } as any);
+    } as unknown);
     setSubmitting(false);
     if (error) {
       toast.error(t("merge.submitFailed"));
@@ -149,7 +149,7 @@ export function AccountMergeRequest() {
 
       {requests.length > 0 && (
         <div className="space-y-2">
-          {requests.map((r: any) => (
+          {requests.map((r: unknown) => (
             <div key={r.id} className="flex items-center gap-3 bg-muted/50 rounded-lg px-3 py-2">
               {getStatusIcon(r.status)}
               <div className="flex-1 min-w-0">

@@ -117,7 +117,7 @@ export function AddStudentFullForm({ open, onClose, onBack }: Props) {
       } else {
         toast.error(t("student.cannotExtract"));
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Schedule extraction error:", err);
       toast.error(t("student.extractionError"));
     } finally {
@@ -176,7 +176,7 @@ export function AddStudentFullForm({ open, onClose, onBack }: Props) {
         language_pref: languagePref,
         address: address || null,
         profile_photo_url: photoUrl,
-      } as any);
+      } as unknown);
 
       if (studentError) throw studentError;
 
@@ -186,10 +186,10 @@ export function AddStudentFullForm({ open, onClose, onBack }: Props) {
         student_id: studentId.toUpperCase(),
         enabled: true,
       }));
-      const { error: tracksError } = await supabase.from("subject_tracks").insert(tracks as any);
+      const { error: tracksError } = await supabase.from("subject_tracks").insert(tracks as unknown);
       if (tracksError) console.error("Track creation error:", tracksError);
 
-      // Insert schedule blocks if any
+      // Insert schedule blocks if unknown
       if (extractedSchedule.length > 0) {
         const today = new Date().toISOString().split("T")[0];
         const blocks = extractedSchedule.map((row, idx) => ({
@@ -202,7 +202,7 @@ export function AddStudentFullForm({ open, onClose, onBack }: Props) {
           notes: row.notes || null,
           status: "Planned",
         }));
-        const { error: blocksError } = await supabase.from("daily_plan").insert(blocks as any);
+        const { error: blocksError } = await supabase.from("daily_plan").insert(blocks as unknown);
         if (blocksError) console.error("Schedule block error:", blocksError);
       }
 
@@ -210,7 +210,7 @@ export function AddStudentFullForm({ open, onClose, onBack }: Props) {
       setSelectedStudentId(studentId.toUpperCase());
       refreshStudents();
       resetAndClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast.error(err.message || "Failed to add student");
     } finally {
       setSaving(false);

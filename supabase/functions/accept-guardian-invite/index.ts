@@ -71,7 +71,7 @@ Deno.serve(async (req) => {
     if (new Date(invite.expires_at) < new Date()) {
       await admin
         .from("guardian_invites")
-        .update({ status: "expired" } as any)
+        .update({ status: "expired" } as unknown)
         .eq("id", invite.id);
 
       return new Response(JSON.stringify({ error: "This invite link has expired" }), {
@@ -147,7 +147,7 @@ Deno.serve(async (req) => {
     // Mark invite as accepted
     await admin
       .from("guardian_invites")
-      .update({ status: "accepted", accepted_at: new Date().toISOString() } as any)
+      .update({ status: "accepted", accepted_at: new Date().toISOString() } as unknown)
       .eq("id", invite.id);
 
     const studentNames = allStudents.map((s) => s.display_name).join(", ");

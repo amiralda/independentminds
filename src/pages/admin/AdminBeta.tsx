@@ -21,10 +21,10 @@ export default function AdminBeta() {
   const { t } = useI18n();
   const [activeTab, setActiveTab] = useState('overview');
   const [invitePanelOpen, setInvitePanelOpen] = useState(false);
-  const [prefill, setPrefill] = useState<any>(null);
+  const [prefill, setPrefill] = useState<unknown>(null);
 
   // Overview data
-  const [config, setConfig] = useState<any>(null);
+  const [config, setConfig] = useState<unknown>(null);
   const [stats, setStats] = useState({
     activeToday: 0, tasksThisWeek: 0, avgNps: 0,
     bugReports: 0, feedbackToday: 0,
@@ -35,11 +35,11 @@ export default function AdminBeta() {
   const [bugBadge, setBugBadge] = useState(0);
 
   // Table data
-  const [testers, setTesters] = useState<any[]>([]);
-  const [invites, setInvites] = useState<any[]>([]);
-  const [requests, setRequests] = useState<any[]>([]);
-  const [feedback, setFeedback] = useState<any[]>([]);
-  const [sessions, setSessions] = useState<any[]>([]);
+  const [testers, setTesters] = useState<unknown[]>([]);
+  const [invites, setInvites] = useState<unknown[]>([]);
+  const [requests, setRequests] = useState<unknown[]>([]);
+  const [feedback, setFeedback] = useState<unknown[]>([]);
+  const [sessions, setSessions] = useState<unknown[]>([]);
 
   const fetchAll = useCallback(async () => {
     const [
@@ -57,7 +57,7 @@ export default function AdminBeta() {
       supabase.from('beta_requests').select('*').order('created_at', { ascending: false }),
       supabase.from('beta_feedback').select('*').order('created_at', { ascending: false }),
       supabase.from('beta_sessions').select('*').order('started_at', { ascending: false }),
-      supabase.from('admin_notifications' as any).select('notification_type, is_read, created_at').in('notification_type', ['beta_error', 'bug_report']).eq('is_read', false) as any,
+      supabase.from('admin_notifications' as unknown).select('notification_type, is_read, created_at').in('notification_type', ['beta_error', 'bug_report']).eq('is_read', false) as unknown,
     ]);
     setConfig(cfg);
     setTesters(tst ?? []);
@@ -69,27 +69,27 @@ export default function AdminBeta() {
     // Badge counts
     const notifs = adminNotifs ?? [];
     const oneDayAgo = new Date(Date.now() - 86400_000).toISOString();
-    setErrorBadge(notifs.filter((n: any) => n.notification_type === 'beta_error' && n.created_at >= oneDayAgo).length);
-    setBugBadge(notifs.filter((n: any) => n.notification_type === 'bug_report').length);
+    setErrorBadge(notifs.filter((n: unknown) => n.notification_type === 'beta_error' && n.created_at >= oneDayAgo).length);
+    setBugBadge(notifs.filter((n: unknown) => n.notification_type === 'bug_report').length);
 
     // Compute stats
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
 
     const activeToday = (tst ?? []).filter(
-      (t: any) => t.last_active_at && t.last_active_at >= todayStart,
+      (t: unknown) => t.last_active_at && t.last_active_at >= todayStart,
     ).length;
     const npsItems = (fb ?? []).filter(
-      (f: any) => f.feedback_type === 'nps' && f.nps_score != null,
+      (f: unknown) => f.feedback_type === 'nps' && f.nps_score != null,
     );
     const avgNps = npsItems.length > 0
-      ? Math.round(npsItems.reduce((s: number, f: any) => s + f.nps_score, 0) / npsItems.length * 10) / 10
+      ? Math.round(npsItems.reduce((s: number, f: unknown) => s + f.nps_score, 0) / npsItems.length * 10) / 10
       : 0;
     const bugReports = (fb ?? []).filter(
-      (f: any) => f.feedback_type === 'bug_report',
+      (f: unknown) => f.feedback_type === 'bug_report',
     ).length;
     const feedbackToday = (fb ?? []).filter(
-      (f: any) => f.created_at >= todayStart,
+      (f: unknown) => f.created_at >= todayStart,
     ).length;
 
     setStats({ activeToday, tasksThisWeek: 0, avgNps, bugReports, feedbackToday });
@@ -154,7 +154,7 @@ export default function AdminBeta() {
     toast.success(t('invite_panel.copied'));
   };
 
-  const resendInvite = (invite: any) => {
+  const resendInvite = (invite: unknown) => {
     setPrefill({
       name: invite.email?.split('@')[0],
       email: invite.email,
@@ -267,7 +267,7 @@ export default function AdminBeta() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {testers.map((t: any) => (
+              {testers.map((t: unknown) => (
                 <TableRow key={t.id}>
                   <TableCell>
                     <Badge variant="outline">{t.tester_type}</Badge>
@@ -311,7 +311,7 @@ export default function AdminBeta() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {invites.map((inv: any) => (
+              {invites.map((inv: unknown) => (
                 <TableRow key={inv.id} className="hover:bg-white/5 border-white/10">
                   <TableCell className="text-sm text-white">{inv.email}</TableCell>
                   <TableCell><Badge variant="outline" className="text-white border-white/30">{inv.tester_type}</Badge></TableCell>
@@ -357,7 +357,7 @@ export default function AdminBeta() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {requests.map((r: any) => (
+              {requests.map((r: unknown) => (
                 <TableRow key={r.id}>
                   <TableCell>{r.name}</TableCell>
                   <TableCell className="text-sm">{r.email}</TableCell>
@@ -405,7 +405,7 @@ export default function AdminBeta() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {feedback.map((f: any) => (
+              {feedback.map((f: unknown) => (
                 <TableRow key={f.id}>
                   <TableCell><Badge variant="outline">{f.feedback_type}</Badge></TableCell>
                   <TableCell>
@@ -445,7 +445,7 @@ export default function AdminBeta() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sessions.map((s: any) => (
+              {sessions.map((s: unknown) => (
                 <TableRow key={s.id}>
                   <TableCell className="text-xs font-mono">
                     {s.session_id?.slice(0, 8)}...

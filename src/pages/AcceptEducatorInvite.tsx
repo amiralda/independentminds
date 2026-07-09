@@ -43,7 +43,7 @@ export default function AcceptEducatorInvite() {
       setStatus("success");
       toast.success("You now have educator access!");
       setTimeout(() => navigate("/"), 2000);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setStatus("error");
       setErrorMsg(err.message || "Something went wrong.");
       acceptedRef.current = false;

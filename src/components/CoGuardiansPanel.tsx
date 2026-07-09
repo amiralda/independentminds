@@ -102,7 +102,7 @@ export function CoGuardiansPanel({ studentId }: Props) {
       setShowPermissions(false);
       setInvitePerms({ can_receive_sos: false, can_approve_rewards: false, can_edit_lessons: false, is_full_access: false });
       queryClient.invalidateQueries({ queryKey: ["guardian_invites", studentId] });
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast.error(err.message);
     } finally {
       setSending(false);
@@ -110,7 +110,7 @@ export function CoGuardiansPanel({ studentId }: Props) {
   };
 
   const updatePermission = async (guardianId: string, field: string, value: boolean) => {
-    const updates: any = { [field]: value };
+    const updates: unknown = { [field]: value };
     if (field === "is_full_access" && value) {
       updates.can_view_progress = true;
       updates.can_receive_sos = true;
@@ -144,7 +144,7 @@ export function CoGuardiansPanel({ studentId }: Props) {
   const revokeInvite = async (inviteId: string) => {
     const { error } = await supabase
       .from("guardian_invites")
-      .update({ status: "revoked" } as any)
+      .update({ status: "revoked" } as unknown)
       .eq("id", inviteId);
     if (error) toast.error(error.message);
     else queryClient.invalidateQueries({ queryKey: ["guardian_invites", studentId] });
@@ -232,7 +232,7 @@ export function CoGuardiansPanel({ studentId }: Props) {
       {/* Pending invites */}
       {invites.length > 0 && (
         <div className="space-y-2">
-          {invites.map((inv: any) => (
+          {invites.map((inv: unknown) => (
             <div key={inv.id} className="flex items-center justify-between bg-muted/50 rounded-lg px-4 py-3">
               <div className="flex items-center gap-2 min-w-0 flex-1">
                 <Mail size={16} className="text-muted-foreground flex-shrink-0" />
@@ -266,7 +266,7 @@ export function CoGuardiansPanel({ studentId }: Props) {
         </p>
       )}
 
-      {guardians.map((g: any) => (
+      {guardians.map((g: unknown) => (
         <div key={g.id} className="border rounded-xl p-4 space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">

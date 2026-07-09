@@ -88,7 +88,7 @@ export function ScheduleTemplates({ studentId }: Props) {
       student_id: studentId,
       name: templateName.trim(),
       blocks: templateBlocks,
-    } as any);
+    } as unknown);
 
     if (error) {
       toast.error("Failed to save template");
@@ -113,7 +113,7 @@ export function ScheduleTemplates({ studentId }: Props) {
     const monday = new Date(today);
     monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
 
-    const blocks = (template.blocks as any[]).map((b: any) => {
+    const blocks = (template.blocks as unknown[]).map((b: unknown) => {
       const blockDate = new Date(monday);
       blockDate.setDate(monday.getDate() + (b.day_of_week - 1));
       return {

@@ -26,7 +26,7 @@ export function DeleteAccountButton() {
       await supabase.auth.signOut();
       toast.success(t("profile.accountDeleted"));
       navigate("/login");
-    } catch (e: any) {
+    } catch (e: unknown) {
       toast.error(e.message || "Failed to delete account");
     }
     setLoading(false);

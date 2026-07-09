@@ -44,10 +44,8 @@ export function BetaOverlay() {
     }
 
     return () => {
-      if (recordingActive) {
-        const sid = sessionStorage.getItem('beta_session_id');
-        if (sid) stopBetaRecording(sid);
-      }
+      const sid = sessionStorage.getItem('beta_session_id');
+      if (sid) stopBetaRecording(sid);
     };
   }, [isBetaTester, loading, tester]);
 

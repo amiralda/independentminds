@@ -33,12 +33,12 @@ export function useRoleSwitcher(): RoleSwitcherState {
 
       // Check user_roles for additional roles
       const { data: userRoles } = await supabase
-        .from("user_roles" as any)
+        .from("user_roles" as unknown)
         .select("role")
         .eq("user_id", user.id);
 
       if (userRoles) {
-        for (const r of userRoles as any[]) {
+        for (const r of userRoles as unknown[]) {
           if (r.role === "parent" && !detectedRoles.includes("parent")) {
             detectedRoles.push("parent");
           }
@@ -50,12 +50,12 @@ export function useRoleSwitcher(): RoleSwitcherState {
 
       // Check if user is an educator
       const { data: educatorRow } = await supabase
-        .from("educators" as any)
+        .from("educators" as unknown)
         .select("id")
         .eq("user_id", user.id)
         .limit(1);
 
-      if (educatorRow && (educatorRow as any[]).length > 0 && !detectedRoles.includes("educator")) {
+      if (educatorRow && (educatorRow as unknown[]).length > 0 && !detectedRoles.includes("educator")) {
         detectedRoles.push("educator");
       }
 

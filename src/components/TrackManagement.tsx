@@ -61,7 +61,7 @@ export function TrackManagement({ studentId }: { studentId: string }) {
         toast.success("Track created!");
       }
       closeDialog();
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast.error("Failed: " + (err.message || "Unknown error"));
     }
   };

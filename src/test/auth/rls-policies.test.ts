@@ -54,7 +54,7 @@ describe("RLS Policy Design Validation", () => {
     blockedWriteTables.forEach((table) => {
       it(`${table} blocks client INSERT`, async () => {
         const { supabase } = await import("@/integrations/supabase/client");
-        const result = await (supabase.from as any)(table).insert({ fake: "data" });
+        const result = await (supabase.from as unknown)(table).insert({ fake: "data" });
         expect(result.error).toBeTruthy();
         expect(result.error.code).toBe("42501");
       });
@@ -79,7 +79,7 @@ describe("RLS Policy Design Validation", () => {
       studentOwnedTables.forEach((tableName) => {
         expect(tableName).toBeTruthy();
       });
-      // If any table is missing from this list, it's a security gap
+      // If unknown table is missing from this list, it's a security gap
       expect(studentOwnedTables.length).toBeGreaterThanOrEqual(9);
     });
   });
@@ -89,7 +89,7 @@ describe("RLS Policy Design Validation", () => {
       mockRpc.mockResolvedValue({ data: false });
       const { supabase } = await import("@/integrations/supabase/client");
 
-      await supabase.rpc("has_role" as any, {
+      await supabase.rpc("has_role" as unknown, {
         _user_id: "test-id",
         _role: "admin",
       });
@@ -104,7 +104,7 @@ describe("RLS Policy Design Validation", () => {
       mockRpc.mockResolvedValue({ data: false });
       const { supabase } = await import("@/integrations/supabase/client");
 
-      await supabase.rpc("is_my_student" as any, { _student_id: "STU001" });
+      await supabase.rpc("is_my_student" as unknown, { _student_id: "STU001" });
 
       expect(mockRpc).toHaveBeenCalledWith("is_my_student", {
         _student_id: "STU001",
@@ -120,7 +120,7 @@ describe("RLS Policy Design Validation", () => {
       const permissions = ["view_progress", "receive_sos", "approve_rewards", "edit_lessons"];
 
       for (const perm of permissions) {
-        await supabase.rpc("has_guardian_permission" as any, {
+        await supabase.rpc("has_guardian_permission" as unknown, {
           uid: "guardian-id",
           sid: "STU001",
           permission: perm,
@@ -134,7 +134,7 @@ describe("RLS Policy Design Validation", () => {
   describe("Inbox messages are server-side only", () => {
     it("inbox_messages blocks client INSERT (server-only via edge functions)", async () => {
       const { supabase } = await import("@/integrations/supabase/client");
-      const result = await (supabase.from("inbox_messages") as any).insert({
+      const result = await (supabase.from("inbox_messages") as unknown).insert({
         parent_id: "fake",
         student_id: "fake",
         message_type: "sos",
@@ -148,7 +148,7 @@ describe("RLS Policy Design Validation", () => {
   describe("Reward points integrity", () => {
     it("reward_points blocks client UPDATE (immutable ledger)", async () => {
       const { supabase } = await import("@/integrations/supabase/client");
-      const result = await (supabase.from("reward_points") as any)
+      const result = await (supabase.from("reward_points") as unknown)
         .update({ points: 99999 })
         .eq("id", "fake-id");
       expect(result.error).toBeTruthy();
@@ -156,7 +156,7 @@ describe("RLS Policy Design Validation", () => {
 
     it("reward_points blocks client DELETE (no point erasure)", async () => {
       const { supabase } = await import("@/integrations/supabase/client");
-      const result = await (supabase.from("reward_points") as any)
+      const result = await (supabase.from("reward_points") as unknown)
         .delete()
         .eq("id", "fake-id");
       expect(result.error).toBeTruthy();
@@ -166,7 +166,7 @@ describe("RLS Policy Design Validation", () => {
   describe("Profile security", () => {
     it("profiles blocks client DELETE (use delete_my_account RPC instead)", async () => {
       const { supabase } = await import("@/integrations/supabase/client");
-      const result = await (supabase.from("profiles") as any)
+      const result = await (supabase.from("profiles") as unknown)
         .delete()
         .eq("id", "fake-id");
       expect(result.error).toBeTruthy();

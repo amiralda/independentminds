@@ -22,7 +22,7 @@ export function BetaReferralPanel() {
 
     const fetchReferralData = async () => {
       // Get referral code
-      const { data: testerData } = await (supabase as any)
+      const { data: testerData } = await (supabase as unknown)
         .from('beta_testers')
         .select('referral_code')
         .eq('id', tester.id)
@@ -33,7 +33,7 @@ export function BetaReferralPanel() {
       }
 
       // Get referral count
-      const { count } = await (supabase as any)
+      const { count } = await (supabase as unknown)
         .from('beta_referrals')
         .select('id', { count: 'exact', head: true })
         .eq('referrer_tester_id', tester.id)

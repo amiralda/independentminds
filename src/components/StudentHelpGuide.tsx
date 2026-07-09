@@ -136,7 +136,7 @@ const SECTIONS: GuideSection[] = [
     titleHT: "🤖 Mr A — Pwofesè AI",
     titleFR: "🤖 Mr A — Tuteur IA",
     stepsEN: [
-      "Mr A is your personal AI tutor who can help with any subject.",
+      "Mr A is your personal AI tutor who can help with unknown subject.",
       "Go to the 'Mr A' tab at the bottom of the screen.",
       "Choose a subject from the dropdown (Math, English, Science, etc.).",
       "Type your question and press Send.",

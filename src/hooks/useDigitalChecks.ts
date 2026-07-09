@@ -61,7 +61,7 @@ export function useIssueCheck() {
           check_number: generateCheckNumber(),
           memo: params.memo || null,
           status: 'issued',
-        } as any);
+        } as unknown);
       if (error) throw error;
     },
     onSuccess: () => {

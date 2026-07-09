@@ -131,7 +131,7 @@ Deno.serve(async (req) => {
 
     // Create task completions
     if (tasks && tasks.length > 0) {
-      const completions = tasks.map((t: any) => ({
+      const completions = tasks.map((t: unknown) => ({
         tester_id: tester.id,
         task_id: t.id,
         status: 'pending',
@@ -148,7 +148,7 @@ Deno.serve(async (req) => {
     const displayName = userProfile?.display_name || 'Beta Tester';
 
     if (resendApiKey && lovableApiKey && userEmail && tasks && tasks.length > 0) {
-      const taskListHtml = tasks.map((t: any) => `
+      const taskListHtml = tasks.map((t: unknown) => `
         <tr>
           <td style="padding:12px 16px;border-left:3px solid #BA7517;background:#FFFBF0;margin-bottom:8px;">
             <table width="100%" cellpadding="0" cellspacing="0">
@@ -312,7 +312,7 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({
       success: true, tester_type: invite.tester_type,
     }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-  } catch (err: any) {
+  } catch (err: unknown) {
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

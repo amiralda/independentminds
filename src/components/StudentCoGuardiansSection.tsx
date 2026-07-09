@@ -25,24 +25,24 @@ export function StudentCoGuardiansSection({ studentId }: Props) {
       if (!coGuardians || coGuardians.length === 0) return [];
 
       // Fetch profile display names for each guardian
-      const guardianIds = coGuardians.map((g: any) => g.guardian_id);
+      const guardianIds = coGuardians.map((g: unknown) => g.guardian_id);
       const { data: profiles } = await supabase
         .from("profiles")
         .select("id, display_name")
         .in("id", guardianIds);
 
       const profileMap = new Map(
-        (profiles || []).map((p: any) => [p.id, p.display_name])
+        (profiles || []).map((p: unknown) => [p.id, p.display_name])
       );
 
-      return coGuardians.map((g: any) => ({
+      return coGuardians.map((g: unknown) => ({
         ...g,
         display_name: profileMap.get(g.guardian_id) || t("guardians.coGuardian"),
       }));
     },
   });
 
-  const permBadges = (g: any) => {
+  const permBadges = (g: unknown) => {
     const badges: { label: string; color: string }[] = [];
     if (g.is_full_access) {
       badges.push({ label: t("guardians.full_access"), color: "bg-primary/15 text-primary" });
@@ -79,7 +79,7 @@ export function StudentCoGuardiansSection({ studentId }: Props) {
           </div>
         ) : (
           <div className="space-y-3">
-            {guardians.map((g: any) => (
+            {guardians.map((g: unknown) => (
               <div key={g.id} className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-sm font-medium truncate">{g.display_name}</p>

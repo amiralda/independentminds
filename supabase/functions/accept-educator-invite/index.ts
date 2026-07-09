@@ -96,7 +96,7 @@ Deno.serve(async (req) => {
     }
 
     // Determine which students to assign
-    const perms = (invite.permissions || {}) as any;
+    const perms = (invite.permissions || {}) as unknown;
     
     if (invite.student_id) {
       // Single student
@@ -152,7 +152,7 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
 
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("accept-educator-invite error:", err);
     return new Response(JSON.stringify({ error: err.message || "Internal error" }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },

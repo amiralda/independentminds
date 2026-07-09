@@ -204,7 +204,7 @@ Deno.serve(async (req) => {
         .eq('tester_id', tester.id);
 
       const completedIds = new Set(
-        (completions ?? []).filter((c: any) => c.status === 'completed').map((c: any) => c.task_id)
+        (completions ?? []).filter((c: unknown) => c.status === 'completed').map((c: unknown) => c.task_id)
       );
 
       const totalTasks = tasks?.length ?? 0;
@@ -221,8 +221,8 @@ Deno.serve(async (req) => {
       else if (pointsEarned > 50) currentLevel = 'Tester';
 
       const remainingTasks = (tasks ?? [])
-        .filter((t: any) => !completedIds.has(t.id))
-        .map((t: any) => ({
+        .filter((t: unknown) => !completedIds.has(t.id))
+        .map((t: unknown) => ({
           order: t.task_order,
           title: t.title_key.split('.').pop() || t.title_key,
           description: t.description_key,
@@ -269,7 +269,7 @@ Deno.serve(async (req) => {
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

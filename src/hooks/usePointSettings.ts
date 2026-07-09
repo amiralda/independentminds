@@ -57,7 +57,7 @@ export function useSavePointSetting() {
           points: params.points,
           enabled: params.enabled,
           updated_at: new Date().toISOString(),
-        } as any, { onConflict: "student_id,action_key" });
+        } as unknown, { onConflict: "student_id,action_key" });
       if (error) throw error;
     },
     onSuccess: () => {

@@ -2,7 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 
 let initialized = false;
-let errorQueue: ErrorPayload[] = [];
+const errorQueue: ErrorPayload[] = [];
 let flushTimer: number | null = null;
 
 interface ErrorPayload {

@@ -22,13 +22,13 @@ export function BetaFeedbackWidget() {
 
   if (!isBetaTester || !tester) return null;
 
-  const submitFeedback = async (type: string, data: any) => {
+  const submitFeedback = async (type: string, data: unknown) => {
     await supabase.from('beta_feedback').insert({
       tester_id: tester.id,
       feedback_type: type,
       page_path: window.location.pathname,
       ...data,
-    } as any);
+    } as unknown);
 
     // If bug report, also create admin notifications
     if (type === 'bug_report') {

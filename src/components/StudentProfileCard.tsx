@@ -129,7 +129,7 @@ export function StudentProfileCard({ studentId }: Props) {
       toast.success("Profile updated!");
       setEditing(false);
       queryClient.invalidateQueries({ queryKey: ["student_profile", studentId] });
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Profile save exception:", err);
       toast.error("Failed to save profile");
     }

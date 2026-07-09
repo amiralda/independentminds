@@ -38,16 +38,16 @@ export function EducatorDashboard() {
     queryKey: ["educator_assignments", user?.id],
     queryFn: async () => {
       const { data: educators } = await supabase
-        .from("educators" as any)
+        .from("educators" as unknown)
         .select("id")
         .eq("user_id", user!.id);
       
-      if (!educators || (educators as any[]).length === 0) return [];
+      if (!educators || (educators as unknown[]).length === 0) return [];
 
-      const educatorIds = (educators as any[]).map((e: any) => e.id);
+      const educatorIds = (educators as unknown[]).map((e: unknown) => e.id);
       
       const { data, error } = await supabase
-        .from("educator_students" as any)
+        .from("educator_students" as unknown)
         .select("*")
         .in("educator_id", educatorIds);
       
@@ -69,7 +69,7 @@ export function EducatorDashboard() {
         .in("student_id", ids);
       
       const map: Record<string, { name: string; parent_id: string | null }> = {};
-      (data || []).forEach((s: any) => {
+      (data || []).forEach((s: unknown) => {
         map[s.student_id] = { name: s.display_name, parent_id: s.parent_id };
       });
       return map;

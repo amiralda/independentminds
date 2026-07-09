@@ -14,9 +14,9 @@ const EDGE_FUNCTIONS = [
 ];
 
 export default function AdminSystem() {
-  const [flagged, setFlagged] = useState<any[]>([]);
-  const [rateLimits, setRateLimits] = useState<any[]>([]);
-  const [errors, setErrors] = useState<any[]>([]);
+  const [flagged, setFlagged] = useState<unknown[]>([]);
+  const [rateLimits, setRateLimits] = useState<unknown[]>([]);
+  const [errors, setErrors] = useState<unknown[]>([]);
   const [errorFilter, setErrorFilter] = useState({ resolved: 'open' as string, role: 'all' as string });
   const tick = useAutoRefresh();
 
@@ -33,10 +33,10 @@ export default function AdminSystem() {
 
   const fetchErrors = async () => {
     let query = supabase
-      .from("platform_errors" as any)
+      .from("platform_errors" as unknown)
       .select("*")
       .order("created_at", { ascending: false })
-      .limit(50) as any;
+      .limit(50) as unknown;
 
     if (errorFilter.resolved === 'open') {
       query = query.eq('resolved', false);
@@ -56,8 +56,8 @@ export default function AdminSystem() {
 
   const markResolved = async (id: string) => {
     await supabase
-      .from("platform_errors" as any)
-      .update({ resolved: true } as any)
+      .from("platform_errors" as unknown)
+      .update({ resolved: true } as unknown)
       .eq("id", id);
     setErrors((prev) => prev.map((e) => e.id === id ? { ...e, resolved: true } : e));
   };
@@ -66,8 +66,8 @@ export default function AdminSystem() {
     const openIds = errors.filter((e) => !e.resolved).map((e) => e.id);
     if (openIds.length === 0) return;
     await supabase
-      .from("platform_errors" as any)
-      .update({ resolved: true } as any)
+      .from("platform_errors" as unknown)
+      .update({ resolved: true } as unknown)
       .in("id", openIds);
     setErrors((prev) => prev.map((e) => ({ ...e, resolved: true })));
     toast.success(`Marked ${openIds.length} errors resolved`);

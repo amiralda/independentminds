@@ -224,9 +224,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let allStudents = (ownStudents || []) as StudentRecord[];
 
     if (coStudents && coStudents.length > 0) {
-      const filtered = (coStudents as any[])
-        .filter((cs: any) => !allStudents.some(s => s.student_id === cs.student_id))
-        .map((cs: any) => ({
+      const filtered = (coStudents as unknown[])
+        .filter((cs: unknown) => !allStudents.some(s => s.student_id === cs.student_id))
+        .map((cs: unknown) => ({
           student_id: cs.student_id,
           display_name: cs.display_name,
           grade_level: cs.grade_level,

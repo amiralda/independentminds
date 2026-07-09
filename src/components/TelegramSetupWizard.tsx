@@ -41,7 +41,7 @@ export function TelegramSetupWizard({ onComplete, isAlreadyLinked }: Props) {
         setDeepLink(data.deep_link);
         setStep(2);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast.error(err.message || t("telegram.wizard.error"));
     } finally {
       setGenerating(false);

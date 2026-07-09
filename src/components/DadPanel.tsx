@@ -180,12 +180,14 @@ export function DadPanel({ onAddStudent, initialTab }: Props) {
                         setViewingAsStudent(true);
                         setMenuOpen(false);
                         try {
-                          await supabase.from("impersonation_logs" as any).insert({
+                          await supabase.from("impersonation_logs" as unknown).insert({
                             parent_id: user?.id,
                             student_id: s.student_id,
                             action: "start",
-                          } as any);
-                        } catch {}
+                          } as unknown);
+                        } catch (error) {
+                          console.debug("Failed to log impersonation start", error);
+                        }
                       }}
                       className="p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-accent-foreground transition-colors flex-shrink-0"
                       title={`${t("dadpanel.loginAs")} ${s.display_name}`}

@@ -185,7 +185,7 @@ interface Recipient {
   points?: number;
 }
 
-async function resolveRecipients(supabase: any, filters: NotifyRequest["filters"]): Promise<Recipient[]> {
+async function resolveRecipients(supabase: unknown, filters: NotifyRequest["filters"]): Promise<Recipient[]> {
   // Get all profiles with auth emails
   const { data: profiles } = await supabase
     .from("profiles")
@@ -194,7 +194,7 @@ async function resolveRecipients(supabase: any, filters: NotifyRequest["filters"
   if (!profiles) return [];
 
   // Get auth emails
-  const userIds = profiles.map((p: any) => p.id);
+  const userIds = profiles.map((p: unknown) => p.id);
   const { data: authUsers } = await supabase.auth.admin.listUsers({ perPage: 1000 });
   const emailMap: Record<string, string> = {};
   if (authUsers?.users) {
@@ -207,7 +207,7 @@ async function resolveRecipients(supabase: any, filters: NotifyRequest["filters"
   const { data: parentSettings } = await supabase
     .from("parent_settings")
     .select("user_id, whatsapp_number, whatsapp_enabled, telegram_chat_id, telegram_bot_token");
-  const settingsMap: Record<string, any> = {};
+  const settingsMap: Record<string, unknown> = {};
   if (parentSettings) {
     for (const s of parentSettings) {
       settingsMap[s.user_id] = s;
@@ -218,7 +218,7 @@ async function resolveRecipients(supabase: any, filters: NotifyRequest["filters"
   const { data: betaTesters } = await supabase
     .from("beta_testers")
     .select("id, user_id, tester_type, points_earned, current_level, tasks_completed, tasks_total");
-  const betaMap: Record<string, any> = {};
+  const betaMap: Record<string, unknown> = {};
   if (betaTesters) {
     for (const bt of betaTesters) {
       if (bt.user_id) betaMap[bt.user_id] = bt;
@@ -227,13 +227,13 @@ async function resolveRecipients(supabase: any, filters: NotifyRequest["filters"
 
   // Get co-guardians
   const { data: coGuardians } = await supabase.from("co_guardians").select("guardian_id");
-  const coGuardianSet = new Set((coGuardians || []).map((cg: any) => cg.guardian_id));
+  const coGuardianSet = new Set((coGuardians || []).map((cg: unknown) => cg.guardian_id));
 
   let filtered = profiles;
 
   // Filter by role
   if (filters.roles && filters.roles.length > 0) {
-    filtered = filtered.filter((p: any) => {
+    filtered = filtered.filter((p: unknown) => {
       for (const role of filters.roles!) {
         if (role === "parents" && p.role === "parent") return true;
         if (role === "beta_testers" && betaMap[p.id]) return true;
@@ -246,14 +246,14 @@ async function resolveRecipients(supabase: any, filters: NotifyRequest["filters"
 
   // Filter by beta status
   if (filters.betaStatus === "beta_only") {
-    filtered = filtered.filter((p: any) => betaMap[p.id]);
+    filtered = filtered.filter((p: unknown) => betaMap[p.id]);
   } else if (filters.betaStatus === "non_beta") {
-    filtered = filtered.filter((p: any) => !betaMap[p.id]);
+    filtered = filtered.filter((p: unknown) => !betaMap[p.id]);
   }
 
   // Filter by task progress
-  if (filters.taskProgress && filters.taskProgress !== "any") {
-    filtered = filtered.filter((p: any) => {
+  if (filters.taskProgress && filters.taskProgress !== "unknown") {
+    filtered = filtered.filter((p: unknown) => {
       const bt = betaMap[p.id];
       if (!bt) return false;
       const completed = bt.tasks_completed || 0;
@@ -267,7 +267,7 @@ async function resolveRecipients(supabase: any, filters: NotifyRequest["filters"
 
   // Filter by language
   if (filters.languages && filters.languages.length > 0) {
-    filtered = filtered.filter((p: any) =>
+    filtered = filtered.filter((p: unknown) =>
       filters.languages!.includes(p.language_pref?.toUpperCase() || "EN")
     );
   }
@@ -276,7 +276,7 @@ async function resolveRecipients(supabase: any, filters: NotifyRequest["filters"
   if (filters.activity && filters.activity !== "all") {
     const now = Date.now();
     const day = 86400000;
-    filtered = filtered.filter((p: any) => {
+    filtered = filtered.filter((p: unknown) => {
       const last = p.last_active_at ? new Date(p.last_active_at).getTime() : 0;
       const daysAgo = (now - last) / day;
       if (filters.activity === "active_7d") return daysAgo <= 7;
@@ -289,11 +289,11 @@ async function resolveRecipients(supabase: any, filters: NotifyRequest["filters"
 
   // Filter by specific users
   if (filters.specificUsers && filters.specificUsers.length > 0) {
-    filtered = filtered.filter((p: any) => filters.specificUsers!.includes(p.id));
+    filtered = filtered.filter((p: unknown) => filters.specificUsers!.includes(p.id));
   }
 
   // Map to recipients
-  return filtered.map((p: any) => {
+  return filtered.map((p: unknown) => {
     const settings = settingsMap[p.id] || {};
     const beta = betaMap[p.id];
     return {

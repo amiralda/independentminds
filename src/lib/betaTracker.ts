@@ -1,6 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 
-let eventQueue: any[] = [];
+const eventQueue: unknown[] = [];
 let sessionId: string | null = null;
 let flushTimer: number | null = null;
 let pageCount = 0;
@@ -37,7 +37,7 @@ function getBrowser(): string {
   return 'Other';
 }
 
-function enqueue(event: any) {
+function enqueue(event: unknown) {
   eventQueue.push({
     ...event,
     session_id: getSessionId(),

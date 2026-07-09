@@ -61,7 +61,7 @@ export default function AdminAuditLogs() {
         .select("id, display_name")
         .in("id", parentIds);
       const map: Record<string, string> = {};
-      (profileData || []).forEach((p: any) => { map[p.id] = p.display_name; });
+      (profileData || []).forEach((p: unknown) => { map[p.id] = p.display_name; });
       setProfiles(map);
     }
     setLoading(false);

@@ -7,7 +7,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGri
 
 export default function AdminOverview() {
   const [stats, setStats] = useState({ students: 0, activeLogs: 0, avgStreak: 0, pointsIssued: 0, pointsRedeemed: 0 });
-  const [weeklyData, setWeeklyData] = useState<any[]>([]);
+  const [weeklyData, setWeeklyData] = useState<unknown[]>([]);
   const tick = useAutoRefresh();
 
   useEffect(() => {
@@ -31,7 +31,7 @@ export default function AdminOverview() {
       });
 
       // Weekly completions (last 7 days)
-      const days: any[] = [];
+      const days: unknown[] = [];
       for (let i = 6; i >= 0; i--) {
         const d = new Date();
         d.setDate(d.getDate() - i);

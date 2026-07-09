@@ -59,11 +59,11 @@ export function EducatorGroupsPanel() {
     queryKey: ["my_educator_id", user?.id],
     queryFn: async () => {
       const { data } = await supabase
-        .from("educators" as any)
+        .from("educators" as unknown)
         .select("id")
         .eq("user_id", user!.id)
         .limit(1);
-      return (data as any[])?.[0]?.id || null;
+      return (data as unknown[])?.[0]?.id || null;
     },
     enabled: !!user?.id,
   });
@@ -73,7 +73,7 @@ export function EducatorGroupsPanel() {
     queryKey: ["educator_groups", educatorId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("educator_groups" as any)
+        .from("educator_groups" as unknown)
         .select("*")
         .eq("educator_id", educatorId)
         .order("created_at", { ascending: false });
@@ -88,7 +88,7 @@ export function EducatorGroupsPanel() {
     queryKey: ["educator_group_students", selectedGroup],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("educator_group_students" as any)
+        .from("educator_group_students" as unknown)
         .select("*")
         .eq("group_id", selectedGroup);
       if (error) throw error;
@@ -102,11 +102,11 @@ export function EducatorGroupsPanel() {
     queryKey: ["educator_assigned_students", educatorId],
     queryFn: async () => {
       const { data } = await supabase
-        .from("educator_students" as any)
+        .from("educator_students" as unknown)
         .select("student_id")
         .eq("educator_id", educatorId);
       if (!data) return [];
-      const ids = (data as any[]).map((d: any) => d.student_id);
+      const ids = (data as unknown[]).map((d: unknown) => d.student_id);
       const { data: students } = await supabase
         .from("students")
         .select("student_id, display_name")
@@ -127,7 +127,7 @@ export function EducatorGroupsPanel() {
         .select("student_id, display_name")
         .in("student_id", memberIds);
       const map: Record<string, string> = {};
-      (data || []).forEach((s: any) => { map[s.student_id] = s.display_name; });
+      (data || []).forEach((s: unknown) => { map[s.student_id] = s.display_name; });
       return map;
     },
     enabled: memberIds.length > 0,
@@ -135,7 +135,7 @@ export function EducatorGroupsPanel() {
 
   const createGroup = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("educator_groups" as any).insert({
+      const { error } = await supabase.from("educator_groups" as unknown).insert({
         educator_id: educatorId,
         name: formName,
         group_type: formType,
@@ -144,7 +144,7 @@ export function EducatorGroupsPanel() {
         academic_year: formYear || null,
         description: formDesc || null,
         color: formColor,
-      } as any);
+      } as unknown);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -157,15 +157,15 @@ export function EducatorGroupsPanel() {
       setFormDesc("");
       toast.success(t("educators.groupCreated") || "Group created!");
     },
-    onError: (err: any) => toast.error(err.message),
+    onError: (err: unknown) => toast.error(err.message),
   });
 
   const addStudentToGroup = useMutation({
     mutationFn: async (studentId: string) => {
-      const { error } = await supabase.from("educator_group_students" as any).insert({
+      const { error } = await supabase.from("educator_group_students" as unknown).insert({
         group_id: selectedGroup,
         student_id: studentId,
-      } as any);
+      } as unknown);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -173,13 +173,13 @@ export function EducatorGroupsPanel() {
       setShowAddStudent(false);
       toast.success(t("educators.studentAdded") || "Student added to group!");
     },
-    onError: (err: any) => toast.error(err.message),
+    onError: (err: unknown) => toast.error(err.message),
   });
 
   const removeStudent = useMutation({
     mutationFn: async (membershipId: string) => {
       const { error } = await supabase
-        .from("educator_group_students" as any)
+        .from("educator_group_students" as unknown)
         .delete()
         .eq("id", membershipId);
       if (error) throw error;
@@ -188,13 +188,13 @@ export function EducatorGroupsPanel() {
       queryClient.invalidateQueries({ queryKey: ["educator_group_students"] });
       toast.success(t("educators.studentRemoved") || "Student removed from group.");
     },
-    onError: (err: any) => toast.error(err.message),
+    onError: (err: unknown) => toast.error(err.message),
   });
 
   const deleteGroup = useMutation({
     mutationFn: async (groupId: string) => {
       const { error } = await supabase
-        .from("educator_groups" as any)
+        .from("educator_groups" as unknown)
         .delete()
         .eq("id", groupId);
       if (error) throw error;
@@ -204,7 +204,7 @@ export function EducatorGroupsPanel() {
       setSelectedGroup(null);
       toast.success(t("educators.groupDeleted") || "Group deleted.");
     },
-    onError: (err: any) => toast.error(err.message),
+    onError: (err: unknown) => toast.error(err.message),
   });
 
   const activeGroup = groups.find(g => g.id === selectedGroup);

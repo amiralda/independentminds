@@ -151,7 +151,7 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ ok: true, inserted }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('track-error:', error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,

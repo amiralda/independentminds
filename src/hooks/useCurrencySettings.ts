@@ -66,7 +66,7 @@ export function useSaveCurrencySettings() {
           currency_code: params.currency_code,
           currency_symbol: params.currency_symbol,
           points_per_unit: params.points_per_unit,
-        } as any, { onConflict: 'student_id' });
+        } as unknown, { onConflict: 'student_id' });
       if (error) throw error;
     },
     onSuccess: () => {

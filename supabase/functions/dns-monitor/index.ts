@@ -142,7 +142,7 @@ Deno.serve(async (req) => {
     checked_at: now,
   });
 
-  const alerts: any = { email: null, whatsapp: null };
+  const alerts: unknown = { email: null, whatsapp: null };
   if (changed) {
     const from = prev?.status ?? "unknown";
     const to = check.overall;

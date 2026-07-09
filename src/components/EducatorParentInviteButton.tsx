@@ -33,7 +33,7 @@ export function EducatorParentInviteButton({ studentId, studentName }: Props) {
       toast.success(data?.message || "Parent invite sent!");
       setOpen(false);
       setEmail("");
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast.error(err.message || "Failed to send invite");
     } finally {
       setSending(false);

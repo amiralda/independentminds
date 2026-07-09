@@ -1,25 +1,25 @@
 import { supabase } from '@/integrations/supabase/client';
 
 let stopFn: (() => void) | null = null;
-let recordedEvents: any[] = [];
+let recordedEvents: unknown[] = [];
 let uploadTimer: number | null = null;
 
 const RRWEB_CDN = 'https://unpkg.com/rrweb@2.0.0-alpha.11/dist/rrweb.umd.cjs.js';
 const CHUNK_SIZE = 500; // events per chunk
 const UPLOAD_INTERVAL = 60_000; // 1 minute
 
-async function loadRrweb(): Promise<any> {
-  if ((window as any).rrweb) return (window as any).rrweb;
+async function loadRrweb(): Promise<unknown> {
+  if ((window as unknown).rrweb) return (window as unknown).rrweb;
   return new Promise((resolve, reject) => {
     const script = document.createElement('script');
     script.src = RRWEB_CDN;
-    script.onload = () => resolve((window as any).rrweb);
+    script.onload = () => resolve((window as unknown).rrweb);
     script.onerror = reject;
     document.head.appendChild(script);
   });
 }
 
-async function uploadChunk(sessionId: string, events: any[]) {
+async function uploadChunk(sessionId: string, events: unknown[]) {
   if (events.length === 0) return;
 
   const blob = new Blob([JSON.stringify(events)], { type: 'application/json' });
@@ -52,7 +52,7 @@ export async function startBetaRecording(sessionId: string): Promise<boolean> {
     recordedEvents = [];
 
     stopFn = rrweb.record({
-      emit(event: any) {
+      emit(event: unknown) {
         recordedEvents.push(event);
         if (recordedEvents.length >= CHUNK_SIZE) {
           const chunk = recordedEvents.splice(0, CHUNK_SIZE);

@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
         .map((b) => b.toString(16).padStart(2, '0'))
         .join('');
 
-      // Invalidate any existing tokens for this user
+      // Invalidate unknown existing tokens for this user
       await db
         .from('telegram_link_tokens')
         .update({ used: true })
@@ -98,7 +98,7 @@ Deno.serve(async (req) => {
     }
 
     if (action === 'check') {
-      // Check if any token for this user has been linked
+      // Check if unknown token for this user has been linked
       const { data: linked } = await db
         .from('telegram_link_tokens')
         .select('chat_id')
@@ -145,7 +145,7 @@ Deno.serve(async (req) => {
       JSON.stringify({ error: 'Invalid action' }),
       { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('telegram-link error:', err.message);
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500,

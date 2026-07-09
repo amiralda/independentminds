@@ -262,7 +262,7 @@ Deno.serve(async (req) => {
           .not("rating", "is", null);
 
         if (ratings && ratings.length >= 3) {
-          const avg = ratings.reduce((s: number, r: any) => s + r.rating, 0) / ratings.length;
+          const avg = ratings.reduce((s: number, r: unknown) => s + r.rating, 0) / ratings.length;
           if (avg < 3.0) {
             for (const admin of admins) {
               const { data: existing } = await supabase.from("admin_notifications")

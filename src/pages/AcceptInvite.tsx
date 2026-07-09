@@ -43,7 +43,7 @@ export default function AcceptInvite() {
       setStatus("success");
       toast.success(`You now have co-guardian access to ${data?.student_name || "the student"}'s profile!`);
       setTimeout(() => navigate("/"), 2000);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setStatus("error");
       setErrorMsg(err.message || "Something went wrong.");
       acceptedRef.current = false;

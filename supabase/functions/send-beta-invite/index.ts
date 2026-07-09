@@ -278,7 +278,7 @@ ${notes ? `<p>${notes}</p>` : ''}
             break;
           }
         }
-      } catch (chErr: any) {
+      } catch (chErr: unknown) {
         channelsFailed.push(channel);
         await db.from('beta_invite_logs').insert({
           invite_id: invite.id, channel, status: 'failed',
@@ -294,7 +294,7 @@ ${notes ? `<p>${notes}</p>` : ''}
       channels_sent: channelsSent,
       channels_failed: channelsFailed,
     }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-  } catch (err: any) {
+  } catch (err: unknown) {
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

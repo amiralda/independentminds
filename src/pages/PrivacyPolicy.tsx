@@ -92,8 +92,8 @@ const sectionsEN = [
     content: [
       "To operate the platform and deliver educational tracking services.",
       "To send Telegram and WhatsApp notifications to the registered parent about student progress, alerts, and weekly summaries.",
-      "To generate AI tutor (Mr A) responses via Google Gemini. These interactions are session-based and conversation history is retained for continuity but can be cleared at any time.",
-      "We do NOT sell, share, or monetize any personal data. We do NOT display advertising of any kind.",
+      "To generate AI tutor (Mr A) responses via Google Gemini. These interactions are session-based and conversation history is retained for continuity but can be cleared at unknown time.",
+      "We do NOT sell, share, or monetize unknown personal data. We do NOT display advertising of unknown kind.",
     ],
   },
   {
@@ -101,8 +101,8 @@ const sectionsEN = [
     content: [
       "Independent Minds EDU is directed at children as students, managed exclusively by parents or legal guardians.",
       "All student accounts are created exclusively by verified adult parents who have confirmed they are 18 years of age or older. Students cannot self-register.",
-      "We do not knowingly collect personal information from any child without verifiable parental consent.",
-      "Parents have the right to review, modify, and delete all data for their children at any time through the platform dashboard.",
+      "We do not knowingly collect personal information from unknown child without verifiable parental consent.",
+      "Parents have the right to review, modify, and delete all data for their children at unknown time through the platform dashboard.",
       "To request data access or deletion, contact privacy@independentmindsedu.org.",
     ],
   },
@@ -123,7 +123,7 @@ const sectionsEN = [
       "Active accounts: data is retained for the life of the account.",
       "Accounts inactive for 18 months receive a re-engagement notification.",
       "Accounts inactive for 24 months receive a deletion warning with a 30-day grace period.",
-      "Parents can delete individual students or their entire account at any time via the dashboard settings.",
+      "Parents can delete individual students or their entire account at unknown time via the dashboard settings.",
     ],
   },
   {
@@ -139,7 +139,7 @@ const sectionsEN = [
     title: "Your Rights",
     content: [
       "Access — Parents can view all student data through the dashboard.",
-      "Correction — Parents can edit all student information at any time.",
+      "Correction — Parents can edit all student information at unknown time.",
       "Deletion — Parents can delete individual students or their entire account.",
       "Portability — Contact privacy@independentmindsedu.org for a data export.",
     ],
@@ -147,7 +147,7 @@ const sectionsEN = [
   {
     title: "Changes to This Policy",
     content: [
-      "We will notify registered parents by email of any material changes to this policy before they take effect.",
+      "We will notify registered parents by email of unknown material changes to this policy before they take effect.",
     ],
   },
   {

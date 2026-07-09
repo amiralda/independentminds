@@ -76,7 +76,7 @@ export function InboxPanel() {
   const markAsRead = useCallback(async (messageId: string) => {
     await supabase
       .from("inbox_messages")
-      .update({ is_read: true, read_at: new Date().toISOString() } as any)
+      .update({ is_read: true, read_at: new Date().toISOString() } as unknown)
       .eq("id", messageId);
     queryClient.invalidateQueries({ queryKey: ["inbox_messages", user?.id] });
   }, [user?.id, queryClient]);
@@ -85,14 +85,14 @@ export function InboxPanel() {
     if (!user) return;
     await supabase
       .from("inbox_messages")
-      .update({ is_read: true, read_at: new Date().toISOString() } as any)
+      .update({ is_read: true, read_at: new Date().toISOString() } as unknown)
       .eq("parent_id", user.id)
       .eq("is_read", false);
     queryClient.invalidateQueries({ queryKey: ["inbox_messages", user.id] });
   };
 
   // IntersectionObserver to mark messages read as they scroll into view
-  const messageRefCallback = useCallback((node: HTMLDivElement | null, msg: any) => {
+  const messageRefCallback = useCallback((node: HTMLDivElement | null, msg: unknown) => {
     if (!node || msg.is_read) return;
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -106,13 +106,13 @@ export function InboxPanel() {
     observer.observe(node);
   }, [markAsRead]);
 
-  const filtered = messages.filter((m: any) => {
+  const filtered = messages.filter((m: unknown) => {
     if (filter === "all") return true;
     if (filter === "unread") return !m.is_read;
     return m.message_type === filter;
   });
 
-  const unreadCount = messages.filter((m: any) => !m.is_read).length;
+  const unreadCount = messages.filter((m: unknown) => !m.is_read).length;
 
   const tabs: { key: FilterTab; label: string }[] = [
     { key: "all", label: t("inbox.all") },
@@ -174,7 +174,7 @@ export function InboxPanel() {
         </div>
       ) : (
         <div className="space-y-2">
-          {filtered.map((msg: any) => {
+          {filtered.map((msg: unknown) => {
             const config = TYPE_CONFIG[msg.message_type as MessageType] || TYPE_CONFIG.lesson_completed;
             const Icon = config.icon;
             const isExpanded = expandedId === msg.id;

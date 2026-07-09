@@ -20,7 +20,7 @@ export function BetaWelcomeModal() {
   useEffect(() => {
     if (!tester) return;
     // Only show if first_login_shown is false
-    if ((tester as any).first_login_shown) return;
+    if ((tester as unknown).first_login_shown) return;
 
     const fetchTasks = async () => {
       const { data } = await supabase
@@ -34,14 +34,14 @@ export function BetaWelcomeModal() {
       }
     };
     fetchTasks();
-  }, [tester?.id, (tester as any)?.first_login_shown]);
+  }, [tester?.id, (tester as unknown)?.first_login_shown]);
 
   const handleStart = async () => {
     if (!tester) return;
     // Mark first_login_shown
     await supabase
       .from('beta_testers')
-      .update({ first_login_shown: true } as any)
+      .update({ first_login_shown: true } as unknown)
       .eq('id', tester.id);
 
     setShow(false);

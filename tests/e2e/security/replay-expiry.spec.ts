@@ -218,7 +218,7 @@ test.describe('accept-guardian-invite — token reuse/expiry', () => {
     const r = await pwRequest.newContext();
     const res = await r.post(`${FN_BASE}/accept-guardian-invite`, {
       headers: jsonHeaders(),
-      data: { token: 'any-token' },
+      data: { token: 'unknown-token' },
     });
     expect([401, 403]).toContain(res.status());
   });

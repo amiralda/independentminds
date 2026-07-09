@@ -96,7 +96,9 @@ const Index = () => {
           gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
           osc.start(ctx.currentTime);
           osc.stop(ctx.currentTime + 0.4);
-        } catch {}
+        } catch (error) {
+          console.debug("Failed to play inbox notification sound", error);
+        }
         setTimeout(() => setBellRing(false), 600);
         setTimeout(() => setBadgeBounce(false), 400);
       }
@@ -226,12 +228,14 @@ const Index = () => {
               onClick={async () => {
                 setViewingAsStudent(false);
                 try {
-                  await supabase.from("impersonation_logs" as any).insert({
+                  await supabase.from("impersonation_logs" as unknown).insert({
                     parent_id: user?.id,
                     student_id: selectedStudentId,
                     action: "end",
-                  } as any);
-                } catch {}
+                  } as unknown);
+                } catch (error) {
+                  console.debug("Failed to log impersonation end", error);
+                }
               }}
             >
               {lang === "HT" ? "Retounen" : "Back to Parent"}
@@ -286,7 +290,7 @@ const Index = () => {
           </div>
         ) : (
           <div className="py-4">
-            <DadPanel onAddStudent={() => setShowAddStudent(true)} initialTab={parentTab as any} key={`dad-${parentTabKey}`} />
+            <DadPanel onAddStudent={() => setShowAddStudent(true)} initialTab={parentTab as unknown} key={`dad-${parentTabKey}`} />
           </div>
         )}
       </main>

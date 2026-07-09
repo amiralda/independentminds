@@ -53,7 +53,7 @@ async function safeGoto(page: Page, url: string) {
     // Proxy may return 4xx / abort navigation — that itself is a valid
     // rejection. We continue to inspect session state.
   }
-  // Give any client redirects a chance to settle.
+  // Give unknown client redirects a chance to settle.
   await page.waitForLoadState('networkidle').catch(() => {});
 }
 
@@ -76,17 +76,17 @@ test('OAuth callback: missing both `code` and `state` is rejected', async ({ pag
 
 test('OAuth callback: tampered `state` (unknown value) is rejected', async ({ page }) => {
   // A state value that was never issued by the initiate step must not be
-  // accepted regardless of any `code` value.
+  // accepted regardless of unknown `code` value.
   await safeGoto(
     page,
-    `${APP_URL}/~oauth/callback?code=any-code&state=tampered-state-${Date.now()}`,
+    `${APP_URL}/~oauth/callback?code=unknown-code&state=tampered-state-${Date.now()}`,
   );
   await assertNoSession(page);
 });
 
 test('OAuth callback: mismatched `state` (bit-flipped) is rejected', async ({ page }) => {
   // Simulate a MITM/CSRF attempt: attacker keeps a plausible-looking state
-  // that does not correspond to any active authorization session.
+  // that does not correspond to unknown active authorization session.
   const badState = 'A'.repeat(64);
   await safeGoto(
     page,

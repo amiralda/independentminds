@@ -8,10 +8,10 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 export default function AdminUsers() {
-  const [profiles, setProfiles] = useState<any[]>([]);
-  const [mergeRequests, setMergeRequests] = useState<any[]>([]);
-  const [roles, setRoles] = useState<any[]>([]);
-  const [coGuardians, setCoGuardians] = useState<any[]>([]);
+  const [profiles, setProfiles] = useState<unknown[]>([]);
+  const [mergeRequests, setMergeRequests] = useState<unknown[]>([]);
+  const [roles, setRoles] = useState<unknown[]>([]);
+  const [coGuardians, setCoGuardians] = useState<unknown[]>([]);
   const [stats, setStats] = useState({ parents: 0, admins: 0, pendingMerges: 0, coGuardianCount: 0 });
   const tick = useAutoRefresh();
 
@@ -33,9 +33,9 @@ export default function AdminUsers() {
       setMergeRequests(m);
       setCoGuardians(g);
       setStats({
-        parents: p.filter((x: any) => x.role === "parent").length,
-        admins: r.filter((x: any) => x.role === "admin").length,
-        pendingMerges: m.filter((x: any) => x.status === "pending").length,
+        parents: p.filter((x: unknown) => x.role === "parent").length,
+        admins: r.filter((x: unknown) => x.role === "admin").length,
+        pendingMerges: m.filter((x: unknown) => x.status === "pending").length,
         coGuardianCount: g.length,
       });
     };
@@ -45,7 +45,7 @@ export default function AdminUsers() {
   const handleMerge = async (id: string, action: "approved" | "denied") => {
     const { error } = await supabase
       .from("merge_requests")
-      .update({ status: action, resolved_at: new Date().toISOString() } as any)
+      .update({ status: action, resolved_at: new Date().toISOString() } as unknown)
       .eq("id", id);
     if (error) {
       toast.error(error.message);
@@ -56,11 +56,11 @@ export default function AdminUsers() {
   };
 
   const getUserRole = (userId: string) => {
-    const r = roles.find((x: any) => x.user_id === userId);
+    const r = roles.find((x: unknown) => x.user_id === userId);
     return r?.role || "—";
   };
 
-  const permSummary = (g: any) => {
+  const permSummary = (g: unknown) => {
     if (g.is_full_access) return "Full Access";
     const perms: string[] = [];
     if (g.can_view_progress) perms.push("View");
@@ -132,7 +132,7 @@ export default function AdminUsers() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {coGuardians.map((g: any) => (
+            {coGuardians.map((g: unknown) => (
               <TableRow key={g.id} className="border-white/10 hover:bg-white/5">
                 <TableCell className="text-white/70 text-xs font-mono">{g.guardian_id?.slice(0, 8)}…</TableCell>
                 <TableCell className="text-white/70 text-xs">{g.student_id}</TableCell>

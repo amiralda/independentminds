@@ -89,7 +89,7 @@ export function BetaMissionBanner() {
         setCompletions(completionsRes.data as BetaCompletion[]);
     };
     fetchData();
-  }, [tester?.id, tester?.tester_type]);
+  }, [tester]);
 
   const completedIds = new Set(
     completions.filter((c) => c.status === 'completed').map((c) => c.task_id),

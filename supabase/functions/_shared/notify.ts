@@ -13,8 +13,8 @@ interface ParentNotifySettings {
 }
 
 interface NotifyResult {
-  telegram?: { ok: boolean; data?: any };
-  whatsapp?: { ok: boolean; data?: any };
+  telegram?: { ok: boolean; data?: unknown };
+  whatsapp?: { ok: boolean; data?: unknown };
 }
 
 const escapeHtml = (s: string) =>

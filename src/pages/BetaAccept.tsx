@@ -41,7 +41,7 @@ export default function BetaAccept() {
       setTesterType(data?.tester_type ?? '');
       setStatus('success');
       setTimeout(() => navigate('/'), 3000);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setStatus('error');
       setErrorMsg(err.message);
       acceptedRef.current = false;

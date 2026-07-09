@@ -82,7 +82,7 @@ serve(async (req) => {
       // Find source user by email
       const { data: { users }, error: usersErr } = await adminClient.auth.admin.listUsers();
       if (usersErr) throw usersErr;
-      const sourceUser = users.find((u: any) => u.email === mergeReq.source_email);
+      const sourceUser = users.find((u: unknown) => u.email === mergeReq.source_email);
       if (!sourceUser) throw new Error(`Source user ${mergeReq.source_email} not found`);
 
       const sourceUserId = sourceUser.id;

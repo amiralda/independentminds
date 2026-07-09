@@ -43,7 +43,7 @@ export default function AcceptEducatorParentInvite() {
       setStatus("success");
       toast.success("You are now the parent of this student!");
       setTimeout(() => navigate("/"), 2000);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setStatus("error");
       setErrorMsg(err.message || "Something went wrong.");
       acceptedRef.current = false;

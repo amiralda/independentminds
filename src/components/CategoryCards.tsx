@@ -68,7 +68,7 @@ export function CategoryCards() {
       setCompletingTrack(null);
       setNotes("");
       setScore("");
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast.error("Failed: " + (err.message || "Unknown error"));
     }
   };

@@ -7,7 +7,7 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianG
 
 export default function AdminEngagement() {
   const [stats, setStats] = useState({ checkInsToday: 0, sosThisWeek: 0, totalCheckIns: 0 });
-  const [dailyData, setDailyData] = useState<any[]>([]);
+  const [dailyData, setDailyData] = useState<unknown[]>([]);
   const tick = useAutoRefresh();
 
   useEffect(() => {
@@ -28,7 +28,7 @@ export default function AdminEngagement() {
       });
 
       // Daily completions last 14 days
-      const days: any[] = [];
+      const days: unknown[] = [];
       for (let i = 13; i >= 0; i--) {
         const d = new Date();
         d.setDate(d.getDate() - i);

@@ -57,7 +57,7 @@ Deno.serve(async (req) => {
       .gte('created_at', since)
       .not('nps_score', 'is', null);
     const avgNps = npsData && npsData.length > 0
-      ? (npsData.reduce((s: number, r: any) => s + r.nps_score, 0) / npsData.length).toFixed(1)
+      ? (npsData.reduce((s: number, r: unknown) => s + r.nps_score, 0) / npsData.length).toFixed(1)
       : 'N/A';
 
     const html = `
@@ -95,7 +95,7 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ ok: true, newTesters, feedbackCount }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

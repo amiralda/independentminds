@@ -65,7 +65,7 @@ Deno.serve(async (req) => {
 
     // Insert events (max 50)
     if (events && Array.isArray(events) && events.length > 0) {
-      const rows = events.slice(0, 50).map((e: any) => ({
+      const rows = events.slice(0, 50).map((e: unknown) => ({
         tester_id: tester.id,
         event_type: e.event_type,
         page_path: e.page_path ?? null,
@@ -78,19 +78,19 @@ Deno.serve(async (req) => {
       await db.from('beta_events').insert(rows);
 
       // Check for error events → admin notification (deduped: 1 per tester per hour)
-      const errorEvents = events.filter((e: any) => e.event_type === 'error');
+      const errorEvents = events.filter((e: unknown) => e.event_type === 'error');
       if (errorEvents.length > 0) {
         await notifyAdminsOfError(db, tester.id, testerName, errorEvents[0]);
       }
 
       // Check for bug_report events → admin notification (always insert)
-      const bugReports = events.filter((e: any) => e.event_type === 'bug_report');
+      const bugReports = events.filter((e: unknown) => e.event_type === 'bug_report');
       for (const bug of bugReports) {
         await notifyAdminsOfBugReport(db, tester.id, testerName, bug);
       }
 
       // Check for task_completion events → difficulty analysis
-      const taskCompletions = events.filter((e: any) => e.event_type === 'task_completion');
+      const taskCompletions = events.filter((e: unknown) => e.event_type === 'task_completion');
       for (const tc of taskCompletions) {
         await analyzeTaskDifficulty(db, tester.id, testerName, tc);
       }
@@ -103,7 +103,7 @@ Deno.serve(async (req) => {
 
     // Upsert session if provided
     if (session_data) {
-      const sessionRow: Record<string, any> = {
+      const sessionRow: Record<string, unknown> = {
         tester_id: tester.id,
         session_id: session_data.session_id,
         device_type: session_data.device_type ?? null,
@@ -123,7 +123,7 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ ok: true }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -133,10 +133,10 @@ Deno.serve(async (req) => {
 
 // ── Bug report notification (always insert — each bug is unique) ──
 async function notifyAdminsOfBugReport(
-  db: any,
+  db: unknown,
   testerId: string,
   testerName: string,
-  bugEvent: any,
+  bugEvent: unknown,
 ) {
   const bugDesc = bugEvent.metadata?.bug_description || 'No description';
   const pagePath = bugEvent.page_path || '/';
@@ -167,10 +167,10 @@ async function notifyAdminsOfBugReport(
 
 // ── Error notification with 1-hour dedup per tester ──
 async function notifyAdminsOfError(
-  db: any,
+  db: unknown,
   testerId: string,
   testerName: string,
-  errorEvent: any,
+  errorEvent: unknown,
 ) {
   const oneHourAgo = new Date(Date.now() - 3600_000).toISOString();
   const errorMessage = errorEvent.metadata?.message || 'Unknown error';
@@ -185,7 +185,7 @@ async function notifyAdminsOfError(
   if (!admins || admins.length === 0) return;
 
   for (const admin of admins) {
-    // Check dedup: any unread beta_error for this tester in last hour?
+    // Check dedup: unknown unread beta_error for this tester in last hour?
     const { data: existing } = await db
       .from('admin_notifications')
       .select('id')
@@ -217,10 +217,10 @@ async function notifyAdminsOfError(
 
 // ── Task difficulty analysis ──
 async function analyzeTaskDifficulty(
-  db: any,
+  db: unknown,
   testerId: string,
   testerName: string,
-  completionEvent: any,
+  completionEvent: unknown,
 ) {
   const taskId = completionEvent.metadata?.task_id;
   if (!taskId) return;
@@ -237,9 +237,9 @@ async function analyzeTaskDifficulty(
 
   if (!recentEvents || recentEvents.length === 0) return;
 
-  const rageClicks = recentEvents.filter((e: any) => e.event_type === 'rage_click').length;
-  const errors = recentEvents.filter((e: any) => e.event_type === 'error').length;
-  const pageViews = recentEvents.filter((e: any) => e.event_type === 'page_view').length;
+  const rageClicks = recentEvents.filter((e: unknown) => e.event_type === 'rage_click').length;
+  const errors = recentEvents.filter((e: unknown) => e.event_type === 'error').length;
+  const pageViews = recentEvents.filter((e: unknown) => e.event_type === 'page_view').length;
 
   const firstTime = new Date(recentEvents[0].created_at).getTime();
   const lastTime = new Date(recentEvents[recentEvents.length - 1].created_at).getTime();

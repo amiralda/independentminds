@@ -78,7 +78,7 @@ export function useCreateChallenge() {
         category_filter: params.category_filter || null,
         subject_filter: params.subject_filter || null,
         ends_at: params.ends_at || new Date(Date.now() + 7 * 86400000).toISOString(),
-      } as any);
+      } as unknown);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -132,7 +132,7 @@ export async function incrementChallengeProgress(
         status: isComplete ? "completed" : "active",
         completed_at: isComplete ? new Date().toISOString() : null,
         updated_at: new Date().toISOString(),
-      } as any)
+      } as unknown)
       .eq("id", ch.id);
 
     // Award bonus points on completion

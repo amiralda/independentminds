@@ -28,6 +28,10 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Build
+        run: npm run build
       - name: Run Vitest with retry
         run: |
           attempts="${TEST_RETRY_ATTEMPTS:-3}"

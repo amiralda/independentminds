@@ -59,7 +59,7 @@ Deno.serve(async (req) => {
       status: 400,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -67,7 +67,7 @@ Deno.serve(async (req) => {
   }
 });
 
-async function sendWelcomeMission(db: any) {
+async function sendWelcomeMission(db: unknown) {
   // Find testers with 0 points (haven't started)
   const { data: testers } = await db
     .from('beta_testers')
@@ -82,7 +82,7 @@ async function sendWelcomeMission(db: any) {
 
   const resendKey = Deno.env.get('RESEND_API_KEY');
   let sentCount = 0;
-  const results: any[] = [];
+  const results: unknown[] = [];
 
   for (const tester of testers) {
     // Get profile and email
@@ -118,7 +118,7 @@ async function sendWelcomeMission(db: any) {
         });
         sentCount++;
         results.push({ name, email, status: 'sent' });
-      } catch (e: any) {
+      } catch (e: unknown) {
         results.push({ name, email, status: 'error', error: e.message });
       }
     }
@@ -129,7 +129,7 @@ async function sendWelcomeMission(db: any) {
   });
 }
 
-async function notifyUpdate(db: any, title?: string, body?: string) {
+async function notifyUpdate(db: unknown, title?: string, body?: string) {
   const notifTitle = title || 'New update available!';
   const notifBody = body || "You are among the first to experience the latest version of Independent Minds EDU. Explore what's new and let us know what you think!";
 
