@@ -42,7 +42,7 @@ export function BetaTaskPanel({ open, onClose }: BetaTaskPanelProps) {
       if (data) setTasks(data as unknown);
     };
     fetchTasks();
-  }, [tester?.id]);
+  }, [tester]);
 
   const updateTask = async (id: string, status: string) => {
     const now = new Date().toISOString();

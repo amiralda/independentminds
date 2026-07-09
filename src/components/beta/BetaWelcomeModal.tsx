@@ -16,11 +16,12 @@ export function BetaWelcomeModal() {
   const { t } = useI18n();
   const [tasks, setTasks] = useState<BetaTask[]>([]);
   const [show, setShow] = useState(false);
+  const firstLoginShown = Boolean((tester as unknown)?.first_login_shown);
 
   useEffect(() => {
     if (!tester) return;
     // Only show if first_login_shown is false
-    if ((tester as unknown).first_login_shown) return;
+    if (firstLoginShown) return;
 
     const fetchTasks = async () => {
       const { data } = await supabase
@@ -34,7 +35,7 @@ export function BetaWelcomeModal() {
       }
     };
     fetchTasks();
-  }, [tester?.id, (tester as unknown)?.first_login_shown]);
+  }, [tester, firstLoginShown]);
 
   const handleStart = async () => {
     if (!tester) return;

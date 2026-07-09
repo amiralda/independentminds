@@ -207,6 +207,8 @@ export default function AdminNotificationCenter() {
     if (filtered.length > 0 && !previewUser) {
       setPreviewUser(filtered[0]);
     }
+  // `previewUser` intentionally omitted to prevent unnecessary recipient recomputation loops.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters, allProfiles]);
 
   // ── User search ──
@@ -359,6 +361,8 @@ export default function AdminNotificationCenter() {
     fetchSystemAlerts();
     fetchFeedback();
     fetchMetrics();
+    // Bootstrap once on mount; helper callbacks are intentionally excluded.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchMetrics = async () => {
@@ -411,7 +415,11 @@ export default function AdminNotificationCenter() {
     if (data) setFeedback(data);
   };
 
-  useEffect(() => { fetchFeedback(); }, [feedbackFilter]);
+  useEffect(() => {
+    fetchFeedback();
+    // `fetchFeedback` is intentionally excluded due function identity churn.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [feedbackFilter]);
 
   const markAlertRead = async (id: string) => {
     await supabase

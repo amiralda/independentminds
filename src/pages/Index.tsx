@@ -117,7 +117,7 @@ const Index = () => {
 
 
     return () => { supabase.removeChannel(channel); };
-  }, [role, profile]);
+  }, [role, profile, user?.id]);
 
   // Show welcome modal for new parents
   const shouldShowWelcome = role === "parent" && profile && !profile.onboardingComplete;

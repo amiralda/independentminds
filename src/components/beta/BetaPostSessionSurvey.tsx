@@ -33,7 +33,7 @@ export function BetaPostSessionSurvey() {
       if (!data) setShow(true);
     };
     checkExisting();
-  }, [tester?.tasks_completed, tester?.tasks_total]);
+  }, [isBetaTester, tester]);
 
   if (!show || submitted) return null;
 

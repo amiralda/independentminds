@@ -43,7 +43,7 @@ export function BetaReferralPanel() {
     };
 
     fetchReferralData();
-  }, [tester?.id]);
+  }, [tester]);
 
   if (!tester || !referralCode) return null;
 

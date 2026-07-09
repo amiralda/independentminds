@@ -90,7 +90,7 @@ export function AdminInvitePanel({
         NOTE_TEMPLATES[prefill.tester_type ?? 'parent'] || '',
       );
     }
-  }, [prefill]);
+  }, [prefill, lang]);
 
   if (!open) return null;
 

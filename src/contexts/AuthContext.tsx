@@ -171,7 +171,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     void fetchProfile();
     return () => { cancelled = true; };
-  }, [session?.user?.id]);
+  }, [session?.user?.id, session?.user]);
 
   // Fetch students for parent users
   useEffect(() => {
@@ -183,7 +183,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Fetch student record via PII-filtered security definer function
       fetchStudentOwnRecord(profile.studentId);
     }
-  }, [session?.user?.id, profile?.role]);
+  // `fetchStudents` is intentionally excluded to avoid refetch loops from function identity changes.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.user?.id, session?.user, profile]);
 
   const fetchStudentOwnRecord = async (studentId: string) => {
     const { data, error } = await supabase.rpc("get_my_student_record");

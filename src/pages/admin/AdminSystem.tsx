@@ -29,6 +29,8 @@ export default function AdminSystem() {
       setFlagged(flaggedRes.data || []);
       setRateLimits(rlRes.data || []);
     });
+    // `fetchErrors` is intentionally excluded to avoid dependency churn from function identity.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tick]);
 
   const fetchErrors = async () => {
@@ -52,7 +54,11 @@ export default function AdminSystem() {
     setErrors(data || []);
   };
 
-  useEffect(() => { fetchErrors(); }, [errorFilter]);
+  useEffect(() => {
+    fetchErrors();
+    // `fetchErrors` is intentionally excluded to avoid dependency churn from function identity.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [errorFilter]);
 
   const markResolved = async (id: string) => {
     await supabase

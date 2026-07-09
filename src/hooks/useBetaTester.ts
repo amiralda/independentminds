@@ -39,7 +39,7 @@ export function useBetaTester() {
       setLoading(false);
     };
     fetchTester();
-  }, [session?.user?.id]);
+  }, [session]);
 
   return { tester, isBetaTester: !!tester, loading };
 }

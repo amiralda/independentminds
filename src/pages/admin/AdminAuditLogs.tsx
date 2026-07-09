@@ -30,6 +30,8 @@ export default function AdminAuditLogs() {
 
   useEffect(() => {
     fetchLogs();
+    // `fetchLogs` is intentionally excluded to avoid effect churn from function re-creation.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tick]);
 
   const fetchLogs = async () => {

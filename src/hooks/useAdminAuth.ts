@@ -24,7 +24,7 @@ export function useAdminAuth() {
       setLoading(false);
     };
     checkAdmin();
-  }, [session?.user?.id, authLoading]);
+  }, [session, authLoading]);
 
   return { isAdmin, loading: loading || authLoading, session };
 }

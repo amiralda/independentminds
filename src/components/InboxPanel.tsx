@@ -71,7 +71,7 @@ export function InboxPanel() {
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [user?.id]);
+  }, [user, queryClient]);
 
   const markAsRead = useCallback(async (messageId: string) => {
     await supabase

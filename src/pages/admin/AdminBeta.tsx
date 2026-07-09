@@ -97,7 +97,11 @@ export default function AdminBeta() {
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
   const tick = useAutoRefresh(60_000);
-  useEffect(() => { fetchAll(); }, [tick]);
+  useEffect(() => {
+    fetchAll();
+    // `fetchAll` is intentionally excluded to avoid a dependency cycle with memoized callbacks.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tick]);
 
   const switchPhase = async (newPhase: string) => {
     if (!confirm(`Switch beta phase to "${newPhase}"?`)) return;

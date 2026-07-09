@@ -73,7 +73,7 @@ export function useRoleSwitcher(): RoleSwitcherState {
     };
 
     fetchRoles();
-  }, [user?.id, profile?.role]);
+  }, [user, profile]);
 
   const setActiveRole = useCallback((role: ActiveRole) => {
     setActiveRoleState(role);

@@ -66,7 +66,7 @@ export default function BetaRequest() {
     if (!loading && phase !== 'open') {
       navigate('/login');
     }
-  }, [phase, loading]);
+  }, [phase, loading, navigate]);
 
   const handleSubmit = async () => {
     if (!name || !email || !testerType) return;
