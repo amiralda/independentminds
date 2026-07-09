@@ -13,4 +13,4 @@ Allow: /
 User-agent: *
 Allow: /
 
-Sitemap: https://independentmindsedu.com/sitemap.xml
+Sitemap: https://independentminds.org/sitemap.xml

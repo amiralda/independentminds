@@ -126,7 +126,7 @@ Deno.serve(async (req) => {
 
     if (insertErr) throw insertErr;
 
-    const siteUrl = "https://independentmindsedu.com";
+    const siteUrl = "https://independentminds.org";
     const inviteLink = `${siteUrl}/accept-educator-parent-invite?token=${rawToken}`;
     const educatorName = escapeHtml(
       user.user_metadata?.display_name || user.user_metadata?.full_name || "An educator"

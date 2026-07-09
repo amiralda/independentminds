@@ -31,7 +31,7 @@ const SUPABASE_URL = process.env.SUPABASE_URL!;
 const ANON = process.env.SUPABASE_ANON_KEY!;
 const SERVICE = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const APP_URL =
-  process.env.PLAYWRIGHT_BASE_URL || 'https://independentmindsedu.com';
+  process.env.PLAYWRIGHT_BASE_URL || 'https://independentminds.org';
 
 test.describe.configure({ mode: 'serial' });
 

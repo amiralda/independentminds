@@ -169,7 +169,7 @@ Deno.serve(async (req) => {
     const resendKey = Deno.env.get('RESEND_API_KEY');
     if (invite && resendKey) {
       const inviteUrl =
-        `https://independentmindsedu.com/beta/accept?token=${invite.token}`;
+        `https://independentminds.org/beta/accept?token=${invite.token}`;
 
       // Get user's display name if they exist
       const displayName = request.name;
@@ -189,7 +189,7 @@ Deno.serve(async (req) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          from: 'Independent Minds EDU <notify@independentmindsedu.com>',
+          from: 'Independent Minds EDU <notify@independentminds.org>',
           to: [request.email],
           subject,
           html: emailHtml,
@@ -286,7 +286,7 @@ function buildWelcomeMissionEmail(name: string): string {
       </div>
 
       <div style="text-align: center; margin-top: 24px;">
-        <a href="https://independentmindsedu.com" style="background: #1D9E75; color: white; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; display: inline-block;">
+        <a href="https://independentminds.org" style="background: #1D9E75; color: white; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; display: inline-block;">
           Start My Mission →
         </a>
       </div>

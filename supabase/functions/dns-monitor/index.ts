@@ -1,4 +1,4 @@
-// DNS Monitor: checks independentmindsedu.com and alerts on status changes
+// DNS Monitor: checks independentminds.org and alerts on status changes
 // Trigger: pg_cron every 15 min via net.http_post (Authorization: Bearer CRON_SECRET)
 // Auth: shared-secret header (CRON_SECRET) — verify_jwt=false
 // Side effects: reads/writes public.dns_monitor_state, sends email (Resend) + WhatsApp (Twilio)
@@ -10,7 +10,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const DOMAIN = Deno.env.get("MONITOR_DOMAIN") || "independentmindsedu.com";
+const DOMAIN = Deno.env.get("MONITOR_DOMAIN") || "independentminds.org";
 const EXPECTED_A = "185.158.133.1";
 const EXPECTED_TXT_HOST = `_lovable.${DOMAIN}`;
 const EXPECTED_TXT_PREFIX = "lovable_verify=";
@@ -84,7 +84,7 @@ async function sendEmail(subject: string, html: string) {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      from: "DNS Monitor <alerts@notify.independentmindsedu.com>",
+      from: "DNS Monitor <alerts@notify.independentminds.org>",
       to: [to], subject, html,
     }),
   });

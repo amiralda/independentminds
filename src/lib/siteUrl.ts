@@ -1,4 +1,4 @@
-const DEFAULT_SITE_URL = "https://independentmindsedu.org";
+const DEFAULT_SITE_URL = "https://independentminds.org";
 
 export function getSiteUrl(): string {
   if (typeof import.meta !== "undefined" && import.meta.env?.VITE_SITE_URL) {

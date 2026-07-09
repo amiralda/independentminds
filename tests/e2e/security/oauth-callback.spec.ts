@@ -18,7 +18,7 @@
 import { test, expect, Page } from '@playwright/test';
 
 const APP_URL =
-  process.env.PLAYWRIGHT_BASE_URL || 'https://independentmindsedu.com';
+  process.env.PLAYWRIGHT_BASE_URL || 'https://independentminds.org';
 
 test.describe.configure({ mode: 'parallel' });
 
