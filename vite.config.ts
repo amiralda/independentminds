@@ -78,4 +78,61 @@ export default defineConfig(() => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes("node_modules")) return;
+
+          if (id.includes("react") || id.includes("scheduler")) {
+            return "react-vendor";
+          }
+
+          if (
+            id.includes("@radix-ui") ||
+            id.includes("lucide-react") ||
+            id.includes("class-variance-authority") ||
+            id.includes("clsx") ||
+            id.includes("tailwind-merge") ||
+            id.includes("tailwindcss-animate") ||
+            id.includes("vaul") ||
+            id.includes("sonner") ||
+            id.includes("cmdk")
+          ) {
+            return "ui-vendor";
+          }
+
+          if (
+            id.includes("@supabase") ||
+            id.includes("@tanstack/react-query") ||
+            id.includes("zod")
+          ) {
+            return "data-vendor";
+          }
+
+          if (
+            id.includes("recharts")
+          ) {
+            return "charts-vendor";
+          }
+
+          if (id.includes("jspdf")) {
+            return "pdf-vendor";
+          }
+
+          if (id.includes("html2canvas")) {
+            return "capture-vendor";
+          }
+
+          if (
+            id.includes("react-markdown") ||
+            id.includes("remark-") ||
+            id.includes("rehype-")
+          ) {
+            return "markdown-vendor";
+          }
+        },
+      },
+    },
+  },
 }));

@@ -8,47 +8,52 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { FeedbackWidget } from "@/components/FeedbackWidget";
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect, type ReactNode } from "react";
 import { initErrorTracker, stopErrorTracker } from "@/lib/errorTracker";
-import Index from "./pages/Index";
-import Login from "./pages/Login";
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import TermsOfService from "./pages/TermsOfService";
-import DeploymentHealth from "./pages/DeploymentHealth";
-import AuthCallback from "./pages/AuthCallback";
-import NotFound from "./pages/NotFound";
-import AdminLayout from "./components/admin/AdminLayout";
-import AdminOverview from "./pages/admin/AdminOverview";
-import AdminStudents from "./pages/admin/AdminStudents";
-import AdminEngagement from "./pages/admin/AdminEngagement";
-import AdminRewards from "./pages/admin/AdminRewards";
-import AdminSystem from "./pages/admin/AdminSystem";
-import AdminMessages from "./pages/admin/AdminMessages";
-import AdminUsers from "./pages/admin/AdminUsers";
-import AdminAuditLogs from "./pages/admin/AdminAuditLogs";
-import AdminBeta from "./pages/admin/AdminBeta";
-import AdminNotificationCenter from "./pages/admin/AdminNotificationCenter";
-import AdminDnsStatus from "./pages/admin/AdminDnsStatus";
-import AcceptInvite from "./pages/AcceptInvite";
-import BetaRequest from "./pages/BetaRequest";
-import BetaAccept from "./pages/BetaAccept";
-import Unsubscribe from "./pages/Unsubscribe";
-import AcceptEducatorInvite from "./pages/AcceptEducatorInvite";
-import AcceptEducatorParentInvite from "./pages/AcceptEducatorParentInvite";
+
+const Index = lazy(() => import("./pages/Index"));
+const Login = lazy(() => import("./pages/Login"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("./pages/TermsOfService"));
+const DeploymentHealth = lazy(() => import("./pages/DeploymentHealth"));
+const AuthCallback = lazy(() => import("./pages/AuthCallback"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const AdminLayout = lazy(() => import("./components/admin/AdminLayout"));
+const AdminOverview = lazy(() => import("./pages/admin/AdminOverview"));
+const AdminStudents = lazy(() => import("./pages/admin/AdminStudents"));
+const AdminEngagement = lazy(() => import("./pages/admin/AdminEngagement"));
+const AdminRewards = lazy(() => import("./pages/admin/AdminRewards"));
+const AdminSystem = lazy(() => import("./pages/admin/AdminSystem"));
+const AdminMessages = lazy(() => import("./pages/admin/AdminMessages"));
+const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
+const AdminAuditLogs = lazy(() => import("./pages/admin/AdminAuditLogs"));
+const AdminBeta = lazy(() => import("./pages/admin/AdminBeta"));
+const AdminNotificationCenter = lazy(() => import("./pages/admin/AdminNotificationCenter"));
+const AdminDnsStatus = lazy(() => import("./pages/admin/AdminDnsStatus"));
+const AcceptInvite = lazy(() => import("./pages/AcceptInvite"));
+const BetaRequest = lazy(() => import("./pages/BetaRequest"));
+const BetaAccept = lazy(() => import("./pages/BetaAccept"));
+const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
+const AcceptEducatorInvite = lazy(() => import("./pages/AcceptEducatorInvite"));
+const AcceptEducatorParentInvite = lazy(() => import("./pages/AcceptEducatorParentInvite"));
 
 const queryClient = new QueryClient();
 
-function AuthGuard({ children }: { children: React.ReactNode }) {
+function RouteFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-pulse font-display text-xl">Loading...</div>
+    </div>
+  );
+}
+
+function AuthGuard({ children }: { children: ReactNode }) {
   const { session, loading } = useAuth();
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse font-display text-xl">Loading...</div>
-      </div>
-    );
+    return <RouteFallback />;
   }
 
   if (!session) {
@@ -83,36 +88,55 @@ const App = () => (
             <GlobalErrorTracker />
             <FeedbackWidget />
             <BrowserRouter>
-              <Routes>
-                <Route path="/login" element={<Login />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/privacy" element={<PrivacyPolicy />} />
-                <Route path="/terms" element={<TermsOfService />} />
-                <Route path="/health" element={<DeploymentHealth />} />
-                <Route path="/auth/callback" element={<AuthCallback />} />
-                <Route path="/accept-invite" element={<AcceptInvite />} />
-                <Route path="/beta" element={<BetaRequest />} />
-                <Route path="/beta/accept" element={<BetaAccept />} />
-                <Route path="/unsubscribe" element={<Unsubscribe />} />
-                <Route path="/accept-educator-invite" element={<AcceptEducatorInvite />} />
-                <Route path="/accept-educator-parent-invite" element={<AcceptEducatorParentInvite />} />
-                <Route path="/admin" element={<AuthGuard><AdminLayout /></AuthGuard>}>
-                  <Route index element={<AdminOverview />} />
-                  <Route path="students" element={<AdminStudents />} />
-                  <Route path="engagement" element={<AdminEngagement />} />
-                  <Route path="rewards" element={<AdminRewards />} />
-                  <Route path="system" element={<AdminSystem />} />
-                  <Route path="messages" element={<AdminMessages />} />
-                  <Route path="notifications" element={<AdminNotificationCenter />} />
-                  <Route path="users" element={<AdminUsers />} />
-                  <Route path="audit" element={<AdminAuditLogs />} />
-                  <Route path="beta" element={<AdminBeta />} />
-                  <Route path="dns" element={<AdminDnsStatus />} />
-                </Route>
-                <Route path="/" element={<AuthGuard><Index /></AuthGuard>} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+              <Suspense fallback={<RouteFallback />}>
+                <Routes>
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route path="/privacy" element={<PrivacyPolicy />} />
+                  <Route path="/terms" element={<TermsOfService />} />
+                  <Route path="/health" element={<DeploymentHealth />} />
+                  <Route path="/auth/callback" element={<AuthCallback />} />
+                  <Route path="/accept-invite" element={<AcceptInvite />} />
+                  <Route path="/beta" element={<BetaRequest />} />
+                  <Route path="/beta/accept" element={<BetaAccept />} />
+                  <Route path="/unsubscribe" element={<Unsubscribe />} />
+                  <Route path="/accept-educator-invite" element={<AcceptEducatorInvite />} />
+                  <Route
+                    path="/accept-educator-parent-invite"
+                    element={<AcceptEducatorParentInvite />}
+                  />
+                  <Route
+                    path="/admin"
+                    element={
+                      <AuthGuard>
+                        <AdminLayout />
+                      </AuthGuard>
+                    }
+                  >
+                    <Route index element={<AdminOverview />} />
+                    <Route path="students" element={<AdminStudents />} />
+                    <Route path="engagement" element={<AdminEngagement />} />
+                    <Route path="rewards" element={<AdminRewards />} />
+                    <Route path="system" element={<AdminSystem />} />
+                    <Route path="messages" element={<AdminMessages />} />
+                    <Route path="notifications" element={<AdminNotificationCenter />} />
+                    <Route path="users" element={<AdminUsers />} />
+                    <Route path="audit" element={<AdminAuditLogs />} />
+                    <Route path="beta" element={<AdminBeta />} />
+                    <Route path="dns" element={<AdminDnsStatus />} />
+                  </Route>
+                  <Route
+                    path="/"
+                    element={
+                      <AuthGuard>
+                        <Index />
+                      </AuthGuard>
+                    }
+                  />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
             </BrowserRouter>
           </TooltipProvider>
         </I18nProvider>
