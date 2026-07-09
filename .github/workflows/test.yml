@@ -60,13 +60,14 @@ jobs:
       - name: Check E2E secrets
         id: secrets-check
         run: |
-          if [ -z "$PLAYWRIGHT_URL" ]; then
+          if [ -z "$PLAYWRIGHT_URL" ] || [ -z "$SUPABASE_SRK" ]; then
             echo "skip=true" >> $GITHUB_OUTPUT
           else
             echo "skip=false" >> $GITHUB_OUTPUT
           fi
         env:
           PLAYWRIGHT_URL: ${{ secrets.PLAYWRIGHT_BASE_URL }}
+          SUPABASE_SRK: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
       - name: Skip E2E (no secrets)
         if: steps.secrets-check.outputs.skip == 'true'
