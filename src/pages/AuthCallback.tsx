@@ -8,12 +8,30 @@ export default function AuthCallback() {
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
-    const next = searchParams.get("next") || "/";
+    const requestedNext = searchParams.get("next") || "/";
+    const next = requestedNext.startsWith("/") ? requestedNext : "/";
 
     const finalizeAuth = async () => {
-      const { error } = await supabase.auth.getSession();
+      const code = searchParams.get("code");
+
+      if (code) {
+        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+        if (exchangeError) {
+          toast.error("Google sign-in could not be completed. Please try again.");
+          navigate("/login", { replace: true });
+          return;
+        }
+      }
+
+      const { data, error } = await supabase.auth.getSession();
       if (error) {
         toast.error("Google sign-in could not be completed. Please try again.");
+        navigate("/login", { replace: true });
+        return;
+      }
+
+      if (!data.session) {
+        toast.error("Google sign-in did not create a session. Please try again.");
         navigate("/login", { replace: true });
         return;
       }
