@@ -265,7 +265,6 @@ export default function Login() {
           </p>
         </div>
       </div>
-      <style>{`[data-lovable-badge], .lovable-badge { display: none !important; }`}</style>
     </div>
   );
 }

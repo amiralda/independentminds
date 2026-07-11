@@ -63,9 +63,9 @@ serve(async (req) => {
       });
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY not configured");
+    const AI_GATEWAY_API_KEY = Deno.env.get("AI_GATEWAY_API_KEY");
+    if (!AI_GATEWAY_API_KEY) {
+      throw new Error("AI_GATEWAY_API_KEY not configured");
     }
     const AI_GATEWAY_URL = Deno.env.get("AI_GATEWAY_URL");
     if (!AI_GATEWAY_URL) {
@@ -94,7 +94,7 @@ ${isBase64 ? content.substring(0, 5000) : content.substring(0, 10000)}`;
     const response = await fetch(`${AI_GATEWAY_URL}/v1/chat/completions`, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+        "Authorization": `Bearer ${AI_GATEWAY_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({

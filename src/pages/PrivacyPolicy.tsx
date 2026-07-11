@@ -111,7 +111,7 @@ const sectionsEN = [
     content: [
       "We share student data only with the following services, strictly for operational purposes:",
       "• Google (Gemini AI) — for AI tutor responses, on a session-only basis",
-      "• Lovable Cloud — for infrastructure hosting and database services",
+      "• Supabase and Vercel — for infrastructure hosting, authentication, and database services",
       "• Telegram — for notification delivery to parents",
       "• Twilio — for WhatsApp notifications when configured by the parent",
       "We do not share data with data brokers, advertisers, or third-party analytics providers.",
@@ -199,7 +199,7 @@ const sectionsHT = [
     content: [
       "Nou pataje done elèv sèlman ak sèvis sa yo, strik pou rezon operasyonèl:",
       "• Google (Gemini AI) — pou repons AI tutor, sou baz sesyon sèlman",
-      "• Lovable Cloud — pou èbèjman enfrastrikti ak sèvis baz done",
+      "• Supabase ak Vercel — pou èbèjman enfrastrikti, otantifikasyon, ak sèvis baz done",
       "• Telegram — pou livrezon notifikasyon bay paran",
       "• Twilio — pou notifikasyon WhatsApp lè paran konfigire li",
       "Nou pa pataje done ak koutye done, piblisite, oswa founisè analiz tyès pati.",

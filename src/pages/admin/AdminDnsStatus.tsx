@@ -32,7 +32,6 @@ const RECORD_TYPES = [
   { label: "www A", type: "A", sub: "www" },
   { label: "NS", type: "NS", sub: "" },
   { label: "SOA", type: "SOA", sub: "" },
-  { label: "Lovable TXT", type: "TXT", sub: "_lovable" },
   { label: "MX", type: "MX", sub: "" },
 ];
 
@@ -97,8 +96,6 @@ export default function AdminDnsStatus() {
 
   const rootA = results.find((r) => r.label === "Root A");
   const ns = results.find((r) => r.label === "NS");
-  const txt = results.find((r) => r.label === "Lovable TXT");
-
   const overallOk = rootA?.status === 0 && rootA.answers.some((a) => a.data === EXPECTED_A);
   const nxdomain = ns?.status === 3 || rootA?.status === 3;
 
@@ -108,7 +105,7 @@ export default function AdminDnsStatus() {
         <h1 className="text-3xl font-display font-semibold">DNS Status</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Live DNS lookups via Google Public DNS (DoH). Checks whether the custom domain resolves
-          and whether the expected Lovable records are in place.
+          and whether the expected DNS records are in place.
         </p>
       </div>
 
@@ -185,12 +182,6 @@ export default function AdminDnsStatus() {
             <div className="rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-amber-700 dark:text-amber-400">
               Domain resolves, but the A record does not point to {EXPECTED_A}. Update the A record
               at your DNS provider.
-            </div>
-          )}
-          {!nxdomain && !txt?.answers.length && (
-            <div className="rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-amber-700 dark:text-amber-400">
-              No <span className="font-mono">_lovable</span> TXT record detected. Lovable domain
-              verification requires it.
             </div>
           )}
         </CardContent>

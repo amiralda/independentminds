@@ -91,7 +91,7 @@ Independent Minds EDU provides a free, mobile-first PWA with full Haitian Creole
 | Styling | Tailwind CSS + shadcn/ui | Design system |
 | State Management | TanStack React Query v5 | Server state, caching |
 | Routing | React Router v6 | Client-side navigation |
-| Backend | Lovable Cloud (Supabase/PostgreSQL 15) | Database, auth, storage |
+| Backend | Supabase (PostgreSQL 15) | Database, auth, storage |
 | Edge Functions | Deno (Supabase Edge Functions) | Server-side logic |
 | AI Engine | Google Gemini 2.5 Flash | AI tutor responses |
 | Notifications | Telegram Bot API + Twilio WhatsApp | Parent alerts |
@@ -107,7 +107,7 @@ Independent Minds EDU provides a free, mobile-first PWA with full Haitian Creole
 ```
 Student Device (PWA)
     ↓ HTTPS
-Lovable Cloud (Supabase)
+Supabase Platform
     ├── PostgreSQL 15 (RLS-protected)
     ├── Auth (JWT sessions)
     ├── Edge Functions (Deno)
@@ -733,7 +733,7 @@ A full Privacy Policy is live at `/privacy`, accessible without authentication, 
 - No selling, sharing, or monetizing personal data
 - No advertising
 - COPPA compliance (parental consent, no child self-registration)
-- Data sharing limited to Google (Gemini AI, session-only), Lovable Cloud, Telegram, Twilio
+- Data sharing limited to Google (Gemini AI, session-only), Supabase, Telegram, Twilio
 - Data retention (18-month re-engagement, 24-month warning, 30-day deletion window)
 - Security measures (RLS, HTTPS, JWT)
 - Parent rights (access, correction, deletion, portability)
@@ -857,7 +857,8 @@ AI conversations are persisted for active tutoring continuity but:
 | SUPABASE_URL | All edge functions | Via VITE_ prefix |
 | SUPABASE_SERVICE_ROLE_KEY | All edge functions | ❌ Never |
 | SUPABASE_ANON_KEY | parent-alerts (JWT verify) | Via VITE_ prefix |
-| LOVABLE_API_KEY | ai-tutor (Gemini gateway) | ❌ Never |
+| AI_GATEWAY_API_KEY | ai-tutor (Gemini gateway) | ❌ Never |
+| EMAIL_GATEWAY_API_KEY | email delivery/auth hooks | ❌ Never |
 | TELEGRAM_BOT_TOKEN | Notification functions | ❌ Never |
 | TELEGRAM_CHAT_ID | Notification functions | ❌ Never |
 | TWILIO_ACCOUNT_SID | whatsapp.ts | ❌ Never |
@@ -935,20 +936,20 @@ All 12 checks pass as of v4.0.
 ### Deployment Pipeline
 
 1. Code pushed to GitHub main branch
-2. Lovable auto-builds and deploys the frontend
+2. Hosting provider (for example Vercel) builds and deploys the frontend
 3. Edge functions deploy automatically on push
-4. Database migrations run via Lovable Cloud tools
+4. Database migrations run via Supabase migration tooling
 
 ### Infrastructure
 
 | Component | Provider |
 |-----------|----------|
-| Frontend hosting | Lovable |
-| Database | Lovable Cloud (PostgreSQL 15) |
-| Edge Functions | Lovable Cloud (Deno) |
-| File Storage | Lovable Cloud |
+| Frontend hosting | Vercel |
+| Database | Supabase (PostgreSQL 15) |
+| Edge Functions | Supabase Edge Functions (Deno) |
+| File Storage | Supabase Storage |
 | Domain | independentmindsedu.org |
-| SSL | Automatic via Lovable |
+| SSL | Automatic via hosting provider |
 
 ---
 

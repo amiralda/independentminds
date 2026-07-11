@@ -5,7 +5,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Email is now sent via Lovable transactional email infrastructure
+// Email is sent via the transactional email pipeline
 
 interface NotifyRequest {
   filters: {
@@ -101,7 +101,7 @@ Deno.serve(async (req) => {
           });
         }
 
-        // Email via Lovable transactional email system
+        // Email via transactional email system
         if (channels.includes("email") && recipient.email) {
           try {
             await supabase.functions.invoke("send-transactional-email", {

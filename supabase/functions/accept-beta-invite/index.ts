@@ -141,13 +141,13 @@ Deno.serve(async (req) => {
 
     // Send welcome email
     const resendApiKey = Deno.env.get('RESEND_API_KEY');
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+    const emailGatewayApiKey = Deno.env.get('EMAIL_GATEWAY_API_KEY');
     const { data: authUser } = await db.auth.admin.getUserById(user.id);
     const userEmail = authUser?.user?.email;
     const { data: userProfile } = await db.from('profiles').select('display_name').eq('id', user.id).single();
     const displayName = userProfile?.display_name || 'Beta Tester';
 
-    if (resendApiKey && lovableApiKey && userEmail && tasks && tasks.length > 0) {
+    if (resendApiKey && emailGatewayApiKey && userEmail && tasks && tasks.length > 0) {
       const taskListHtml = tasks.map((t: unknown) => `
         <tr>
           <td style="padding:12px 16px;border-left:3px solid #BA7517;background:#FFFBF0;margin-bottom:8px;">
@@ -236,7 +236,7 @@ Deno.serve(async (req) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${lovableApiKey}`,
+          'Authorization': `Bearer ${emailGatewayApiKey}`,
           'X-Connection-Api-Key': resendApiKey,
         },
         body: JSON.stringify({

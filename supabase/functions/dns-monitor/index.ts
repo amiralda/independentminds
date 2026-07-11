@@ -12,8 +12,6 @@ const corsHeaders = {
 
 const DOMAIN = Deno.env.get("MONITOR_DOMAIN") || "independentmindsedu.org";
 const EXPECTED_A = "185.158.133.1";
-const EXPECTED_TXT_HOST = `_lovable.${DOMAIN}`;
-const EXPECTED_TXT_PREFIX = "lovable_verify=";
 
 type Check = {
   overall: "ok" | "nxdomain" | "a_mismatch" | "txt_missing" | "unreachable" | "degraded";
@@ -35,13 +33,12 @@ async function doh(host: string, type: string) {
 
 async function runCheck(): Promise<Check> {
   try {
-    const [rootA, txt, ns] = await Promise.all([
+    const [rootA, ns] = await Promise.all([
       doh(DOMAIN, "A"),
-      doh(EXPECTED_TXT_HOST, "TXT"),
       doh(DOMAIN, "NS"),
     ]);
     const aRecords = (rootA.Answer ?? []).map((a) => a.data);
-    const txtRecords = (txt.Answer ?? []).map((a) => a.data.replace(/^"|"$/g, ""));
+    const txtRecords: string[] = [];
 
     if (rootA.Status === 3 || ns.Status === 3) {
       return {
@@ -52,21 +49,12 @@ async function runCheck(): Promise<Check> {
       };
     }
     const aOk = aRecords.includes(EXPECTED_A);
-    const txtOk = txtRecords.some((t) => t.startsWith(EXPECTED_TXT_PREFIX));
-    if (!aOk && !txtOk) {
-      return { overall: "degraded", aRecords, txtRecords, nsStatus: ns.Status, rootStatus: rootA.Status,
-        details: `A record and _lovable TXT both missing/incorrect.` };
-    }
     if (!aOk) {
       return { overall: "a_mismatch", aRecords, txtRecords, nsStatus: ns.Status, rootStatus: rootA.Status,
         details: `A record does not point to ${EXPECTED_A}. Got: ${aRecords.join(", ") || "(none)"}` };
     }
-    if (!txtOk) {
-      return { overall: "txt_missing", aRecords, txtRecords, nsStatus: ns.Status, rootStatus: rootA.Status,
-        details: `_lovable TXT verification record missing.` };
-    }
     return { overall: "ok", aRecords, txtRecords, nsStatus: ns.Status, rootStatus: rootA.Status,
-      details: `Domain resolves; A=${EXPECTED_A}; _lovable TXT present.` };
+      details: `Domain resolves and points to ${EXPECTED_A}.` };
   } catch (e) {
     return {
       overall: "unreachable", aRecords: [], txtRecords: [],
@@ -156,7 +144,6 @@ Deno.serve(async (req) => {
       <p><strong>Status:</strong> ${from} → <b>${to}</b></p>
       <p><strong>Details:</strong> ${check.details}</p>
       <p><strong>A records:</strong> ${check.aRecords.join(", ") || "(none)"}</p>
-      <p><strong>_lovable TXT:</strong> ${check.txtRecords.join(", ") || "(none)"}</p>
       <p style="color:#888;font-size:12px">Checked ${now}</p>`;
     const plain =
       `${subject}\n${DOMAIN}: ${from} -> ${to}\n${check.details}\n` +

@@ -5,7 +5,7 @@ Use this checklist before publishing the Independent Minds EDU app to production
 ## Pre-Launch
 
 - [ ] All required environment variables are set for production.
-- [ ] Lovable Cloud / backend is enabled and configured.
+- [ ] Supabase backend is enabled and configured.
 - [ ] Supabase Edge Functions are deployed and healthy.
 - [ ] Database migrations are applied and RLS is enabled on all new tables.
 - [ ] Auth providers (Google OAuth) are configured and the redirect URI matches the production origin.
@@ -16,7 +16,7 @@ Use this checklist before publishing the Independent Minds EDU app to production
 
 ## Publish
 
-- [ ] Click **Publish** in the Lovable editor.
+- [ ] Trigger production deployment from your hosting provider (for example Vercel).
 - [ ] Wait for the build to complete.
 - [ ] Confirm the published URL loads without errors.
 - [ ] Verify deep links / client-side routes refresh correctly.
@@ -45,7 +45,7 @@ This is a transient S3 rate-limit from the hosting uploader, not an error in the
 #### What to do
 
 1. **Retry the build** — make any trivial edit, or click **Update** in the publish dialog to re-trigger the upload. Throttled uploads usually succeed on retry.
-2. **If the failure repeats**, contact Lovable support with the exact log lines from the build output.
+2. **If the failure repeats**, contact your hosting provider support with the exact log lines from the build output.
 
 #### Exact log lines to share with support
 

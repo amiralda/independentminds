@@ -172,7 +172,7 @@ test.describe('beta-telegram-webhook', () => {
 // ---- auth-email-hook (HMAC) ----------------------------------------------
 
 test.describe('auth-email-hook', () => {
-  test('rejects requests without a Lovable webhook signature', async () => {
+  test('rejects requests without a webhook signature', async () => {
     const r = await req();
     const res = await r.post(`${FN_BASE}/auth-email-hook`, {
       headers: fnHeaders(),
@@ -185,8 +185,8 @@ test.describe('auth-email-hook', () => {
     const r = await req();
     const res = await r.post(`${FN_BASE}/auth-email-hook`, {
       headers: fnHeaders({
-        'x-lovable-signature': 'sha256=deadbeef',
-        'x-lovable-timestamp': String(Math.floor(Date.now() / 1000)),
+        'x-webhook-signature': 'sha256=deadbeef',
+        'x-webhook-timestamp': String(Math.floor(Date.now() / 1000)),
       }),
       data: { user: { email: 'x@example.com' }, email_data: {} },
     });

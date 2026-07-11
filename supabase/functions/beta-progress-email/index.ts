@@ -159,7 +159,7 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const resendApiKey = Deno.env.get('RESEND_API_KEY')!;
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY')!;
+    const emailGatewayApiKey = Deno.env.get('EMAIL_GATEWAY_API_KEY')!;
 
     const db = createClient(supabaseUrl, serviceKey, {
       auth: { persistSession: false },
@@ -253,7 +253,7 @@ Deno.serve(async (req) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${lovableApiKey}`,
+          'Authorization': `Bearer ${emailGatewayApiKey}`,
           'X-Connection-Api-Key': resendApiKey,
         },
         body: JSON.stringify({

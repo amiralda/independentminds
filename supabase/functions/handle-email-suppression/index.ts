@@ -1,5 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
-import { WebhookError, verifyWebhookRequest } from 'npm:@lovable.dev/webhooks-js'
+import { verifySignedJsonRequest } from '../_shared/webhook-signature.ts'
 
 // Suppression event payload sent by the Go API when Mailgun reports
 // a bounce, complaint, or unsubscribe.
@@ -36,7 +36,7 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: 'Method not allowed' }, 405)
   }
 
-  const apiKey = Deno.env.get('LOVABLE_API_KEY')
+  const apiKey = Deno.env.get('EMAIL_GATEWAY_API_KEY')
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
   const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 
@@ -45,37 +45,29 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: 'Server configuration error' }, 500)
   }
 
-  // Verify HMAC signature using the Lovable API Key (same as auth-email-hook)
+  // Verify HMAC signature using shared email gateway key.
   let payload: SuppressionPayload
   try {
-    const verified = await verifyWebhookRequest({
+    const verified = await verifySignedJsonRequest<SuppressionPayload>({
       req,
       secret: apiKey,
-      parser: parseSuppressionPayload,
     })
-    payload = verified.payload
+    payload = parseSuppressionPayload(verified.bodyText)
   } catch (error) {
-    if (error instanceof WebhookError) {
-      switch (error.code) {
-        case 'invalid_signature':
-          console.error('Invalid webhook signature')
-          return jsonResponse({ error: 'Invalid signature' }, 401)
-        case 'stale_timestamp':
-          console.error('Stale webhook timestamp')
-          return jsonResponse({ error: 'Stale timestamp' }, 401)
-        case 'invalid_payload':
-        case 'invalid_json':
-          console.error('Invalid payload', { code: error.code })
-          return jsonResponse({ error: 'Invalid payload' }, 400)
-        default:
-          console.error('Webhook verification failed', {
-            code: error.code,
-            message: error.message,
-          })
-          return jsonResponse({ error: 'Verification failed' }, 401)
-      }
+    const reason = error instanceof Error ? error.message : 'verification_failed'
+    if (reason === 'invalid_signature' || reason === 'missing_signature' || reason === 'missing_timestamp' || reason === 'invalid_timestamp') {
+      console.error('Invalid webhook signature')
+      return jsonResponse({ error: 'Invalid signature' }, 401)
     }
-    console.error('Unexpected error during verification', { error })
+    if (reason === 'stale_timestamp') {
+      console.error('Stale webhook timestamp')
+      return jsonResponse({ error: 'Stale timestamp' }, 401)
+    }
+    if (reason === 'invalid_json') {
+      console.error('Invalid payload', { reason })
+      return jsonResponse({ error: 'Invalid payload' }, 400)
+    }
+    console.error('Unexpected error during verification', { reason })
     return jsonResponse({ error: 'Internal error' }, 500)
   }
 

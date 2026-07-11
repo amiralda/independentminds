@@ -53,8 +53,8 @@ test.describe('auth-email-hook — replay/expiry', () => {
     const r = await pwRequest.newContext();
     const res = await r.post(`${FN_BASE}/auth-email-hook`, {
       headers: jsonHeaders({
-        'x-lovable-signature': FAKE_SIG,
-        'x-lovable-timestamp': String(STALE()),
+        'x-webhook-signature': FAKE_SIG,
+        'x-webhook-timestamp': String(STALE()),
       }),
       data: payload,
     });
@@ -65,8 +65,8 @@ test.describe('auth-email-hook — replay/expiry', () => {
     const r = await pwRequest.newContext();
     const res = await r.post(`${FN_BASE}/auth-email-hook`, {
       headers: jsonHeaders({
-        'x-lovable-signature': FAKE_SIG,
-        'x-lovable-timestamp': String(FUTURE()),
+        'x-webhook-signature': FAKE_SIG,
+        'x-webhook-timestamp': String(FUTURE()),
       }),
       data: payload,
     });
@@ -76,7 +76,7 @@ test.describe('auth-email-hook — replay/expiry', () => {
   test('rejects missing timestamp header', async () => {
     const r = await pwRequest.newContext();
     const res = await r.post(`${FN_BASE}/auth-email-hook`, {
-      headers: jsonHeaders({ 'x-lovable-signature': FAKE_SIG }),
+      headers: jsonHeaders({ 'x-webhook-signature': FAKE_SIG }),
       data: payload,
     });
     expect([400, 401, 403]).toContain(res.status());
@@ -85,7 +85,7 @@ test.describe('auth-email-hook — replay/expiry', () => {
   test('rejects missing signature header', async () => {
     const r = await pwRequest.newContext();
     const res = await r.post(`${FN_BASE}/auth-email-hook`, {
-      headers: jsonHeaders({ 'x-lovable-timestamp': String(NOW()) }),
+      headers: jsonHeaders({ 'x-webhook-timestamp': String(NOW()) }),
       data: payload,
     });
     expect([400, 401, 403]).toContain(res.status());
@@ -96,8 +96,8 @@ test.describe('auth-email-hook — replay/expiry', () => {
     // can never validate without the secret). This asserts the endpoint
     // does not accidentally cache "seen" as "valid".
     const headers = jsonHeaders({
-      'x-lovable-signature': FAKE_SIG,
-      'x-lovable-timestamp': String(NOW()),
+      'x-webhook-signature': FAKE_SIG,
+      'x-webhook-timestamp': String(NOW()),
     });
     const r = await pwRequest.newContext();
     const [a, b] = await Promise.all([
@@ -118,8 +118,8 @@ test.describe('handle-email-suppression — replay/expiry', () => {
     const r = await pwRequest.newContext();
     const res = await r.post(`${FN_BASE}/handle-email-suppression`, {
       headers: jsonHeaders({
-        'x-lovable-signature': FAKE_SIG,
-        'x-lovable-timestamp': String(STALE()),
+        'x-webhook-signature': FAKE_SIG,
+        'x-webhook-timestamp': String(STALE()),
       }),
       data: payload,
     });
@@ -129,7 +129,7 @@ test.describe('handle-email-suppression — replay/expiry', () => {
   test('rejects missing timestamp header', async () => {
     const r = await pwRequest.newContext();
     const res = await r.post(`${FN_BASE}/handle-email-suppression`, {
-      headers: jsonHeaders({ 'x-lovable-signature': FAKE_SIG }),
+      headers: jsonHeaders({ 'x-webhook-signature': FAKE_SIG }),
       data: payload,
     });
     expect([400, 401, 403]).toContain(res.status());
@@ -137,8 +137,8 @@ test.describe('handle-email-suppression — replay/expiry', () => {
 
   test('rejects replayed headers on identical payload', async () => {
     const headers = jsonHeaders({
-      'x-lovable-signature': FAKE_SIG,
-      'x-lovable-timestamp': String(NOW()),
+      'x-webhook-signature': FAKE_SIG,
+      'x-webhook-timestamp': String(NOW()),
     });
     const r = await pwRequest.newContext();
     const [a, b] = await Promise.all([

@@ -8,7 +8,7 @@
  * accepted but the signature fails. That lets us pin down the exact
  * boundary of the tolerance window.
  *
- * Tolerance defaults to 300s (@lovable.dev/webhooks-js default). Override
+ * Tolerance defaults to 300s in the edge webhook verifier. Override
  * with WEBHOOK_HMAC_TOLERANCE_SECONDS if the library/config changes.
  *
  * `auth-email-hook` collapses both errors to "Invalid signature", so we
@@ -36,8 +36,8 @@ const now = () => Math.floor(Date.now() / 1000);
 const headers = (tsOffsetSeconds: number) => ({
   apikey: ANON,
   'content-type': 'application/json',
-  'x-lovable-signature': FAKE_SIG,
-  'x-lovable-timestamp': String(now() + tsOffsetSeconds),
+  'x-webhook-signature': FAKE_SIG,
+  'x-webhook-timestamp': String(now() + tsOffsetSeconds),
 });
 
 async function bodyText(res: APIResponse): Promise<string> {

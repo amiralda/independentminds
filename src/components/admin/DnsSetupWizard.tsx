@@ -5,7 +5,6 @@ import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, Circle, Loader2, RefreshCw, Copy, AlertTriangle } from "lucide-react";
 
 const EXPECTED_A = "185.158.133.1";
-const EXPECTED_TXT_PREFIX = "lovable_verify=";
 
 type DohAnswer = { data: string };
 type DohResponse = { Status: number; Answer?: DohAnswer[] };
@@ -84,7 +83,6 @@ export function DnsSetupWizard({ domain }: Props) {
   const [ns, setNs] = useState<StepResult>({ state: "idle", message: "" });
   const [aRoot, setARoot] = useState<StepResult>({ state: "idle", message: "" });
   const [aWww, setAWww] = useState<StepResult>({ state: "idle", message: "" });
-  const [txt, setTxt] = useState<StepResult>({ state: "idle", message: "" });
   const [running, setRunning] = useState(false);
 
   const runAll = useCallback(async () => {
@@ -92,7 +90,6 @@ export function DnsSetupWizard({ domain }: Props) {
     setNs({ state: "checking", message: "" });
     setARoot({ state: "checking", message: "" });
     setAWww({ state: "checking", message: "" });
-    setTxt({ state: "checking", message: "" });
 
     // Step 1: NS delegation
     try {
@@ -138,20 +135,6 @@ export function DnsSetupWizard({ domain }: Props) {
       setAWww({ state: "fail", message: "Lookup failed.", detail: e instanceof Error ? e.message : String(e) });
     }
 
-    // Step 4: TXT verify
-    try {
-      const r = await doh(`_lovable.${domain}`, "TXT");
-      const vals = (r.Answer ?? []).map((a) => a.data.replace(/^"|"$/g, ""));
-      const match = vals.find((v) => v.startsWith(EXPECTED_TXT_PREFIX));
-      if (!match) {
-        setTxt({ state: "fail", message: "No _lovable TXT verification record found.", detail: `Add TXT _lovable → lovable_verify=… (value shown in Lovable → Project Settings → Domains).` });
-      } else {
-        setTxt({ state: "ok", message: "Verification TXT record present.", detail: match });
-      }
-    } catch (e) {
-      setTxt({ state: "fail", message: "Lookup failed.", detail: e instanceof Error ? e.message : String(e) });
-    }
-
     setRunning(false);
   }, [domain]);
 
@@ -159,7 +142,7 @@ export function DnsSetupWizard({ domain }: Props) {
     runAll();
   }, [runAll]);
 
-  const allOk = ns.state === "ok" && aRoot.state === "ok" && aWww.state === "ok" && txt.state === "ok";
+  const allOk = ns.state === "ok" && aRoot.state === "ok" && aWww.state === "ok";
 
   const steps = [
     {
@@ -205,21 +188,6 @@ export function DnsSetupWizard({ domain }: Props) {
         </div>
       ),
     },
-    {
-      n: 4,
-      title: "Add Lovable verification TXT",
-      result: txt,
-      body: (
-        <div className="space-y-2">
-          <p className="text-sm text-muted-foreground">
-            Copy the exact TXT value from Lovable → Project Settings → Domains and add:
-          </p>
-          <CopyRow label="Type" value="TXT" />
-          <CopyRow label="Name" value="_lovable" />
-          <CopyRow label="Value" value="lovable_verify=…" />
-        </div>
-      ),
-    },
   ];
 
   return (
@@ -241,7 +209,7 @@ export function DnsSetupWizard({ domain }: Props) {
       <CardContent className="space-y-4">
         {allOk && (
           <div className="rounded-md border border-emerald-500/40 bg-emerald-500/10 p-3 text-sm text-emerald-700 dark:text-emerald-400">
-            All DNS records are correctly configured for <span className="font-mono">{domain}</span>. Lovable's verification and SSL provisioning should complete automatically within a few minutes.
+            All DNS records are correctly configured for <span className="font-mono">{domain}</span>. SSL provisioning should complete automatically within a few minutes.
           </div>
         )}
         {steps.map((s) => (

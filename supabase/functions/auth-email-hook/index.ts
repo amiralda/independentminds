@@ -1,7 +1,6 @@
 import * as React from 'npm:react@18.3.1'
 import { renderAsync } from 'npm:@react-email/components@0.0.22'
-import { sendLovableEmail, parseEmailWebhookPayload } from 'npm:@lovable.dev/email-js'
-import { WebhookError, verifyWebhookRequest } from 'npm:@lovable.dev/webhooks-js'
+import { verifySignedJsonRequest } from '../_shared/webhook-signature.ts'
 import { SignupEmail } from '../_shared/email-templates/signup.tsx'
 import { InviteEmail } from '../_shared/email-templates/invite.tsx'
 import { MagicLinkEmail } from '../_shared/email-templates/magic-link.tsx'
@@ -12,7 +11,20 @@ import { ReauthenticationEmail } from '../_shared/email-templates/reauthenticati
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers':
-    'authorization, x-client-info, apikey, content-type, x-lovable-signature, x-lovable-timestamp, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+    'authorization, x-client-info, apikey, content-type, x-webhook-signature, x-webhook-timestamp, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+}
+
+interface AuthWebhookPayload {
+  run_id: string
+  version: string
+  data: {
+    action_type: string
+    email: string
+    url?: string
+    token?: string
+    new_email?: string
+    callback_url?: string
+  }
 }
 
 const EMAIL_SUBJECTS: Record<string, string> = {
@@ -89,7 +101,7 @@ async function handlePreview(req: Request): Promise<Response> {
     return new Response(null, { headers: previewCorsHeaders })
   }
 
-  const apiKey = Deno.env.get('LOVABLE_API_KEY')
+  const apiKey = Deno.env.get('EMAIL_GATEWAY_API_KEY')
   const authHeader = req.headers.get('Authorization')
 
   if (!apiKey || authHeader !== `Bearer ${apiKey}`) {
@@ -130,10 +142,10 @@ async function handlePreview(req: Request): Promise<Response> {
 
 // Webhook handler - verifies signature and sends email
 async function handleWebhook(req: Request): Promise<Response> {
-  const apiKey = Deno.env.get('LOVABLE_API_KEY')
+  const apiKey = Deno.env.get('EMAIL_GATEWAY_API_KEY')
 
   if (!apiKey) {
-    console.error('LOVABLE_API_KEY not configured')
+    console.error('EMAIL_GATEWAY_API_KEY not configured')
     return new Response(
       JSON.stringify({ error: 'Server configuration error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -141,39 +153,38 @@ async function handleWebhook(req: Request): Promise<Response> {
   }
 
   // Verify signature + timestamp, then parse payload.
-  let payload: unknown
+  let payload: AuthWebhookPayload
   let run_id = ''
   try {
-    const verified = await verifyWebhookRequest({
+    const verified = await verifySignedJsonRequest<AuthWebhookPayload>({
       req,
       secret: apiKey,
-      parser: parseEmailWebhookPayload,
     })
     payload = verified.payload
-    run_id = payload.run_id
+    run_id = payload.run_id || ''
   } catch (error) {
-    if (error instanceof WebhookError) {
-      switch (error.code) {
-        case 'invalid_signature':
-        case 'missing_timestamp':
-        case 'invalid_timestamp':
-        case 'stale_timestamp':
-          console.error('Invalid webhook signature', { error: error.message })
-          return new Response(JSON.stringify({ error: 'Invalid signature' }), {
-            status: 401,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          })
-        case 'invalid_payload':
-        case 'invalid_json':
-          console.error('Invalid webhook payload', { error: error.message })
-          return new Response(
-            JSON.stringify({ error: 'Invalid webhook payload' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          )
-      }
+    const reason = error instanceof Error ? error.message : 'verification_failed'
+    if (
+      reason === 'invalid_signature' ||
+      reason === 'missing_timestamp' ||
+      reason === 'invalid_timestamp' ||
+      reason === 'stale_timestamp' ||
+      reason === 'missing_signature'
+    ) {
+      console.error('Invalid webhook signature', { reason })
+      return new Response(JSON.stringify({ error: 'Invalid signature' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
     }
-
-    console.error('Webhook verification failed', { error })
+    if (reason === 'invalid_json') {
+      console.error('Invalid webhook payload', { reason })
+      return new Response(
+        JSON.stringify({ error: 'Invalid webhook payload' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+    console.error('Webhook verification failed', { reason })
     return new Response(
       JSON.stringify({ error: 'Invalid webhook payload' }),
       { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -233,9 +244,7 @@ async function handleWebhook(req: Request): Promise<Response> {
     plainText: true,
   })
 
-  // Send email via Lovable Email API
-  // The callback URL is provided in the payload by Lovable, ensuring correct routing
-  // for both production and local development
+  // The callback URL is provided in the payload to support environment-specific routing.
   const callbackUrl = payload.data.callback_url
   if (!callbackUrl) {
     console.error('No callback_url in payload', { run_id })
@@ -245,10 +254,15 @@ async function handleWebhook(req: Request): Promise<Response> {
     })
   }
 
-  let result: { message_id?: string }
+  let messageId: string | undefined
   try {
-    result = await sendLovableEmail(
-      {
+    const sendResponse = await fetch(callbackUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
         run_id,
         to: payload.data.email,
         from: `${SITE_NAME} <noreply@${FROM_DOMAIN}>`,
@@ -257,9 +271,13 @@ async function handleWebhook(req: Request): Promise<Response> {
         html,
         text,
         purpose: 'transactional',
-      },
-      { apiKey, sendUrl: callbackUrl }
-    )
+      }),
+    })
+    if (!sendResponse.ok) {
+      throw new Error(`Email API returned ${sendResponse.status}`)
+    }
+    const data = (await sendResponse.json().catch(() => ({}))) as { message_id?: string }
+    messageId = data.message_id
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to send email'
     console.error('Email API error', { error: message, run_id })
@@ -269,10 +287,10 @@ async function handleWebhook(req: Request): Promise<Response> {
     })
   }
 
-  console.log('Email sent successfully', { message_id: result.message_id, run_id })
+  console.log('Email sent successfully', { message_id: messageId, run_id })
 
   return new Response(
-    JSON.stringify({ success: true, message_id: result.message_id }),
+    JSON.stringify({ success: true, message_id: messageId }),
     { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
   )
 }

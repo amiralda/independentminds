@@ -14,7 +14,7 @@
 | Layer | Technology |
 |---|---|
 | **Frontend** | React 18 (Vite) · TypeScript · Tailwind CSS · shadcn/ui |
-| **Backend** | Lovable Cloud (Supabase) — Postgres, Auth, Edge Functions |
+| **Backend** | Supabase + PostgreSQL — Auth, Database, Edge Functions |
 | **Notifications** | Telegram Bot API · Twilio WhatsApp · Web Push (VAPID) |
 | **Auth** | Email/Password + Google OAuth · Optional MFA (TOTP) |
 | **i18n** | 10 languages: EN 🇺🇸 · HT 🇭🇹 · FR 🇫🇷 · ES 🇪🇸 · PT 🇧🇷 · AR 🇸🇦 · ZH 🇨🇳 · DE 🇩🇪 · JA 🇯🇵 · RU 🇷🇺 |
@@ -188,7 +188,8 @@ Parent (auth.users) ──► profiles (role: parent)
 | `twilioSID` / `twilioSecret` | Twilio WhatsApp API |
 | `TWILIO_WHATSAPP_FROM` | WhatsApp sender number |
 | `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` | Web Push authentication |
-| `LOVABLE_API_KEY` | AI gateway access |
+| `AI_GATEWAY_API_KEY` | AI gateway access |
+| `EMAIL_GATEWAY_API_KEY` | Transactional email gateway access |
 
 ---
 
