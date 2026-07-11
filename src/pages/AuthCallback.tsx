@@ -13,10 +13,31 @@ export default function AuthCallback() {
 
     const finalizeAuth = async () => {
       const code = searchParams.get("code");
+      const providerError = searchParams.get("error_description") || searchParams.get("error");
+
+      if (providerError) {
+        toast.error(`Google sign-in failed: ${providerError}`);
+        navigate("/login", { replace: true });
+        return;
+      }
+
+      const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+      const accessToken = hashParams.get("access_token");
+      const refreshToken = hashParams.get("refresh_token");
 
       if (code) {
         const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
         if (exchangeError) {
+          toast.error("Google sign-in could not be completed. Please try again.");
+          navigate("/login", { replace: true });
+          return;
+        }
+      } else if (accessToken && refreshToken) {
+        const { error: setSessionError } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+        if (setSessionError) {
           toast.error("Google sign-in could not be completed. Please try again.");
           navigate("/login", { replace: true });
           return;
