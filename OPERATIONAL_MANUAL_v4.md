@@ -1077,7 +1077,7 @@ Screenshots reflect v4.1 of the platform. Key visual features include:
 - Schedule template management buttons
 - PDF report download button
 
-For the most current visual reference, visit the live application at https://independentminds.lovable.app.
+For the most current visual reference, visit the live application at https://www.independentmindsedu.org.
 
 ---
 

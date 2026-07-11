@@ -243,9 +243,13 @@ Deno.serve(async (req) => {
         remainingTasks,
       });
 
-      // Send via Resend through connector gateway
-      const GATEWAY_URL = 'https://connector-gateway.lovable.dev/resend';
-      await fetch(`${GATEWAY_URL}/emails`, {
+      // Send via Resend through configured email gateway
+      const emailGatewayUrl = Deno.env.get('EMAIL_GATEWAY_URL');
+      if (!emailGatewayUrl) {
+        throw new Error('EMAIL_GATEWAY_URL not configured');
+      }
+
+      await fetch(`${emailGatewayUrl}/emails`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
