@@ -154,16 +154,16 @@ export default function AdminNotificationCenter() {
   const fetchProfiles = async () => {
     const { data } = await supabase
       .from("profiles")
-      .select("id, display_name, role, language_pref, last_active_at, student_id") as unknown;
+      .select("id, display_name, role, language_pref, last_active_at, student_id") as any;
     if (data) setAllProfiles(data);
   };
 
   const fetchHistory = async () => {
     const { data } = await supabase
-      .from("admin_sent_notifications" as unknown)
+      .from("admin_sent_notifications" as any)
       .select("*")
       .order("created_at", { ascending: false })
-      .limit(20) as unknown;
+      .limit(20) as any;
     if (data) setHistory(data);
   };
 
@@ -370,10 +370,10 @@ export default function AdminNotificationCenter() {
     const thirtyDaysAgo = new Date(Date.now() - 30 * 86400_000).toISOString();
 
     const [errRes, fbRes, bugRes, ratingRes] = await Promise.all([
-      supabase.from("platform_errors" as unknown).select("id", { count: 'exact', head: true }).gte("created_at", sevenDaysAgo) as unknown,
-      supabase.from("user_feedback" as unknown).select("id", { count: 'exact', head: true }).gte("created_at", sevenDaysAgo) as unknown,
-      supabase.from("user_feedback" as unknown).select("id", { count: 'exact', head: true }).eq("feedback_type", "bug").eq("status", "new") as unknown,
-      supabase.from("user_feedback" as unknown).select("rating").eq("feedback_type", "rating").gte("created_at", thirtyDaysAgo).not("rating", "is", null) as unknown,
+      supabase.from("platform_errors" as any).select("id", { count: 'exact', head: true }).gte("created_at", sevenDaysAgo) as any,
+      supabase.from("user_feedback" as any).select("id", { count: 'exact', head: true }).gte("created_at", sevenDaysAgo) as any,
+      supabase.from("user_feedback" as any).select("id", { count: 'exact', head: true }).eq("feedback_type", "bug").eq("status", "new") as any,
+      supabase.from("user_feedback" as any).select("rating").eq("feedback_type", "rating").gte("created_at", thirtyDaysAgo).not("rating", "is", null) as any,
     ]);
 
     setMetricErrors(errRes.count || 0);
@@ -388,21 +388,21 @@ export default function AdminNotificationCenter() {
 
   const fetchSystemAlerts = async () => {
     const { data } = await supabase
-      .from("admin_notifications" as unknown)
+      .from("admin_notifications" as any)
       .select("*")
       .in("notification_type", ["beta_error", "bug_report", "task_difficulty", "platform_error", "error_spike", "low_rating", "feature_trend"])
       .eq("is_read", false)
       .order("created_at", { ascending: false })
-      .limit(30) as unknown;
+      .limit(30) as any;
     if (data) setSystemAlerts(data);
   };
 
   const fetchFeedback = async () => {
     let query = supabase
-      .from("user_feedback" as unknown)
+      .from("user_feedback" as any)
       .select("*")
       .order("created_at", { ascending: false })
-      .limit(50) as unknown;
+      .limit(50) as any;
 
     if (feedbackFilter.type !== 'all') {
       query = query.eq('feedback_type', feedbackFilter.type);
@@ -423,16 +423,16 @@ export default function AdminNotificationCenter() {
 
   const markAlertRead = async (id: string) => {
     await supabase
-      .from("admin_notifications" as unknown)
-      .update({ is_read: true } as unknown)
+      .from("admin_notifications" as any)
+      .update({ is_read: true } as any)
       .eq("id", id);
     setSystemAlerts((prev) => prev.filter((a) => a.id !== id));
   };
 
   const updateFeedbackStatus = async (id: string, status: string) => {
     await supabase
-      .from("user_feedback" as unknown)
-      .update({ status } as unknown)
+      .from("user_feedback" as any)
+      .update({ status } as any)
       .eq("id", id);
     setFeedback((prev) => prev.map((f) => f.id === id ? { ...f, status } : f));
   };

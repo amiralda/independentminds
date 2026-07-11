@@ -176,7 +176,7 @@ export function AddStudentFullForm({ open, onClose, onBack }: Props) {
         language_pref: languagePref,
         address: address || null,
         profile_photo_url: photoUrl,
-      } as unknown);
+      } as any);
 
       if (studentError) throw studentError;
 
@@ -186,7 +186,7 @@ export function AddStudentFullForm({ open, onClose, onBack }: Props) {
         student_id: studentId.toUpperCase(),
         enabled: true,
       }));
-      const { error: tracksError } = await supabase.from("subject_tracks").insert(tracks as unknown);
+      const { error: tracksError } = await supabase.from("subject_tracks").insert(tracks as any);
       if (tracksError) console.error("Track creation error:", tracksError);
 
       // Insert schedule blocks if unknown
@@ -202,7 +202,7 @@ export function AddStudentFullForm({ open, onClose, onBack }: Props) {
           notes: row.notes || null,
           status: "Planned",
         }));
-        const { error: blocksError } = await supabase.from("daily_plan").insert(blocks as unknown);
+        const { error: blocksError } = await supabase.from("daily_plan").insert(blocks as any);
         if (blocksError) console.error("Schedule block error:", blocksError);
       }
 

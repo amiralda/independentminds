@@ -82,10 +82,10 @@ export default function AdminLayout() {
     if (!isAdmin) return;
     const fetchAlertCount = async () => {
       const { data, error } = await supabase
-        .from("admin_notifications" as unknown)
+        .from("admin_notifications" as any)
         .select("id", { count: "exact", head: true })
         .in("notification_type", ["beta_error", "bug_report", "task_difficulty"])
-        .eq("is_read", false) as unknown;
+        .eq("is_read", false) as any;
       if (!error) setSystemAlertCount(data?.length ?? 0);
     };
     fetchAlertCount();

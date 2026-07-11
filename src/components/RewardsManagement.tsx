@@ -53,14 +53,14 @@ export function RewardsManagement({ studentId }: Props) {
       const { error } = await supabase.from("rewards_catalog").update({
         name: form.name, description: form.description || null,
         point_cost: form.point_cost, icon: form.icon, enabled: form.enabled,
-      } as unknown).eq("id", editingId);
+      } as any).eq("id", editingId);
       if (error) { toast.error("Failed to update"); return; }
       toast.success(t("rewards.rewardUpdated"));
     } else {
       const { error } = await supabase.from("rewards_catalog").insert({
         student_id: studentId, name: form.name, description: form.description || null,
         point_cost: form.point_cost, icon: form.icon, enabled: form.enabled,
-      } as unknown);
+      } as any);
       if (error) { toast.error("Failed to create"); return; }
       toast.success(t("rewards.rewardAdded"));
     }
@@ -80,7 +80,7 @@ export function RewardsManagement({ studentId }: Props) {
   const fulfillRedemption = async (id: string) => {
     const { error } = await supabase.from("reward_redemptions").update({
       status: "fulfilled", fulfilled_at: new Date().toISOString(),
-    } as unknown).eq("id", id);
+    } as any).eq("id", id);
     if (error) { toast.error("Failed"); return; }
     toast.success(t("rewards.rewardFulfilled"));
     qc.invalidateQueries({ queryKey: ["redemptions"] });

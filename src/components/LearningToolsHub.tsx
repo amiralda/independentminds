@@ -62,7 +62,7 @@ export function LearningToolsHub({ studentId }: Props) {
         .order("category")
         .order("name");
       if (error) throw error;
-      return data as unknown as LearningTool[];
+      return data as any as LearningTool[];
     },
   });
 
@@ -76,7 +76,7 @@ export function LearningToolsHub({ studentId }: Props) {
         category: tool.category,
         description: tool.description || null,
         is_suggested: tool.is_suggested || false,
-      } as unknown);
+      } as any);
       if (error) throw error;
     },
     onSuccess: () => {

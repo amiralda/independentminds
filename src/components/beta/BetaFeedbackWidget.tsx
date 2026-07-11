@@ -28,7 +28,7 @@ export function BetaFeedbackWidget() {
       feedback_type: type,
       page_path: window.location.pathname,
       ...data,
-    } as unknown);
+    } as any);
 
     // If bug report, also create admin notifications
     if (type === 'bug_report') {

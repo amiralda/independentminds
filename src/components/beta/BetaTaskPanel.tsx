@@ -38,8 +38,8 @@ export function BetaTaskPanel({ open, onClose }: BetaTaskPanelProps) {
         .from('beta_task_completions')
         .select('id, task_id, status, started_at, completed_at, task:beta_tasks(title_key, description_key, feature_area, is_required)')
         .eq('tester_id', tester.id)
-        .order('task:beta_tasks(task_order)' as unknown);
-      if (data) setTasks(data as unknown);
+        .order('task:beta_tasks(task_order)' as any);
+      if (data) setTasks(data as any);
     };
     fetchTasks();
   }, [tester]);

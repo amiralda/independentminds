@@ -144,7 +144,7 @@ export function CoGuardiansPanel({ studentId }: Props) {
   const revokeInvite = async (inviteId: string) => {
     const { error } = await supabase
       .from("guardian_invites")
-      .update({ status: "revoked" } as unknown)
+      .update({ status: "revoked" } as any)
       .eq("id", inviteId);
     if (error) toast.error(error.message);
     else queryClient.invalidateQueries({ queryKey: ["guardian_invites", studentId] });

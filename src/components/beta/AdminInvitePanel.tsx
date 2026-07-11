@@ -194,7 +194,7 @@ export function AdminInvitePanel({
         invite_id: invite.id,
         channel: 'copy',
         status: 'copied',
-      } as unknown);
+      } as any);
 
       toast.success(t('invite_panel.success_copy'));
     } catch (err: unknown) {

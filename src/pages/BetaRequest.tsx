@@ -43,7 +43,7 @@ export default function BetaRequest() {
   useEffect(() => {
     if (!referralCode) return;
     const lookupReferrer = async () => {
-      const { data } = await (supabase as unknown)
+      const { data } = await (supabase as any)
         .from('beta_testers')
         .select('user_id')
         .eq('referral_code', referralCode)
@@ -78,7 +78,7 @@ export default function BetaRequest() {
       motivation: motivation || null,
       language: 'en',
       referred_by_code: referralCode || null,
-    } as unknown);
+    } as any);
     setSubmitting(false);
     if (!error) setSubmitted(true);
   };

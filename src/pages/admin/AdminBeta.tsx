@@ -57,7 +57,7 @@ export default function AdminBeta() {
       supabase.from('beta_requests').select('*').order('created_at', { ascending: false }),
       supabase.from('beta_feedback').select('*').order('created_at', { ascending: false }),
       supabase.from('beta_sessions').select('*').order('started_at', { ascending: false }),
-      supabase.from('admin_notifications' as unknown).select('notification_type, is_read, created_at').in('notification_type', ['beta_error', 'bug_report']).eq('is_read', false) as unknown,
+      supabase.from('admin_notifications' as any).select('notification_type, is_read, created_at').in('notification_type', ['beta_error', 'bug_report']).eq('is_read', false) as any,
     ]);
     setConfig(cfg);
     setTesters(tst ?? []);

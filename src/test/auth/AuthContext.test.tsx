@@ -52,7 +52,7 @@ describe("AuthContext Security", () => {
   });
 
   it("profile role defaults are not exposed without server verification", () => {
-    const defaultCtx = { profile: null as unknown };
+    const defaultCtx = { profile: null as any };
     expect(defaultCtx.profile?.role).toBeUndefined();
   });
 });

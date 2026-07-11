@@ -31,7 +31,7 @@ export function usePointSettings(studentId: string | null) {
         .select("*")
         .eq("student_id", studentId);
       if (error) throw error;
-      return (data || []) as unknown as PointSetting[];
+      return (data || []) as any as PointSetting[];
     },
     enabled: !!studentId,
   });
@@ -57,7 +57,7 @@ export function useSavePointSetting() {
           points: params.points,
           enabled: params.enabled,
           updated_at: new Date().toISOString(),
-        } as unknown, { onConflict: "student_id,action_key" });
+        } as any, { onConflict: "student_id,action_key" });
       if (error) throw error;
     },
     onSuccess: () => {
