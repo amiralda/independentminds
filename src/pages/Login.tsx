@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,16 @@ export default function Login() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectPath = searchParams.get('redirect');
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const host = window.location.hostname.toLowerCase();
+    if (host !== "independentmindsedu.org") return;
+
+    const canonical = `https://www.independentmindsedu.org${window.location.pathname}${window.location.search}${window.location.hash}`;
+    window.location.replace(canonical);
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
