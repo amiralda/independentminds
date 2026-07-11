@@ -94,7 +94,12 @@ export default function Login() {
     setLoading(false);
 
     if (error) {
-      toast.error(error.message || "Google sign-in failed");
+      const msg = error.message || "Google sign-in failed";
+      if (msg.toLowerCase().includes("redirect") || msg.toLowerCase().includes("redirect_to")) {
+        toast.error("Google OAuth redirect URL not allowed. Add /auth/callback URLs in Supabase + Google Console.");
+      } else {
+        toast.error(msg);
+      }
     }
   };
 
