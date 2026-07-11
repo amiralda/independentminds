@@ -45,7 +45,7 @@ export default function AdminUsers() {
   const handleMerge = async (id: string, action: "approved" | "denied") => {
     const { error } = await supabase
       .from("merge_requests")
-      .update({ status: action, resolved_at: new Date().toISOString() } as unknown)
+      .update({ status: action, resolved_at: new Date().toISOString() } as any)
       .eq("id", id);
     if (error) {
       toast.error(error.message);

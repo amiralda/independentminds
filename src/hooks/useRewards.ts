@@ -42,7 +42,7 @@ export function usePointsBalance(studentId: string | null) {
         .select("points")
         .eq("student_id", studentId);
       if (error) throw error;
-      return (data || []).reduce((sum, r) => sum + (r as unknown).points, 0) as number;
+      return (data || []).reduce((sum, r) => sum + (r as any).points, 0) as number;
     },
     enabled: !!studentId,
   });
@@ -60,7 +60,7 @@ export function usePointsHistory(studentId: string | null) {
         .order("created_at", { ascending: false })
         .limit(50);
       if (error) throw error;
-      return (data || []) as unknown as PointTransaction[];
+      return (data || []) as any as PointTransaction[];
     },
     enabled: !!studentId,
   });
@@ -78,7 +78,7 @@ export function useRewardsCatalog(studentId: string | null) {
         .eq("enabled", true)
         .order("point_cost");
       if (error) throw error;
-      return (data || []) as unknown as CatalogReward[];
+      return (data || []) as any as CatalogReward[];
     },
     enabled: !!studentId,
   });
@@ -95,7 +95,7 @@ export function useAllRewardsCatalog(studentId: string | null) {
         .eq("student_id", studentId)
         .order("point_cost");
       if (error) throw error;
-      return (data || []) as unknown as CatalogReward[];
+      return (data || []) as any as CatalogReward[];
     },
     enabled: !!studentId,
   });
@@ -113,7 +113,7 @@ export function useRedemptions(studentId: string | null) {
         .order("created_at", { ascending: false })
         .limit(20);
       if (error) throw error;
-      return (data || []) as unknown as Redemption[];
+      return (data || []) as any as Redemption[];
     },
     enabled: !!studentId,
   });

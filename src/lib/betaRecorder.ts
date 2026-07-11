@@ -9,11 +9,11 @@ const CHUNK_SIZE = 500; // events per chunk
 const UPLOAD_INTERVAL = 60_000; // 1 minute
 
 async function loadRrweb(): Promise<unknown> {
-  if ((window as unknown).rrweb) return (window as unknown).rrweb;
+  if ((window as any).rrweb) return (window as any).rrweb;
   return new Promise((resolve, reject) => {
     const script = document.createElement('script');
     script.src = RRWEB_CDN;
-    script.onload = () => resolve((window as unknown).rrweb);
+    script.onload = () => resolve((window as any).rrweb);
     script.onerror = reject;
     document.head.appendChild(script);
   });

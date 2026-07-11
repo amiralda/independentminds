@@ -16,7 +16,7 @@ export function BetaWelcomeModal() {
   const { t } = useI18n();
   const [tasks, setTasks] = useState<BetaTask[]>([]);
   const [show, setShow] = useState(false);
-  const firstLoginShown = Boolean((tester as unknown)?.first_login_shown);
+  const firstLoginShown = Boolean((tester as any)?.first_login_shown);
 
   useEffect(() => {
     if (!tester) return;
@@ -42,7 +42,7 @@ export function BetaWelcomeModal() {
     // Mark first_login_shown
     await supabase
       .from('beta_testers')
-      .update({ first_login_shown: true } as unknown)
+      .update({ first_login_shown: true } as any)
       .eq('id', tester.id);
 
     setShow(false);

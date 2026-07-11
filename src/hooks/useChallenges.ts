@@ -30,7 +30,7 @@ export function useChallenges(studentId: string | null) {
         .eq("student_id", studentId)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data || []) as unknown as Challenge[];
+      return (data || []) as any as Challenge[];
     },
     enabled: !!studentId,
   });
@@ -48,7 +48,7 @@ export function useActiveChallenges(studentId: string | null) {
         .eq("status", "active")
         .order("ends_at");
       if (error) throw error;
-      return (data || []) as unknown as Challenge[];
+      return (data || []) as any as Challenge[];
     },
     enabled: !!studentId,
   });
@@ -78,7 +78,7 @@ export function useCreateChallenge() {
         category_filter: params.category_filter || null,
         subject_filter: params.subject_filter || null,
         ends_at: params.ends_at || new Date(Date.now() + 7 * 86400000).toISOString(),
-      } as unknown);
+      } as any);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -117,7 +117,7 @@ export async function incrementChallengeProgress(
 
   if (!challenges || challenges.length === 0) return;
 
-  for (const ch of challenges as unknown as Challenge[]) {
+  for (const ch of challenges as any as Challenge[]) {
     // Check filters
     if (ch.subject_filter && ch.subject_filter !== subject) continue;
     if (ch.category_filter && ch.category_filter !== category) continue;
@@ -132,7 +132,7 @@ export async function incrementChallengeProgress(
         status: isComplete ? "completed" : "active",
         completed_at: isComplete ? new Date().toISOString() : null,
         updated_at: new Date().toISOString(),
-      } as unknown)
+      } as any)
       .eq("id", ch.id);
 
     // Award bonus points on completion

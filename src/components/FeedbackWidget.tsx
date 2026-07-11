@@ -64,7 +64,7 @@ export function FeedbackWidget() {
         }
       }
 
-      await supabase.from('user_feedback' as unknown).insert({
+      await supabase.from('user_feedback' as any).insert({
         user_id: user.id,
         user_role: userRole,
         is_beta_tester: isBetaTester,
@@ -75,7 +75,7 @@ export function FeedbackWidget() {
         page_path: window.location.pathname,
         screenshot_url: screenshotUrl,
         status: 'new',
-      } as unknown);
+      } as any);
 
       setSubmitted(true);
       toast.success(t("feedback.thanksToast"));

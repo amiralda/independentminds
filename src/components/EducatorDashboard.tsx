@@ -38,21 +38,21 @@ export function EducatorDashboard() {
     queryKey: ["educator_assignments", user?.id],
     queryFn: async () => {
       const { data: educators } = await supabase
-        .from("educators" as unknown)
+        .from("educators" as any)
         .select("id")
         .eq("user_id", user!.id);
       
-      if (!educators || (educators as unknown[]).length === 0) return [];
+      if (!educators || (educators as any[]).length === 0) return [];
 
-      const educatorIds = (educators as unknown[]).map((e: unknown) => e.id);
+      const educatorIds = (educators as any[]).map((e: unknown) => e.id);
       
       const { data, error } = await supabase
-        .from("educator_students" as unknown)
+        .from("educator_students" as any)
         .select("*")
         .in("educator_id", educatorIds);
       
       if (error) throw error;
-      return (data || []) as unknown as EducatorStudent[];
+      return (data || []) as any as EducatorStudent[];
     },
     enabled: !!user?.id,
   });

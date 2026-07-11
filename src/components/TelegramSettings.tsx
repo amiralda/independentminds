@@ -34,10 +34,10 @@ export function TelegramSettings() {
         .eq("user_id", user.id)
         .single();
       if (data) {
-        setWhatsappNumber((data as unknown).whatsapp_number || "");
-        setWhatsappEnabled((data as unknown).whatsapp_enabled || false);
-        setNotificationChannel((data as unknown).notification_channel || "telegram");
-        setTelegramLinked(!!(data as unknown).telegram_chat_id);
+        setWhatsappNumber((data as any).whatsapp_number || "");
+        setWhatsappEnabled((data as any).whatsapp_enabled || false);
+        setNotificationChannel((data as any).notification_channel || "telegram");
+        setTelegramLinked(!!(data as any).telegram_chat_id);
       }
       setLoaded(true);
     };
@@ -54,7 +54,7 @@ export function TelegramSettings() {
         .eq("student_id", selectedStudentId!)
         .single();
       if (error) throw error;
-      return (data as unknown)?.monitoring_enabled as boolean ?? true;
+      return (data as any)?.monitoring_enabled as boolean ?? true;
     },
   });
 
@@ -62,7 +62,7 @@ export function TelegramSettings() {
     mutationFn: async (enabled: boolean) => {
       const { error } = await supabase
         .from("students")
-        .update({ monitoring_enabled: enabled } as unknown)
+        .update({ monitoring_enabled: enabled } as any)
         .eq("student_id", selectedStudentId!);
       if (error) throw error;
     },
@@ -90,7 +90,7 @@ export function TelegramSettings() {
           whatsapp_number: whatsappNumber || null,
           whatsapp_enabled: whatsappEnabled,
           notification_channel: notificationChannel,
-        } as unknown, { onConflict: "user_id" });
+        } as any, { onConflict: "user_id" });
       if (error) throw error;
       toast.success(t("notifications.saved"));
     } catch (err: unknown) {

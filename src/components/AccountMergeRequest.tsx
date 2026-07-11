@@ -24,12 +24,12 @@ export function AccountMergeRequest() {
     enabled: !!user,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("merge_requests" as unknown)
+        .from("merge_requests" as any)
         .select("*")
         .order("created_at", { ascending: false })
         .limit(10);
       if (error) throw error;
-      return data as unknown[];
+      return data as any[];
     },
   });
 
@@ -43,13 +43,13 @@ export function AccountMergeRequest() {
       return;
     }
     setSubmitting(true);
-    const { error } = await supabase.from("merge_requests" as unknown).insert({
+    const { error } = await supabase.from("merge_requests" as any).insert({
       requester_id: user.id,
       source_email: sourceEmail.trim().toLowerCase(),
       target_email: user.email,
       reason: reason.trim() || null,
       status: "pending",
-    } as unknown);
+    } as any);
     setSubmitting(false);
     if (error) {
       toast.error(t("merge.submitFailed"));

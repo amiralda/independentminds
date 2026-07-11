@@ -59,11 +59,11 @@ export function EducatorGroupsPanel() {
     queryKey: ["my_educator_id", user?.id],
     queryFn: async () => {
       const { data } = await supabase
-        .from("educators" as unknown)
+        .from("educators" as any)
         .select("id")
         .eq("user_id", user!.id)
         .limit(1);
-      return (data as unknown[])?.[0]?.id || null;
+      return (data as any[])?.[0]?.id || null;
     },
     enabled: !!user?.id,
   });
@@ -73,12 +73,12 @@ export function EducatorGroupsPanel() {
     queryKey: ["educator_groups", educatorId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("educator_groups" as unknown)
+        .from("educator_groups" as any)
         .select("*")
         .eq("educator_id", educatorId)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data || []) as unknown as EducatorGroup[];
+      return (data || []) as any as EducatorGroup[];
     },
     enabled: !!educatorId,
   });
@@ -88,11 +88,11 @@ export function EducatorGroupsPanel() {
     queryKey: ["educator_group_students", selectedGroup],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("educator_group_students" as unknown)
+        .from("educator_group_students" as any)
         .select("*")
         .eq("group_id", selectedGroup);
       if (error) throw error;
-      return (data || []) as unknown as GroupStudent[];
+      return (data || []) as any as GroupStudent[];
     },
     enabled: !!selectedGroup,
   });
@@ -102,11 +102,11 @@ export function EducatorGroupsPanel() {
     queryKey: ["educator_assigned_students", educatorId],
     queryFn: async () => {
       const { data } = await supabase
-        .from("educator_students" as unknown)
+        .from("educator_students" as any)
         .select("student_id")
         .eq("educator_id", educatorId);
       if (!data) return [];
-      const ids = (data as unknown[]).map((d: unknown) => d.student_id);
+      const ids = (data as any[]).map((d: unknown) => d.student_id);
       const { data: students } = await supabase
         .from("students")
         .select("student_id, display_name")
@@ -135,7 +135,7 @@ export function EducatorGroupsPanel() {
 
   const createGroup = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("educator_groups" as unknown).insert({
+      const { error } = await supabase.from("educator_groups" as any).insert({
         educator_id: educatorId,
         name: formName,
         group_type: formType,
@@ -144,7 +144,7 @@ export function EducatorGroupsPanel() {
         academic_year: formYear || null,
         description: formDesc || null,
         color: formColor,
-      } as unknown);
+      } as any);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -162,10 +162,10 @@ export function EducatorGroupsPanel() {
 
   const addStudentToGroup = useMutation({
     mutationFn: async (studentId: string) => {
-      const { error } = await supabase.from("educator_group_students" as unknown).insert({
+      const { error } = await supabase.from("educator_group_students" as any).insert({
         group_id: selectedGroup,
         student_id: studentId,
-      } as unknown);
+      } as any);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -179,7 +179,7 @@ export function EducatorGroupsPanel() {
   const removeStudent = useMutation({
     mutationFn: async (membershipId: string) => {
       const { error } = await supabase
-        .from("educator_group_students" as unknown)
+        .from("educator_group_students" as any)
         .delete()
         .eq("id", membershipId);
       if (error) throw error;
@@ -194,7 +194,7 @@ export function EducatorGroupsPanel() {
   const deleteGroup = useMutation({
     mutationFn: async (groupId: string) => {
       const { error } = await supabase
-        .from("educator_groups" as unknown)
+        .from("educator_groups" as any)
         .delete()
         .eq("id", groupId);
       if (error) throw error;

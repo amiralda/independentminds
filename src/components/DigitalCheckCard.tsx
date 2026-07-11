@@ -24,7 +24,7 @@ export function DigitalCheckCard({ check }: Props) {
       .update({
         status: 'redeemed',
         redeemed_at: new Date().toISOString(),
-      } as unknown)
+      } as any)
       .eq('id', check.id);
     if (error) {
       toast.error(lang === 'HT' ? 'Echèk' : 'Failed');

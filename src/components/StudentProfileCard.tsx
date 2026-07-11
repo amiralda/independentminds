@@ -49,7 +49,7 @@ export function StudentProfileCard({ studentId }: Props) {
         .eq("student_id", studentId)
         .single();
       if (error) throw error;
-      return data as unknown as StudentData;
+      return data as any as StudentData;
     },
   });
 

@@ -16,7 +16,7 @@ export function useAdminAuth() {
     }
 
     const checkAdmin = async () => {
-      const { data } = await supabase.rpc("has_role" as unknown, {
+      const { data } = await supabase.rpc("has_role" as any, {
         _user_id: session.user.id,
         _role: "admin",
       });

@@ -48,23 +48,23 @@ export function DnsHistoryPanel({ domain }: Props) {
   const load = useCallback(async () => {
     setLoading(true);
     let q = supabase
-      .from("dns_monitor_history" as unknown)
+      .from("dns_monitor_history" as any)
       .select("*")
       .eq("domain", domain)
       .order("checked_at", { ascending: false })
       .limit(200);
     if (changesOnly) q = q.eq("status_changed", true);
-    const { data } = (await q) as unknown;
+    const { data } = (await q) as any;
     setRows((data as DnsHistoryRow[]) ?? []);
 
     const { data: nx } = (await supabase
-      .from("dns_monitor_history" as unknown)
+      .from("dns_monitor_history" as any)
       .select("*")
       .eq("domain", domain)
       .eq("status", "nxdomain")
       .eq("status_changed", true)
       .order("checked_at", { ascending: true })
-      .limit(1)) as unknown;
+      .limit(1)) as any;
     setFirstNx(((nx as DnsHistoryRow[]) ?? [])[0] ?? null);
     setLoading(false);
   }, [domain, changesOnly]);

@@ -35,10 +35,10 @@ export default function AdminSystem() {
 
   const fetchErrors = async () => {
     let query = supabase
-      .from("platform_errors" as unknown)
+      .from("platform_errors" as any)
       .select("*")
       .order("created_at", { ascending: false })
-      .limit(50) as unknown;
+      .limit(50) as any;
 
     if (errorFilter.resolved === 'open') {
       query = query.eq('resolved', false);
@@ -62,8 +62,8 @@ export default function AdminSystem() {
 
   const markResolved = async (id: string) => {
     await supabase
-      .from("platform_errors" as unknown)
-      .update({ resolved: true } as unknown)
+      .from("platform_errors" as any)
+      .update({ resolved: true } as any)
       .eq("id", id);
     setErrors((prev) => prev.map((e) => e.id === id ? { ...e, resolved: true } : e));
   };
@@ -72,8 +72,8 @@ export default function AdminSystem() {
     const openIds = errors.filter((e) => !e.resolved).map((e) => e.id);
     if (openIds.length === 0) return;
     await supabase
-      .from("platform_errors" as unknown)
-      .update({ resolved: true } as unknown)
+      .from("platform_errors" as any)
+      .update({ resolved: true } as any)
       .in("id", openIds);
     setErrors((prev) => prev.map((e) => ({ ...e, resolved: true })));
     toast.success(`Marked ${openIds.length} errors resolved`);

@@ -27,7 +27,7 @@ export function useDigitalChecks(studentId: string | null) {
         .order('issued_at', { ascending: false })
         .limit(20);
       if (error) throw error;
-      return (data || []) as unknown as DigitalCheck[];
+      return (data || []) as any as DigitalCheck[];
     },
     enabled: !!studentId,
   });
@@ -61,7 +61,7 @@ export function useIssueCheck() {
           check_number: generateCheckNumber(),
           memo: params.memo || null,
           status: 'issued',
-        } as unknown);
+        } as any);
       if (error) throw error;
     },
     onSuccess: () => {

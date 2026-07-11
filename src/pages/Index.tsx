@@ -228,11 +228,11 @@ const Index = () => {
               onClick={async () => {
                 setViewingAsStudent(false);
                 try {
-                  await supabase.from("impersonation_logs" as unknown).insert({
+                  await supabase.from("impersonation_logs" as any).insert({
                     parent_id: user?.id,
                     student_id: selectedStudentId,
                     action: "end",
-                  } as unknown);
+                  } as any);
                 } catch (error) {
                   console.debug("Failed to log impersonation end", error);
                 }
@@ -290,7 +290,7 @@ const Index = () => {
           </div>
         ) : (
           <div className="py-4">
-            <DadPanel onAddStudent={() => setShowAddStudent(true)} initialTab={parentTab as unknown} key={`dad-${parentTabKey}`} />
+            <DadPanel onAddStudent={() => setShowAddStudent(true)} initialTab={parentTab as any} key={`dad-${parentTabKey}`} />
           </div>
         )}
       </main>

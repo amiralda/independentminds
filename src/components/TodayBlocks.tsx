@@ -123,7 +123,7 @@ export function TodayBlocks({ blocks, onRefresh }: Props) {
           status: "In Progress",
           started_at: now,
           notes: block.subject,
-        } as unknown);
+        } as any);
       }
     }
 
@@ -171,7 +171,7 @@ export function TodayBlocks({ blocks, onRefresh }: Props) {
             completed_at: now,
             score: score ? parseInt(score) : null,
             notes: completingBlock.subject + (notes ? ` — ${notes}` : ''),
-          } as unknown).eq("id", existing[0].id);
+          } as any).eq("id", existing[0].id);
         } else {
           await supabase.from("activity_logs").insert({
             student_id: studentId,
@@ -181,7 +181,7 @@ export function TodayBlocks({ blocks, onRefresh }: Props) {
             completed_at: now,
             score: score ? parseInt(score) : null,
             notes: completingBlock.subject + (notes ? ` — ${notes}` : ''),
-          } as unknown);
+          } as any);
         }
       }
     }

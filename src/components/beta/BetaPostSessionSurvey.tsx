@@ -57,7 +57,7 @@ export function BetaPostSessionSurvey() {
         ),
       ),
       page_path: window.location.pathname,
-    } as unknown);
+    } as any);
     setSubmitted(true);
     setTimeout(() => setShow(false), 3000);
   };

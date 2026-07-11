@@ -76,7 +76,7 @@ export function InboxPanel() {
   const markAsRead = useCallback(async (messageId: string) => {
     await supabase
       .from("inbox_messages")
-      .update({ is_read: true, read_at: new Date().toISOString() } as unknown)
+      .update({ is_read: true, read_at: new Date().toISOString() } as any)
       .eq("id", messageId);
     queryClient.invalidateQueries({ queryKey: ["inbox_messages", user?.id] });
   }, [user?.id, queryClient]);
@@ -85,7 +85,7 @@ export function InboxPanel() {
     if (!user) return;
     await supabase
       .from("inbox_messages")
-      .update({ is_read: true, read_at: new Date().toISOString() } as unknown)
+      .update({ is_read: true, read_at: new Date().toISOString() } as any)
       .eq("parent_id", user.id)
       .eq("is_read", false);
     queryClient.invalidateQueries({ queryKey: ["inbox_messages", user.id] });

@@ -35,11 +35,11 @@ export function EducatorsPanel({ studentId }: Props) {
     queryKey: ["educator_students", studentId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("educator_students" as unknown)
+        .from("educator_students" as any)
         .select("*, educator:educators(*)")
         .eq("student_id", studentId);
       if (error) throw error;
-      return (data || []) as unknown[];
+      return (data || []) as any[];
     },
   });
 
@@ -47,12 +47,12 @@ export function EducatorsPanel({ studentId }: Props) {
     queryKey: ["educator_invites", studentId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("educator_invites" as unknown)
+        .from("educator_invites" as any)
         .select("*")
         .eq("student_id", studentId)
         .eq("status", "pending");
       if (error) throw error;
-      return (data || []) as unknown[];
+      return (data || []) as any[];
     },
   });
 
@@ -83,8 +83,8 @@ export function EducatorsPanel({ studentId }: Props) {
 
   const updatePermission = async (esId: string, field: string, value: boolean) => {
     const { error } = await supabase
-      .from("educator_students" as unknown)
-      .update({ [field]: value } as unknown)
+      .from("educator_students" as any)
+      .update({ [field]: value } as any)
       .eq("id", esId);
     if (error) toast.error(error.message);
     else queryClient.invalidateQueries({ queryKey: ["educator_students", studentId] });
@@ -92,7 +92,7 @@ export function EducatorsPanel({ studentId }: Props) {
 
   const removeEducator = async (esId: string) => {
     const { error } = await supabase
-      .from("educator_students" as unknown)
+      .from("educator_students" as any)
       .delete()
       .eq("id", esId);
     if (error) toast.error(error.message);
@@ -104,8 +104,8 @@ export function EducatorsPanel({ studentId }: Props) {
 
   const revokeInvite = async (inviteId: string) => {
     const { error } = await supabase
-      .from("educator_invites" as unknown)
-      .update({ status: "revoked" } as unknown)
+      .from("educator_invites" as any)
+      .update({ status: "revoked" } as any)
       .eq("id", inviteId);
     if (error) toast.error(error.message);
     else queryClient.invalidateQueries({ queryKey: ["educator_invites", studentId] });
