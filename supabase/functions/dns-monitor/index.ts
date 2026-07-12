@@ -72,7 +72,7 @@ async function sendEmail(subject: string, html: string) {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      from: "DNS Monitor <alerts@notify.independentmindsedu.org>",
+      from: "Independent Minds EDU Alerts <alerts@notify.independentmindsedu.org>",
       to: [to], subject, html,
     }),
   });
