@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Independent Minds EDU - Project Record</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; color: #1f2937; line-height: 1.5; }
+    h1, h2 { color: #0f766e; }
+    h1 { margin-bottom: 4px; }
+    .muted { color: #6b7280; margin-top: 0; }
+    .section { margin-top: 22px; }
+    ul { margin-top: 8px; }
+    .box { border: 1px solid #d1d5db; padding: 12px; border-radius: 8px; background: #f9fafb; }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    th, td { border: 1px solid #d1d5db; padding: 8px; text-align: left; }
+    th { background: #f3f4f6; }
+  </style>
+</head>
+<body>
+  <h1>Independent Minds EDU</h1>
+  <p class="muted">Project Record Document - Generated 2026-07-12</p>
+
+  <div class="section">
+    <h2>1. Project Purpose</h2>
+    <p>Independent Minds EDU is a family-focused education platform designed to help parents and guardians manage homeschool workflows, monitor student progress, and support learning through planning tools, reporting, and AI-assisted tutoring.</p>
+  </div>
+
+  <div class="section">
+    <h2>2. Technical Foundation</h2>
+    <ul>
+      <li>Frontend: React + TypeScript + Vite + Tailwind + shadcn/ui</li>
+      <li>Backend: Supabase (Auth, Postgres, Edge Functions, Storage)</li>
+      <li>Hosting: Vercel</li>
+      <li>Domain: https://www.independentmindsedu.org</li>
+      <li>Notifications: Email, Telegram, WhatsApp/Twilio</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2>3. Recent Stabilization Outcomes</h2>
+    <ul>
+      <li>Legacy Lovable-facing dependencies and references were migrated out of core flows.</li>
+      <li>Google OAuth callback handling was hardened for both query-code and hash-token return patterns.</li>
+      <li>Canonical host handling for login flow was improved to reduce apex/www mismatch issues.</li>
+      <li>User-facing sender branding was standardized to Independent Minds EDU identity.</li>
+      <li>Global lint gate was unblocked for ongoing delivery continuity.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2>4. Operational Status Snapshot</h2>
+    <table>
+      <tr><th>Area</th><th>Status</th><th>Notes</th></tr>
+      <tr><td>Production Domain</td><td>Active</td><td>Primary domain is publicly reachable.</td></tr>
+      <tr><td>Auth (Google)</td><td>Configured in progress</td><td>Requires exact Google/Supabase console alignment.</td></tr>
+      <tr><td>Email Branding</td><td>Standardized</td><td>Sender identity aligned for user-facing mail.</td></tr>
+      <tr><td>Code Delivery</td><td>Ongoing</td><td>Main branch used as release path.</td></tr>
+    </table>
+  </div>
+
+  <div class="section">
+    <h2>5. Pre-Paid Launch Requirements</h2>
+    <ul>
+      <li>Implement billing stack (Stripe suggested): plans, checkout, webhooks, entitlement gating.</li>
+      <li>Define subscription lifecycle states: trialing, active, past_due, canceled.</li>
+      <li>Create customer billing/self-service pages and admin revenue dashboard.</li>
+      <li>Finalize legal pages and commercial policy (privacy, terms, refund language).</li>
+      <li>Set up production monitoring for auth errors, payment failures, and edge function health.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2>6. Risk Notes</h2>
+    <div class="box">
+      <ul>
+        <li>OAuth UX branding in Google picker depends on Google OAuth Consent Screen + auth domain setup.</li>
+        <li>Dashboard-side provider settings must match exact callback URLs and OAuth client values.</li>
+        <li>Cloudflare/WAF policy can intermittently affect automated endpoint checks.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>7. Recommended Next Execution Window (30 Days)</h2>
+    <ul>
+      <li>Week 1: Lock OAuth reliability, add auth observability, finalize provider settings.</li>
+      <li>Week 2: Build billing core and webhook processing.</li>
+      <li>Week 3: Add account/billing UX and entitlement enforcement.</li>
+      <li>Week 4: Conduct launch QA, support readiness, and paid onboarding rollout.</li>
+    </ul>
+  </div>
+</body>
+</html>
