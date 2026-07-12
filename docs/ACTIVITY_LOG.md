@@ -1,5 +1,12 @@
 # Activity Log
 
+## 2026-07-12 — T3 Enforce sender policy
+- Summary: Enforced the queue sender policy by adding an explicit allowlist, warning on disallowed `payload.from` values, and always sending queued mail as `Independent Minds EDU <noreply@independentmindsedu.org>`. Confirmed the ops-only `alerts@notify.independentmindsedu.org` sender used by dns-monitor is present in the allowlist.
+- Files touched: `supabase/functions/process-email-queue/index.ts`, `CLAUDE.md`, `docs/ACTIVITY_LOG.md`
+- Validation: `npm run lint` PASS; `npx tsc --noEmit` PASS; on-disk sender scan confirmed both the default sender and `Independent Minds EDU Alerts <alerts@notify.independentmindsedu.org>` in the expected files.
+- Risks + rollback: Revert the T3 commit to restore queue behavior that forwards `payload.from`; no schema or deployment-side changes were introduced.
+- Blockers/human actions needed: None.
+
 ## 2026-07-12 — T2 Normalize apex→www
 - Summary: Normalized generated auth email template URLs to the canonical `https://www.independentmindsedu.org` value and expanded DNS monitoring to track both the apex domain and the canonical `www` hostname without dropping apex redirect coverage.
 - Files touched: `supabase/functions/auth-email-hook/index.ts`, `supabase/functions/dns-monitor/index.ts`, `CLAUDE.md`, `docs/ACTIVITY_LOG.md`

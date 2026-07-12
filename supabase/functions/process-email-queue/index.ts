@@ -5,6 +5,11 @@ const DEFAULT_BATCH_SIZE = 10
 const DEFAULT_SEND_DELAY_MS = 200
 const DEFAULT_AUTH_TTL_MINUTES = 15
 const DEFAULT_TRANSACTIONAL_TTL_MINUTES = 60
+const DEFAULT_SENDER = 'Independent Minds EDU <noreply@independentmindsedu.org>'
+const ALLOWED_SENDERS = new Set([
+  DEFAULT_SENDER,
+  'Independent Minds EDU Alerts <alerts@notify.independentmindsedu.org>',
+])
 
 // Check if an error is a rate-limit (429) response.
 // Uses EmailAPIError.status when available (email-js >=0.x with structured errors),
@@ -248,6 +253,19 @@ Deno.serve(async (req) => {
       }
 
       try {
+        const requestedFrom =
+          typeof payload.from === 'string' && payload.from.trim().length > 0
+            ? payload.from.trim()
+            : null
+        if (requestedFrom && !ALLOWED_SENDERS.has(requestedFrom)) {
+          console.warn('Overriding disallowed email sender', {
+            queue,
+            msg_id: msg.msg_id,
+            requested_from: requestedFrom,
+            enforced_from: DEFAULT_SENDER,
+          })
+        }
+
         const sendResponse = await fetch(`${gatewayUrl}/emails`, {
           method: 'POST',
           headers: {
@@ -258,7 +276,7 @@ Deno.serve(async (req) => {
           body: JSON.stringify({
             run_id: payload.run_id,
             to: Array.isArray(payload.to) ? payload.to : [payload.to],
-            from: payload.from,
+            from: DEFAULT_SENDER,
             subject: payload.subject,
             html: payload.html,
             text: payload.text,
