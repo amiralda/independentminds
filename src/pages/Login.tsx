@@ -14,6 +14,27 @@ import { SEO } from "@/components/SEO";
 import { buildAppUrl } from "@/lib/siteUrl";
 import { buildOAuthRedirectUrl } from "@/lib/oauth";
 
+const TRACK_AUTH_FAILURE_URL = import.meta.env.VITE_SUPABASE_URL
+  ? `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/track-auth-failure`
+  : null;
+
+function trackAuthFailure(emailAttempted: string, failureType: string) {
+  if (!TRACK_AUTH_FAILURE_URL) return;
+
+  void fetch(TRACK_AUTH_FAILURE_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      emailAttempted: emailAttempted.trim() || null,
+      failureType,
+    }),
+  }).catch(() => {
+    // Best-effort telemetry only.
+  });
+}
+
 export default function Login() {
   const { t, lang } = useI18n();
   const [email, setEmail] = useState("");
@@ -44,6 +65,7 @@ export default function Login() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
+      trackAuthFailure(email, "password_sign_in");
       toast.error(error.message);
     } else {
       navigate(redirectPath || "/");
@@ -104,6 +126,7 @@ export default function Login() {
     setLoading(false);
 
     if (error) {
+      trackAuthFailure(email, "google_oauth");
       const msg = error.message || "Google sign-in failed";
       if (msg.toLowerCase().includes("redirect") || msg.toLowerCase().includes("redirect_to")) {
         toast.error("Google OAuth redirect URL not allowed. Add /auth/callback URLs in Supabase + Google Console.");
@@ -270,6 +293,9 @@ export default function Login() {
           <div className="flex justify-center gap-4 text-xs">
             <Link to="/privacy" className="text-primary-foreground/60 hover:text-primary-foreground hover:underline">
               {lang === "HT" ? "Konfidansyalite" : "Privacy"}
+            </Link>
+            <Link to="/refund" className="text-primary-foreground/60 hover:text-primary-foreground hover:underline">
+              {t("refund.title")}
             </Link>
             <Link to="/terms" className="text-primary-foreground/60 hover:text-primary-foreground hover:underline">
               {lang === "HT" ? "Kondisyon" : "Terms"}

@@ -217,6 +217,7 @@ Deno.serve(async (req) => {
     // ═══ SMART ALERT RULES ═══
     try {
       const oneHourAgo = new Date(Date.now() - 3600_000).toISOString();
+      const sixHoursAgo = new Date(Date.now() - 6 * 3600_000).toISOString();
       const oneDayAgo = new Date(Date.now() - 86400_000).toISOString();
 
       const { data: admins } = await supabase.from("user_roles").select("user_id").eq("role", "admin");
@@ -313,6 +314,55 @@ Deno.serve(async (req) => {
                 });
               }
             }
+          }
+        }
+
+        // RULE 4: Auth failure spike — 10+ failures in 1 hour
+        const { count: authFailureCount } = await supabase
+          .from("auth_failures")
+          .select("id", { count: "exact", head: true })
+          .gte("created_at", oneHourAgo);
+
+        if ((authFailureCount ?? 0) >= 10) {
+          for (const admin of admins) {
+            const { data: existing } = await supabase.from("admin_notifications")
+              .select("id").eq("admin_id", admin.user_id)
+              .eq("notification_type", "auth_failure_spike").eq("is_read", false)
+              .gte("created_at", sixHoursAgo).limit(1);
+            if (existing && existing.length > 0) continue;
+            await supabase.from("admin_notifications").insert({
+              admin_id: admin.user_id,
+              title: "Auth Failure Spike Detected",
+              body: `${authFailureCount} login failures were recorded in the last hour. Review auth_failures for details.`,
+              notification_type: "auth_failure_spike",
+              is_read: false,
+              metadata: { auth_failure_count: authFailureCount },
+            });
+          }
+        }
+
+        // RULE 5: Payment failure scaffold — billing webhook will populate billing_events in T5
+        const { count: paymentFailureCount } = await supabase
+          .from("billing_events")
+          .select("id", { count: "exact", head: true })
+          .eq("type", "invoice.payment_failed")
+          .gte("created_at", oneHourAgo);
+
+        if ((paymentFailureCount ?? 0) > 0) {
+          for (const admin of admins) {
+            const { data: existing } = await supabase.from("admin_notifications")
+              .select("id").eq("admin_id", admin.user_id)
+              .eq("notification_type", "payment_failure").eq("is_read", false)
+              .gte("created_at", sixHoursAgo).limit(1);
+            if (existing && existing.length > 0) continue;
+            await supabase.from("admin_notifications").insert({
+              admin_id: admin.user_id,
+              title: "Payment Failure Alert",
+              body: `${paymentFailureCount} Stripe payment failure event(s) were recorded in the last hour.`,
+              notification_type: "payment_failure",
+              is_read: false,
+              metadata: { payment_failure_count: paymentFailureCount },
+            });
           }
         }
       }

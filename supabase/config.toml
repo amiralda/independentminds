@@ -47,3 +47,5 @@ project_id = "wkvattbvybvgaeobtidl"
     verify_jwt = false
   [functions.dns-monitor]
     verify_jwt = false
+  [functions.track-auth-failure]
+    verify_jwt = false

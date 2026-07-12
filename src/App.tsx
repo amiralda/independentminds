@@ -16,6 +16,7 @@ const Login = lazy(() => import("./pages/Login"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const RefundPolicy = lazy(() => import("./pages/RefundPolicy"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const DeploymentHealth = lazy(() => import("./pages/DeploymentHealth"));
 const AuthCallback = lazy(() => import("./pages/AuthCallback"));
@@ -94,6 +95,7 @@ const App = () => (
                   <Route path="/forgot-password" element={<ForgotPassword />} />
                   <Route path="/reset-password" element={<ResetPassword />} />
                   <Route path="/privacy" element={<PrivacyPolicy />} />
+                  <Route path="/refund" element={<RefundPolicy />} />
                   <Route path="/terms" element={<TermsOfService />} />
                   <Route path="/health" element={<DeploymentHealth />} />
                   <Route path="/auth/callback" element={<AuthCallback />} />

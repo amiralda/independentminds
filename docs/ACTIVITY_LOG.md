@@ -1,5 +1,12 @@
 # Activity Log
 
+## 2026-07-12 — T4 Launch ops/legal gaps
+- Summary: Added a refund policy page and route, wired lightweight auth-failure telemetry from the login flow into a new edge function and `auth_failures` table, and added hourly-monitor alert scaffolding for auth failure spikes and future Stripe payment failures via a new `billing_events` table.
+- Files touched: `src/App.tsx`, `src/pages/Login.tsx`, `src/pages/RefundPolicy.tsx`, `src/lib/i18n.tsx`, `supabase/config.toml`, `supabase/functions/hourly-monitor/index.ts`, `supabase/functions/track-auth-failure/index.ts`, `supabase/migrations/20260712173000_launch_ops_gaps.sql`, `CLAUDE.md`, `docs/ACTIVITY_LOG.md`
+- Validation: `npm run lint` PASS; `npx tsc --noEmit` PASS; `npm run build` PASS; `npm test` PASS.
+- Risks + rollback: Revert the T4 commit to remove the new legal page, telemetry edge function, alert rules, and schema additions; the migration is additive and isolated to `auth_failures` and `billing_events`.
+- Blockers/human actions needed: ES/PT/AR/ZH/DE/JA/RU refund-policy copy currently reuses EN strings by design; replace with localized translations later. Billing webhook population for `billing_events` still depends on T5.
+
 ## 2026-07-12 — T3 Enforce sender policy
 - Summary: Enforced the queue sender policy by adding an explicit allowlist, warning on disallowed `payload.from` values, and always sending queued mail as `Independent Minds EDU <noreply@independentmindsedu.org>`. Confirmed the ops-only `alerts@notify.independentmindsedu.org` sender used by dns-monitor is present in the allowlist.
 - Files touched: `supabase/functions/process-email-queue/index.ts`, `CLAUDE.md`, `docs/ACTIVITY_LOG.md`
