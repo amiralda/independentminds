@@ -32,6 +32,7 @@ import { useBetaTester } from "@/hooks/useBetaTester";
 import { RoleSwitcher } from "@/components/RoleSwitcher";
 import { useRoleSwitcher } from "@/hooks/useRoleSwitcher";
 import { EducatorDashboard } from "@/components/EducatorDashboard";
+import { SubscriptionGate } from "@/components/SubscriptionGate";
 
 type StudentTab = "today" | "tracks" | "checkin" | "badges" | "trophies" | "library" | "tutor" | "profile" | "rewards";
 
@@ -281,7 +282,11 @@ const Index = () => {
             {tab === "badges" && <BadgesPanel />}
             {tab === "trophies" && <TrophyRoom />}
             {tab === "rewards" && <RewardsPanel />}
-            {tab === "tutor" && <TutorChat />}
+            {tab === "tutor" && (
+              <SubscriptionGate featureLabel={t("billing.featureTutor")}>
+                <TutorChat />
+              </SubscriptionGate>
+            )}
             {tab === "profile" && studentId && <StudentProfileCard studentId={studentId} />}
           </>
         ) : role === "educator" ? (

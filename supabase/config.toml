@@ -49,3 +49,9 @@ project_id = "wkvattbvybvgaeobtidl"
     verify_jwt = false
   [functions.track-auth-failure]
     verify_jwt = false
+  [functions.create-checkout-session]
+    verify_jwt = true
+  [functions.create-portal-session]
+    verify_jwt = true
+  [functions.stripe-webhook]
+    verify_jwt = false

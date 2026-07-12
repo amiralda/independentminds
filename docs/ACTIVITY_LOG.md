@@ -1,5 +1,23 @@
 # Activity Log
 
+## 2026-07-12 — T5 Stripe billing (4 phases)
+	- Phase 1: `npm run lint` PASS; `npx tsc --noEmit` PASS.
+	- Phase 2: `npm run lint` PASS; `npx tsc --noEmit` PASS.
+	- Phase 3: `npm run lint` PASS; `npx tsc --noEmit` PASS.
+	- Phase 4: `npm run lint` PASS; `npx tsc --noEmit` PASS.
+	- Final: `npm run build` PASS; `npm test` PASS (87/87).
+	- Phase 1 rollback: revert `20260712190000_stripe_billing_phase1.sql` and `src/hooks/useSubscription.ts`.
+	- Phase 2 rollback: revert `create-checkout-session`, `create-portal-session`, `stripe-webhook`, `supabase/config.toml`, and `20260712193000_stripe_webhook_idempotency.sql`.
+	- Phase 3 rollback: revert `src/components/SubscriptionGate.tsx`, `src/components/DadPanel.tsx`, and `src/pages/Index.tsx` to remove premium gating.
+	- Phase 4 rollback: revert pricing/billing/admin UI files and route/nav wiring (`src/config/plans.ts`, `src/pages/Pricing.tsx`, `src/pages/Billing.tsx`, `src/pages/admin/AdminBilling.tsx`, `src/App.tsx`, `src/components/admin/AdminLayout.tsx`, `src/lib/i18n.tsx`) and remove admin subscription read policy migration `20260712195500_subscriptions_admin_read.sql`.
+
+## 2026-07-12 — T5 Stripe billing finalization and launch checklist
+- Summary: Finalized T5 delivery by replacing the root launch checklist with Stripe-specific setup instructions, env-var destinations, and explicit success/failure smoke tests; prepared all T5 code and docs changes for a single structured commit on `feat/stripe-billing`.
+- Files touched: `LAUNCH_CHECKLIST.md`, `CLAUDE.md`, `docs/ACTIVITY_LOG.md` plus T5 implementation files across `src/` and `supabase/`.
+- Validation: Prior T5 validations remained green (`npm run lint` PASS; `npx tsc --noEmit` PASS after final edits; `npm run build` PASS; `npm test` PASS).
+- Risks + rollback: Revert the T5 commit to remove all Stripe billing schema, functions, gating, pricing/billing/admin UI, and launch checklist updates in one step.
+- Blockers/human actions needed: Stripe Dashboard setup still required (products/prices, webhook endpoint/events, restricted key, portal config, and env var provisioning).
+
 ## 2026-07-12 — T4 Launch ops/legal gaps
 - Summary: Added a refund policy page and route, wired lightweight auth-failure telemetry from the login flow into a new edge function and `auth_failures` table, and added hourly-monitor alert scaffolding for auth failure spikes and future Stripe payment failures via a new `billing_events` table.
 - Files touched: `src/App.tsx`, `src/pages/Login.tsx`, `src/pages/RefundPolicy.tsx`, `src/lib/i18n.tsx`, `supabase/config.toml`, `supabase/functions/hourly-monitor/index.ts`, `supabase/functions/track-auth-failure/index.ts`, `supabase/migrations/20260712173000_launch_ops_gaps.sql`, `CLAUDE.md`, `docs/ACTIVITY_LOG.md`

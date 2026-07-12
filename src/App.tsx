@@ -18,6 +18,8 @@ const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const RefundPolicy = lazy(() => import("./pages/RefundPolicy"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
+const Pricing = lazy(() => import("./pages/Pricing"));
+const Billing = lazy(() => import("./pages/Billing"));
 const DeploymentHealth = lazy(() => import("./pages/DeploymentHealth"));
 const AuthCallback = lazy(() => import("./pages/AuthCallback"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -33,6 +35,7 @@ const AdminAuditLogs = lazy(() => import("./pages/admin/AdminAuditLogs"));
 const AdminBeta = lazy(() => import("./pages/admin/AdminBeta"));
 const AdminNotificationCenter = lazy(() => import("./pages/admin/AdminNotificationCenter"));
 const AdminDnsStatus = lazy(() => import("./pages/admin/AdminDnsStatus"));
+const AdminBilling = lazy(() => import("./pages/admin/AdminBilling"));
 const AcceptInvite = lazy(() => import("./pages/AcceptInvite"));
 const BetaRequest = lazy(() => import("./pages/BetaRequest"));
 const BetaAccept = lazy(() => import("./pages/BetaAccept"));
@@ -97,6 +100,15 @@ const App = () => (
                   <Route path="/privacy" element={<PrivacyPolicy />} />
                   <Route path="/refund" element={<RefundPolicy />} />
                   <Route path="/terms" element={<TermsOfService />} />
+                  <Route path="/pricing" element={<Pricing />} />
+                  <Route
+                    path="/billing"
+                    element={
+                      <AuthGuard>
+                        <Billing />
+                      </AuthGuard>
+                    }
+                  />
                   <Route path="/health" element={<DeploymentHealth />} />
                   <Route path="/auth/callback" element={<AuthCallback />} />
                   <Route path="/accept-invite" element={<AcceptInvite />} />
@@ -127,6 +139,7 @@ const App = () => (
                     <Route path="audit" element={<AdminAuditLogs />} />
                     <Route path="beta" element={<AdminBeta />} />
                     <Route path="dns" element={<AdminDnsStatus />} />
+                    <Route path="billing" element={<AdminBilling />} />
                   </Route>
                   <Route
                     path="/"

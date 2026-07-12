@@ -33,6 +33,7 @@ import { ScheduleTemplates as ScheduleTemplatesImport } from "@/components/Sched
 import { MfaSettings } from "@/components/MfaSettings";
 import { DeleteAccountButton } from "@/components/DeleteAccountButton";
 import { AccountMergeRequest } from "@/components/AccountMergeRequest";
+import { SubscriptionGate } from "@/components/SubscriptionGate";
 
 const SUBJECTS = ["English", "ESL", "Math", "Science", "Social Studies", "Public Speaking", "Media Education"];
 
@@ -288,9 +289,17 @@ export function DadPanel({ onAddStudent, initialTab }: Props) {
           {activeTab === "schedule" && <ScheduleBuilderTab studentId={studentId} />}
           {activeTab === "tracks" && <TrackManagement studentId={studentId} />}
           {activeTab === "tools" && <LearningToolsHub studentId={studentId} />}
-          {activeTab === "tutor" && <TutorChat />}
+          {activeTab === "tutor" && (
+            <SubscriptionGate featureLabel={t("billing.featureTutor")}>
+              <TutorChat />
+            </SubscriptionGate>
+          )}
           {activeTab === "curriculum" && <CurriculumTab />}
-          {activeTab === "weekly" && <WeeklyProgressReport studentId={studentId} />}
+          {activeTab === "weekly" && (
+            <SubscriptionGate featureLabel={t("billing.featureWeeklyReports")}>
+              <WeeklyProgressReport studentId={studentId} />
+            </SubscriptionGate>
+          )}
           {activeTab === "certificates" && <CertificatesPanel studentId={studentId} />}
           {activeTab === "records" && <StudentRecords studentId={studentId} />}
           {activeTab === "rewards" && <RewardsManagement studentId={studentId} />}

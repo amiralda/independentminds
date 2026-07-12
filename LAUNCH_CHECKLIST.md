@@ -1,75 +1,97 @@
-# Launch Checklist
+# Launch Checklist — Stripe Billing
 
-Use this checklist before publishing the Independent Minds EDU app to production.
+This checklist covers production setup and verification for Stripe billing in Independent Minds EDU.
 
-## Pre-Launch
+## 1) Stripe Dashboard Setup
 
-- [ ] All required environment variables are set for production.
-- [ ] Supabase backend is enabled and configured.
-- [ ] Supabase Edge Functions are deployed and healthy.
-- [ ] Database migrations are applied and RLS is enabled on all new tables.
-- [ ] Auth providers (Google OAuth) are configured and the redirect URI matches the production origin.
-- [ ] Email domain and templates are verified.
-- [ ] PWA manifest, icons, and service worker are in place.
-- [ ] End-to-end and unit tests pass in CI.
-- [ ] Critical user paths are smoke-tested on the preview deployment.
+### Products and prices
 
-## Publish
+- [ ] Create product: Basic (monthly recurring)
+- [ ] Create product: Plus (monthly recurring)
+- [ ] Create product: Pro (monthly recurring)
+- [ ] Copy each price ID and set Supabase secrets:
+	- STRIPE_PRICE_BASIC
+	- STRIPE_PRICE_PLUS
+	- STRIPE_PRICE_PRO
 
-- [ ] Trigger production deployment from your hosting provider (for example Vercel).
-- [ ] Wait for the build to complete.
-- [ ] Confirm the published URL loads without errors.
-- [ ] Verify deep links / client-side routes refresh correctly.
-- [ ] Run a final login → dashboard → logout flow on the live domain.
+### Webhook endpoint and events
 
-## Post-Launch
+- [ ] Create endpoint URL:
+	- https://wkvattbvybvgaeobtidl.supabase.co/functions/v1/stripe-webhook
+- [ ] Subscribe to exactly these 6 events:
+	- checkout.session.completed
+	- customer.subscription.created
+	- customer.subscription.updated
+	- customer.subscription.deleted
+	- invoice.payment_failed
+	- invoice.paid
+- [ ] Copy webhook signing secret to Supabase secret:
+	- STRIPE_WEBHOOK_SECRET
 
-- [ ] Monitor error tracking and edge function logs for 24 hours.
-- [ ] Verify real-time features (inbox, Supabase realtime subscriptions).
-- [ ] Spot-check scheduled jobs (morning reminders, hourly monitor, weekly badge).
+### Restricted server key
 
----
+- [ ] Create restricted secret key in Stripe for checkout, subscriptions, invoices, customers, and billing portal usage
+- [ ] Store as Supabase secret:
+	- STRIPE_SECRET_KEY
 
-## Troubleshooting
+### Customer portal
 
-### Dist upload fails due to S3 throttling
+- [ ] Configure Stripe Customer Portal:
+	- Allow payment method updates
+	- Allow subscription cancellation/reactivation per policy
+	- Set return URL: https://www.independentmindsedu.org/billing
 
-During the publish step, the build output (`dist/`) is uploaded to S3. If you see an error like the one below, the upload was throttled by S3 for that object:
+### Client publishable key
 
-```
-dist upload failed: dist upload exit 1: upload failed: dist/pwa-icon-192.png to s3://previews/<project-id>/<build-id>/pwa-icon-192.png An error occurred (ServiceUnavailable) when calling the PutObject operation: Reduce your concurrent request rate for the same object.
-```
+- [ ] Set client key in Vercel environment:
+	- VITE_STRIPE_PUBLISHABLE_KEY
 
-This is a transient S3 rate-limit from the hosting uploader, not an error in the application code.
+## 2) Env Var Destinations (Do Not Commit Values)
 
-#### What to do
+### Supabase Edge Functions secrets
 
-1. **Retry the build** — make any trivial edit, or click **Update** in the publish dialog to re-trigger the upload. Throttled uploads usually succeed on retry.
-2. **If the failure repeats**, contact your hosting provider support with the exact log lines from the build output.
+- [ ] STRIPE_SECRET_KEY
+- [ ] STRIPE_WEBHOOK_SECRET
+- [ ] STRIPE_PRICE_BASIC
+- [ ] STRIPE_PRICE_PLUS
+- [ ] STRIPE_PRICE_PRO
 
-#### Exact log lines to share with support
+### Vercel client environment
 
-Copy the following fields from the build log and include them in your support request:
+- [ ] VITE_STRIPE_PUBLISHABLE_KEY
 
-| Field | Description |
-| --- | --- |
-| **Request ID** | `x-amz-request-id` / `x-amz-id-2` from the S3 response headers |
-| **Object key** | Full S3 path, e.g. `s3://previews/<project-id>/<build-id>/pwa-icon-192.png` |
-| **Retry count** | Number of retry attempts shown for the failed upload (if visible in the build log) |
-| **Timestamp** | Time the failure occurred (UTC) |
-| **Build ID** | The build identifier embedded in the S3 path (e.g. `<build-id>`) |
+## 3) Post-Setup Smoke Test (Success Path)
 
-Example support snippet:
+Use Stripe test mode card:
 
-```text
-S3 upload throttling
-Request ID: 1A2B3C4D5E6F7890
-x-amz-id-2: example-amz-id-2-value
-Object key: s3://previews/bfd23272-641f-4f36-97a3-5beaaba5f786/59ec4dd9/pwa-icon-192.png
-Retry count: 3
-Timestamp: 2026-07-03T12:34:56Z
-Build ID: 59ec4dd9
-Error: ServiceUnavailable — Reduce your concurrent request rate for the same object.
-```
+- Card number: 4242 4242 4242 4242
 
-Support can use the request ID and object key to correlate the failure on the S3 side and investigate the upload concurrency for that build.
+Checklist:
+
+- [ ] Start checkout from pricing page
+- [ ] Complete checkout with test card
+- [ ] Verify public.subscriptions row exists for user
+- [ ] Verify webhook delivery shows HTTP 200 in Stripe event logs
+- [ ] Verify public.billing_events row inserted for checkout/subscription event(s)
+- [ ] Verify /billing page shows updated active or trialing status
+- [ ] Verify SubscriptionGate unlocks premium features (AI Tutor + Weekly Reports)
+
+## 4) Failure Smoke Test (Payment Failure Path)
+
+Use Stripe test mode card:
+
+- Card number: 4000 0000 0000 0341
+
+Checklist:
+
+- [ ] Trigger payment failure scenario
+- [ ] Verify invoice.payment_failed event lands in public.billing_events
+- [ ] Verify admin notification rule fires (hourly monitor payment-failure alert path)
+
+## 5) Final Sign-Off
+
+- [ ] Stripe setup complete
+- [ ] All env vars set in correct destination
+- [ ] Success smoke test passed
+- [ ] Failure smoke test passed
+- [ ] Billing launch approved
