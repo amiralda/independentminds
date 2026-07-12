@@ -110,7 +110,7 @@ async function sendWelcomeMission(db: unknown) {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            from: 'Independent Minds EDU <notify@independentmindsedu.org>',
+            from: 'Independent Minds EDU <noreply@independentmindsedu.org>',
             to: [email],
             subject: 'Your Beta Mission Awaits! 🚀',
             html: buildWelcomeMissionEmail(name),

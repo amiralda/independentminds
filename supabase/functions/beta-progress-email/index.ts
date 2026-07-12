@@ -257,7 +257,7 @@ Deno.serve(async (req) => {
           'X-Connection-Api-Key': resendApiKey,
         },
         body: JSON.stringify({
-          from: 'Independent Minds EDU <onboarding@resend.dev>',
+          from: 'Independent Minds EDU <noreply@independentmindsedu.org>',
           to: [email],
           subject: `Your Beta Mission Progress — ${remaining} tasks left!`,
           html,
