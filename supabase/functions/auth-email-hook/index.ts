@@ -48,6 +48,7 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<unknown>> = {
 
 // Configuration
 const SITE_NAME = "Independent Minds EDU"
+const CANONICAL_SITE_URL = "https://www.independentmindsedu.org"
 const SENDER_DOMAIN = "notify.independentmindsedu.org"
 const ROOT_DOMAIN = "independentmindsedu.org"
 const FROM_DOMAIN = "independentmindsedu.org" // Domain shown in From address (may be root or sender subdomain)
@@ -57,7 +58,7 @@ const FROM_DOMAIN = "independentmindsedu.org" // Domain shown in From address (m
 // The sample email uses a fixed placeholder (RFC 6761 .test TLD) so the Go backend
 // can always find-and-replace it with the actual recipient when sending test emails,
 // even if the project's domain has changed since the template was scaffolded.
-const SAMPLE_PROJECT_URL = "https://www.independentmindsedu.org"
+const SAMPLE_PROJECT_URL = CANONICAL_SITE_URL
 const SAMPLE_EMAIL = "user@example.test"
 const SAMPLE_DATA: Record<string, object> = {
   signup: {
@@ -230,7 +231,7 @@ async function handleWebhook(req: Request): Promise<Response> {
   // Build template props from payload.data (HookData structure)
   const templateProps = {
     siteName: SITE_NAME,
-    siteUrl: `https://${ROOT_DOMAIN}`,
+    siteUrl: CANONICAL_SITE_URL,
     recipient: payload.data.email,
     confirmationUrl: payload.data.url,
     token: payload.data.token,

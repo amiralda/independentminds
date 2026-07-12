@@ -10,11 +10,13 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const DOMAIN = Deno.env.get("MONITOR_DOMAIN") || "independentmindsedu.org";
+const APEX_DOMAIN = Deno.env.get("MONITOR_DOMAIN") || "independentmindsedu.org";
+const WWW_DOMAIN = Deno.env.get("MONITOR_CANONICAL_DOMAIN") || "www.independentmindsedu.org";
 const EXPECTED_A = "185.158.133.1";
 
 type Check = {
   overall: "ok" | "nxdomain" | "a_mismatch" | "txt_missing" | "unreachable" | "degraded";
+  domain: string;
   aRecords: string[];
   txtRecords: string[];
   nsStatus: number | null;
@@ -31,32 +33,34 @@ async function doh(host: string, type: string) {
   return await r.json() as { Status: number; Answer?: { data: string }[] };
 }
 
-async function runCheck(): Promise<Check> {
+async function runCheck(domain: string): Promise<Check> {
   try {
     const [rootA, ns] = await Promise.all([
-      doh(DOMAIN, "A"),
-      doh(DOMAIN, "NS"),
+      doh(domain, "A"),
+      doh(domain, "NS"),
     ]);
     const aRecords = (rootA.Answer ?? []).map((a) => a.data);
     const txtRecords: string[] = [];
 
     if (rootA.Status === 3 || ns.Status === 3) {
       return {
+        domain,
         overall: "nxdomain",
         aRecords, txtRecords,
         nsStatus: ns.Status, rootStatus: rootA.Status,
-        details: `NXDOMAIN at registry — nameservers not delegated for ${DOMAIN}`,
+        details: `NXDOMAIN at registry — nameservers not delegated for ${domain}`,
       };
     }
     const aOk = aRecords.includes(EXPECTED_A);
     if (!aOk) {
-      return { overall: "a_mismatch", aRecords, txtRecords, nsStatus: ns.Status, rootStatus: rootA.Status,
+      return { domain, overall: "a_mismatch", aRecords, txtRecords, nsStatus: ns.Status, rootStatus: rootA.Status,
         details: `A record does not point to ${EXPECTED_A}. Got: ${aRecords.join(", ") || "(none)"}` };
     }
-    return { overall: "ok", aRecords, txtRecords, nsStatus: ns.Status, rootStatus: rootA.Status,
+    return { domain, overall: "ok", aRecords, txtRecords, nsStatus: ns.Status, rootStatus: rootA.Status,
       details: `Domain resolves and points to ${EXPECTED_A}.` };
   } catch (e) {
     return {
+      domain,
       overall: "unreachable", aRecords: [], txtRecords: [],
       nsStatus: null, rootStatus: null,
       details: `DoH lookup failed: ${e instanceof Error ? e.message : String(e)}`,
@@ -95,72 +99,83 @@ Deno.serve(async (req) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
 
-  const check = await runCheck();
-
-  const { data: prev } = await supabase
-    .from("dns_monitor_state")
-    .select("*")
-    .eq("domain", DOMAIN)
-    .maybeSingle();
-
-  const changed = !prev || prev.status !== check.overall;
   const now = new Date().toISOString();
+  const checks = await Promise.all([runCheck(APEX_DOMAIN), runCheck(WWW_DOMAIN)]);
+  const results = [];
+  const alerts = [];
 
-  await supabase.from("dns_monitor_state").upsert({
-    domain: DOMAIN,
-    status: check.overall,
-    a_records: check.aRecords,
-    txt_records: check.txtRecords,
-    details: check.details,
-    last_checked_at: now,
-    last_changed_at: changed ? now : prev?.last_changed_at ?? now,
-    previous_status: changed ? prev?.status ?? null : prev?.previous_status ?? null,
-  }, { onConflict: "domain" });
+  for (const check of checks) {
+    const { data: prev } = await supabase
+      .from("dns_monitor_state")
+      .select("*")
+      .eq("domain", check.domain)
+      .maybeSingle();
 
-  await supabase.from("dns_monitor_history").insert({
-    domain: DOMAIN,
-    status: check.overall,
-    previous_status: prev?.status ?? null,
-    status_changed: changed,
-    a_records: check.aRecords,
-    txt_records: check.txtRecords,
-    ns_status: check.nsStatus,
-    root_status: check.rootStatus,
-    details: check.details,
-    checked_at: now,
-  });
+    const changed = !prev || prev.status !== check.overall;
 
-  const alerts: unknown = { email: null, whatsapp: null };
-  if (changed) {
+    await supabase.from("dns_monitor_state").upsert({
+      domain: check.domain,
+      status: check.overall,
+      a_records: check.aRecords,
+      txt_records: check.txtRecords,
+      details: check.details,
+      last_checked_at: now,
+      last_changed_at: changed ? now : prev?.last_changed_at ?? now,
+      previous_status: changed ? prev?.status ?? null : prev?.previous_status ?? null,
+    }, { onConflict: "domain" });
+
+    await supabase.from("dns_monitor_history").insert({
+      domain: check.domain,
+      status: check.overall,
+      previous_status: prev?.status ?? null,
+      status_changed: changed,
+      a_records: check.aRecords,
+      txt_records: check.txtRecords,
+      ns_status: check.nsStatus,
+      root_status: check.rootStatus,
+      details: check.details,
+      checked_at: now,
+    });
+
+    results.push({ domain: check.domain, changed, check });
+
+    if (!changed) {
+      alerts.push({ domain: check.domain, email: null, whatsapp: null });
+      continue;
+    }
+
     const from = prev?.status ?? "unknown";
     const to = check.overall;
     const isRecovery = to === "ok";
     const subject = isRecovery
-      ? `✅ DNS recovered: ${DOMAIN} is OK`
-      : `🚨 DNS alert: ${DOMAIN} → ${to.toUpperCase()}`;
+      ? `✅ DNS recovered: ${check.domain} is OK`
+      : `🚨 DNS alert: ${check.domain} → ${to.toUpperCase()}`;
     const html = `
       <h2>${subject}</h2>
-      <p><strong>Domain:</strong> ${DOMAIN}</p>
+      <p><strong>Domain:</strong> ${check.domain}</p>
       <p><strong>Status:</strong> ${from} → <b>${to}</b></p>
       <p><strong>Details:</strong> ${check.details}</p>
       <p><strong>A records:</strong> ${check.aRecords.join(", ") || "(none)"}</p>
       <p style="color:#888;font-size:12px">Checked ${now}</p>`;
     const plain =
-      `${subject}\n${DOMAIN}: ${from} -> ${to}\n${check.details}\n` +
+      `${subject}\n${check.domain}: ${from} -> ${to}\n${check.details}\n` +
       `A: ${check.aRecords.join(", ") || "(none)"}\nTXT: ${check.txtRecords.join(", ") || "(none)"}`;
 
-    alerts.email = await sendEmail(subject, html);
+    const email = await sendEmail(subject, html);
 
     const waTo = Deno.env.get("ADMIN_WHATSAPP_NUMBER");
+    let whatsapp: unknown;
     if (waTo) {
-      try { alerts.whatsapp = await sendWhatsApp(waTo, plain); }
-      catch (e) { alerts.whatsapp = { ok: false, error: String(e) }; }
+      try { whatsapp = await sendWhatsApp(waTo, plain); }
+      catch (e) { whatsapp = { ok: false, error: String(e) }; }
     } else {
-      alerts.whatsapp = { skipped: "missing_ADMIN_WHATSAPP_NUMBER" };
+      whatsapp = { skipped: "missing_ADMIN_WHATSAPP_NUMBER" };
     }
+
+    alerts.push({ domain: check.domain, email, whatsapp });
   }
 
-  return new Response(JSON.stringify({ ok: true, changed, check, alerts }, null, 2), {
+  return new Response(JSON.stringify({ ok: true, results, alerts }, null, 2), {
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 });
