@@ -24,7 +24,7 @@ Canonical URL: https://www.independentmindsedu.org (www, not apex)
 - New user-facing strings need i18n keys in all 10 languages
 
 ## Launch plan status (update after each task)
-- [ ] T1: Remove Lovable remnants
+- [x] T1: Remove Lovable remnants
 - [ ] T2: Normalize apex→www in auth-email-hook + dns-monitor
 - [ ] T3: Enforce sender policy in process-email-queue
 - [ ] T4: /refund page + failed-login tracking + payment alerts
@@ -53,4 +53,4 @@ Never skip this step. Never put long logs in
 CLAUDE.md — details go in ACTIVITY_LOG.md only.
 
 ## Recent
-(empty — populated as tasks complete)
+2026-07-12 — T1 Remove Lovable remnants — removed remaining scoped Lovable refs, dropped bun.lock, self-hosted OG image, validations passed.
