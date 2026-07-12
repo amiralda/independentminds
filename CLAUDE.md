@@ -34,3 +34,23 @@ Canonical URL: https://www.independentmindsedu.org (www, not apex)
 Build/lint/tests: PASS (87/87). No secrets committed. 
 No .com remnants. Billing: MISSING entirely. 
 Details: docs/AUDIT_REPORT.md
+
+## Logging rule (mandatory after EVERY completed task)
+After finishing any task, before reporting done:
+1. Update the launch-plan checkbox in this file 
+  and add ONE line under "Recent" below 
+  (format: date — task — result). 
+  Keep max 5 lines in Recent; move older 
+  lines to docs/ACTIVITY_LOG.md.
+2. Append a full entry to docs/ACTIVITY_LOG.md:
+  ## [date] — [task name]
+  - Summary: what changed and why
+  - Files touched: list
+  - Validation: lint/tsc/build/test results
+  - Risks + rollback: how to revert
+  - Blockers/human actions needed: if any
+Never skip this step. Never put long logs in 
+CLAUDE.md — details go in ACTIVITY_LOG.md only.
+
+## Recent
+(empty — populated as tasks complete)
