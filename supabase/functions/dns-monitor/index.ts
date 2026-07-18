@@ -33,11 +33,13 @@ async function doh(host: string, type: string) {
 
 async function runCheck(): Promise<Check> {
   try {
-    const [rootA, ns] = await Promise.all([
+    const [rootA, ns, wwwA] = await Promise.all([
       doh(DOMAIN, "A"),
       doh(DOMAIN, "NS"),
+      doh(`www.${DOMAIN}`, "A"),
     ]);
     const aRecords = (rootA.Answer ?? []).map((a) => a.data);
+    const wwwRecords = (wwwA.Answer ?? []).map((a) => a.data);
     const txtRecords: string[] = [];
 
     if (rootA.Status === 3 || ns.Status === 3) {
@@ -53,8 +55,14 @@ async function runCheck(): Promise<Check> {
       return { overall: "a_mismatch", aRecords, txtRecords, nsStatus: ns.Status, rootStatus: rootA.Status,
         details: `A record does not point to ${EXPECTED_A}. Got: ${aRecords.join(", ") || "(none)"}` };
     }
+    // The canonical site is served on www, so a healthy apex alone is not enough.
+    const wwwOk = wwwRecords.includes(EXPECTED_A);
+    if (!wwwOk) {
+      return { overall: "degraded", aRecords, txtRecords, nsStatus: ns.Status, rootStatus: rootA.Status,
+        details: `Root A is correct, but www.${DOMAIN} does not point to ${EXPECTED_A}. Got: ${wwwRecords.join(", ") || "(none)"}` };
+    }
     return { overall: "ok", aRecords, txtRecords, nsStatus: ns.Status, rootStatus: rootA.Status,
-      details: `Domain resolves and points to ${EXPECTED_A}.` };
+      details: `Domain and www resolve and point to ${EXPECTED_A}.` };
   } catch (e) {
     return {
       overall: "unreachable", aRecords: [], txtRecords: [],
@@ -130,7 +138,7 @@ Deno.serve(async (req) => {
     checked_at: now,
   });
 
-  const alerts: unknown = { email: null, whatsapp: null };
+  const alerts: { email: unknown; whatsapp: unknown } = { email: null, whatsapp: null };
   if (changed) {
     const from = prev?.status ?? "unknown";
     const to = check.overall;
