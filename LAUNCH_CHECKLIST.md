@@ -17,7 +17,7 @@ This checklist covers production setup and verification for Stripe billing in In
 ### Webhook endpoint and events
 
 - [ ] Create endpoint URL:
-	- https://wkvattbvybvgaeobtidl.supabase.co/functions/v1/stripe-webhook
+	- https://gyvjcwuwfwrwwwnuwlex.supabase.co/functions/v1/stripe-webhook
 - [ ] Subscribe to exactly these 6 events:
 	- checkout.session.completed
 	- customer.subscription.created

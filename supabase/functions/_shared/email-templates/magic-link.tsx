@@ -29,7 +29,7 @@ export const MagicLinkEmail = ({
     <Body style={main}>
       <Container style={container}>
         <Img
-          src="https://wkvattbvybvgaeobtidl.supabase.co/storage/v1/object/public/email-assets/logo.svg"
+          src="https://gyvjcwuwfwrwwwnuwlex.supabase.co/storage/v1/object/public/email-assets/logo.svg"
           width="60"
           height="60"
           alt="Independent Minds"
