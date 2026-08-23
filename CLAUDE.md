@@ -53,8 +53,8 @@ Never skip this step. Never put long logs in
 CLAUDE.md — details go in ACTIVITY_LOG.md only.
 
 ## Recent
+2026-08-23 — Merge T1-T5 to main + Supabase backend deploy — fixed stale project ref (wkvattbvybvgaeobtidl→gyvjcwuwfwrwwwnuwlex) in config.toml/checklist/email templates, ff-merged feat/stripe-billing into main and pushed, applied 5 migrations and deployed 3 Stripe edge functions to gyvjcwuwfwrwwwnuwlex; Stripe secrets still pending in dashboard.
 2026-07-12 — T5 Stripe billing — completed phased Stripe rollout plus Stripe launch checklist (dashboard setup + smoke tests) with validations and final build/test pass.
 2026-07-12 — T4 Launch ops/legal gaps — refund page, auth-failure tracking, and payment-failure alert scaffold added; validations passed.
 2026-07-12 — T3 Enforce sender policy — queue sender locked to default, ops alerts sender allowlisted, lint/tsc passed.
 2026-07-12 — T2 Normalize apex→www — canonical www email template URLs set and dns-monitor now checks apex plus www; lint/tsc passed.
-2026-07-12 — T1 Remove Lovable remnants — removed remaining scoped Lovable refs, dropped bun.lock, self-hosted OG image, validations passed.
