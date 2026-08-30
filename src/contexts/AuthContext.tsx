@@ -7,26 +7,21 @@ type Role = "student" | "parent";
 
 interface Profile {
   displayName: string;
-  username: string;
   role: Role;
-  studentId: string | null;
   languagePref: string;
   onboardingComplete: boolean;
 }
 
 interface ProfileRow {
   display_name: string | null;
-  username: string | null;
-  role: string | null;
-  student_id: string | null;
   language_pref: string | null;
   onboarding_complete: boolean | null;
 }
 
 interface StudentRecord {
-  student_id: string;
+  id: string;
+  student_id: string | null;
   display_name: string;
-  grade_level: number;
   parent_id: string | null;
 }
 
@@ -77,23 +72,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // Update last_active_at on sign-in & fix Google OAuth display name
+      // Fix Google OAuth display name
       if (_event === "SIGNED_IN" && session?.user) {
         const meta = session.user.user_metadata;
         const googleName = meta?.full_name || meta?.name;
-        const updates: Record<string, string> = { last_active_at: new Date().toISOString() };
         if (googleName) {
-          updates.display_name = googleName;
-          updates.username = googleName;
+          void supabase
+            .from("profiles")
+            .update({ display_name: googleName })
+            .eq("id", session.user.id)
+            .then(({ error }) => {
+              if (error) console.error("Failed to update profile metadata", error);
+            });
         }
-
-        void supabase
-          .from("profiles")
-          .update(updates)
-          .eq("id", session.user.id)
-          .then(({ error }) => {
-            if (error) console.error("Failed to update profile metadata", error);
-          });
       }
     });
 
@@ -112,13 +103,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let cancelled = false;
 
     const fetchProfile = async (retries = 3) => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("display_name, username, role, student_id, language_pref, onboarding_complete")
-        .eq("id", session.user.id)
-        .maybeSingle<ProfileRow>();
+      const [{ data, error }, { data: roleRow }] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("display_name, language_pref, onboarding_complete")
+          .eq("id", session.user.id)
+          .maybeSingle<ProfileRow>(),
+        supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", session.user.id)
+          .maybeSingle(),
+      ]);
 
       if (cancelled) return;
+
+      const role = (roleRow?.role as Role) || "student";
 
       if (error) {
         console.error("Failed to load profile", error);
@@ -129,9 +129,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const fallbackName = resolveProfileDisplayName(null, session.user.user_metadata, session.user.email);
           setProfile({
             displayName: fallbackName,
-            username: fallbackName,
-            role: "student",
-            studentId: null,
+            role,
             languagePref: "EN",
             onboardingComplete: false,
           });
@@ -144,9 +142,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const fallbackName = resolveProfileDisplayName(data.display_name, session.user.user_metadata, session.user.email);
         setProfile({
           displayName: fallbackName,
-          username: resolveProfileDisplayName(data.username || data.display_name, session.user.user_metadata, session.user.email),
-          role: (data.role as Role) || "student",
-          studentId: data.student_id,
+          role,
           languagePref: data.language_pref || "EN",
           onboardingComplete: data.onboarding_complete || false,
         });
@@ -159,9 +155,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const fallbackName = resolveProfileDisplayName(null, session.user.user_metadata, session.user.email);
         setProfile({
           displayName: fallbackName,
-          username: fallbackName,
-          role: "student",
-          studentId: null,
+          role,
           languagePref: "EN",
           onboardingComplete: false,
         });
@@ -178,32 +172,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!session?.user || !profile) return;
     if (profile.role === "parent") {
       fetchStudents();
-    } else if (profile.studentId) {
-      setSelectedStudentId(profile.studentId);
-      // Fetch student record via PII-filtered security definer function
-      fetchStudentOwnRecord(profile.studentId);
     }
   // `fetchStudents` is intentionally excluded to avoid refetch loops from function identity changes.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.user?.id, session?.user, profile]);
-
-  const fetchStudentOwnRecord = async (studentId: string) => {
-    const { data, error } = await supabase.rpc("get_my_student_record");
-    if (error) {
-      console.error("Failed to load student record", error);
-      return;
-    }
-
-    if (data && Array.isArray(data) && data.length > 0) {
-      const rec = data[0] as Record<string, unknown>;
-      setStudents([{
-        student_id: String(rec.student_id ?? studentId),
-        display_name: String(rec.display_name ?? "Student"),
-        grade_level: Number(rec.grade_level ?? 0),
-        parent_id: null,
-      }]);
-    }
-  };
 
   const fetchStudents = async () => {
     if (!session?.user) return;
@@ -211,37 +183,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Fetch students where user is primary parent
     const { data: ownStudents } = await supabase
       .from("students")
-      .select("student_id, display_name, grade_level, parent_id")
+      .select("id, student_id, display_name, parent_id")
       .eq("parent_id", session.user.id)
       .order("display_name");
 
-    // Fetch co-guardian students via security definer function (PII-filtered)
-    const { data: coStudents, error: coStudentsError } = await supabase
-      .rpc("get_co_guardian_students", { _guardian_id: session.user.id });
-
-    if (coStudentsError) {
-      console.error("Failed to load co-guardian students", coStudentsError);
-    }
-
-    let allStudents = (ownStudents || []) as StudentRecord[];
-
-    if (coStudents && coStudents.length > 0) {
-      const filtered = (coStudents as any[])
-        .filter((cs: unknown) => !allStudents.some(s => s.student_id === cs.student_id))
-        .map((cs: unknown) => ({
-          student_id: cs.student_id,
-          display_name: cs.display_name,
-          grade_level: cs.grade_level,
-          parent_id: cs.parent_id,
-        }));
-      allStudents = [...allStudents, ...filtered];
-    }
+    // Co-guardian student access was never implemented backend-side
+    // (get_co_guardian_students RPC does not exist) — only own students for now.
+    const allStudents = (ownStudents || []) as StudentRecord[];
 
     setStudents(allStudents);
     if (!selectedStudentId && allStudents.length > 0) {
       const saved = typeof window !== "undefined" ? window.localStorage.getItem("im_selected_student") : null;
-      const found = allStudents.find(s => s.student_id === saved);
-      setSelectedStudentId(found ? found.student_id : allStudents[0].student_id);
+      const found = allStudents.find(s => s.id === saved);
+      setSelectedStudentId(found ? found.id : allStudents[0].id);
     }
   };
 

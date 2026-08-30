@@ -30,8 +30,8 @@ const SUGGESTED_REWARDS = [
 
 export function RewardsPanel() {
   const { lang, t } = useI18n();
-  const { profile, selectedStudentId } = useAuth();
-  const studentId = profile?.role === "student" ? profile.studentId : selectedStudentId;
+  const { selectedStudentId } = useAuth();
+  const studentId = selectedStudentId;
   const [sentSuggestions, setSentSuggestions] = useState<Set<string>>(new Set());
 
   const { data: balance = 0 } = usePointsBalance(studentId || null);

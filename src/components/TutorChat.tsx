@@ -100,9 +100,9 @@ function isTextBasedType(mimeType: string): boolean {
 
 export function TutorChat() {
   const { lang, t } = useI18n();
-  const { profile } = useAuth();
+  const { selectedStudentId } = useAuth();
   const queryClient = useQueryClient();
-  const studentId = profile?.studentId || "";
+  const studentId = selectedStudentId || "";
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);

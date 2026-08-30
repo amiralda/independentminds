@@ -132,8 +132,8 @@ function ConfettiCanvas({ active }: { active: boolean }) {
 }
 
 export function TrophyRoom() {
-  const { profile } = useAuth();
-  const studentId = profile?.studentId || null;
+  const { selectedStudentId } = useAuth();
+  const studentId = selectedStudentId || null;
   const { data: achievements = [], isLoading } = useAchievements(studentId);
   const [showConfetti, setShowConfetti] = useState(false);
   const [newBadges, setNewBadges] = useState<Set<string>>(new Set());

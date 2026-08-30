@@ -16,8 +16,7 @@ import { DigitalCheckCard } from '@/components/DigitalCheckCard';
 export function DigitalWallet() {
   const { t } = useI18n();
   const { profile, selectedStudentId } = useAuth();
-  const studentId =
-    profile?.role === 'student' ? profile.studentId : selectedStudentId;
+  const studentId = selectedStudentId;
   const isParent = profile?.role === 'parent';
   const isStudent = profile?.role === 'student';
 
