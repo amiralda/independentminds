@@ -10,7 +10,6 @@ interface SubscriptionRow {
   current_period_end: string | null;
   profiles?: {
     display_name: string | null;
-    username: string | null;
   } | null;
 }
 
@@ -28,7 +27,7 @@ export default function AdminBilling() {
       const [subscriptionsRes, failuresRes] = await Promise.all([
         supabase
           .from("subscriptions" as any)
-          .select("user_id, plan_key, status, current_period_end, profiles:user_id(display_name, username)")
+          .select("user_id, plan_key, status, current_period_end, profiles:user_id(display_name)")
           .order("updated_at", { ascending: false }),
         supabase
           .from("billing_events" as any)
@@ -109,7 +108,7 @@ export default function AdminBilling() {
             <tbody>
               {data?.subscriptions.map((row) => (
                 <tr key={`${row.user_id}-${row.plan_key}`} className="border-t border-white/10 text-white/90">
-                  <td className="px-4 py-2">{row.profiles?.display_name || row.profiles?.username || row.user_id}</td>
+                  <td className="px-4 py-2">{row.profiles?.display_name || row.user_id}</td>
                   <td className="px-4 py-2 uppercase">{row.plan_key}</td>
                   <td className="px-4 py-2 capitalize">{row.status}</td>
                   <td className="px-4 py-2">{row.current_period_end ? new Date(row.current_period_end).toLocaleString() : "-"}</td>
