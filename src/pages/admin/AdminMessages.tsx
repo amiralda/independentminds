@@ -17,7 +17,7 @@ export default function AdminMessages() {
         supabase.from("messages_log").select("id", { count: "exact", head: true }),
         supabase.from("messages_log").select("id", { count: "exact", head: true }).eq("status", "Sent"),
         supabase.from("messages_log").select("id", { count: "exact", head: true }).eq("status", "Failed"),
-        supabase.from("messages_log").select("id", { count: "exact", head: true }).eq("type", "sos"),
+        supabase.from("messages_log").select("id", { count: "exact", head: true }).eq("message_type", "sos"),
       ]);
       setStats({
         total: totalRes.count || 0,
@@ -30,10 +30,10 @@ export default function AdminMessages() {
   }, [tick]);
 
   useEffect(() => {
-    let query = supabase.from("messages_log").select("*").order("timestamp", { ascending: false }).limit(50);
+    let query = supabase.from("messages_log").select("*").order("sent_at", { ascending: false }).limit(50);
     if (filter === "delivered") query = query.eq("status", "Sent");
     if (filter === "failed") query = query.eq("status", "Failed");
-    if (filter === "sos") query = query.eq("type", "sos");
+    if (filter === "sos") query = query.eq("message_type", "sos");
     query.then(({ data }) => setMessages(data || []));
   }, [filter, tick]);
 
@@ -68,7 +68,7 @@ export default function AdminMessages() {
             <TableRow className="border-white/10 hover:bg-white/5">
               <TableHead className="text-white/60">Type</TableHead>
               <TableHead className="text-white/60">Channel</TableHead>
-              <TableHead className="text-white/60">Recipient</TableHead>
+              <TableHead className="text-white/60">Parent</TableHead>
               <TableHead className="text-white/60">Status</TableHead>
               <TableHead className="text-white/60">Date</TableHead>
             </TableRow>
@@ -76,9 +76,9 @@ export default function AdminMessages() {
           <TableBody>
             {messages.map((m) => (
               <TableRow key={m.id} className="border-white/10 hover:bg-white/5">
-                <TableCell className="text-white/70 text-xs">{m.type}</TableCell>
+                <TableCell className="text-white/70 text-xs">{m.message_type}</TableCell>
                 <TableCell className="text-white/70 text-xs">{m.channel}</TableCell>
-                <TableCell className="text-white/50 text-xs font-mono">{m.recipient?.slice(0, 15)}…</TableCell>
+                <TableCell className="text-white/50 text-xs font-mono">{m.parent_id?.slice(0, 8)}…</TableCell>
                 <TableCell>
                   <span className={`px-2 py-0.5 rounded-full text-xs ${
                     m.status === "Sent" ? "bg-emerald-500/20 text-emerald-400" :
@@ -86,7 +86,7 @@ export default function AdminMessages() {
                     "bg-amber-500/20 text-amber-400"
                   }`}>{m.status}</span>
                 </TableCell>
-                <TableCell className="text-white/50 text-xs">{new Date(m.timestamp).toLocaleString()}</TableCell>
+                <TableCell className="text-white/50 text-xs">{new Date(m.sent_at).toLocaleString()}</TableCell>
               </TableRow>
             ))}
             {messages.length === 0 && (
