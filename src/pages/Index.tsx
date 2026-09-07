@@ -55,7 +55,7 @@ const Index = () => {
   const effectiveRole = hasMultipleRoles ? activeRole : actualRole;
   // When parent is viewing as student, treat role as "student" for rendering
   const role = (effectiveRole === "parent" && viewingAsStudent) ? "student" : effectiveRole;
-  const studentId = role === "student" && actualRole === "parent" ? selectedStudentId : (actualRole === "student" ? (profile?.studentId || null) : selectedStudentId);
+  const studentId = selectedStudentId;
   const viewingStudent = viewingAsStudent ? students.find(s => s.student_id === selectedStudentId) : null;
   const displayName = viewingAsStudent && viewingStudent ? viewingStudent.display_name : (profile?.username || profile?.displayName || "User");
 
@@ -272,7 +272,7 @@ const Index = () => {
                 </div>
               ) : (
                 <div className="space-y-6">
-                  <TodayBlocks blocks={blocks} onRefresh={refreshBlocks} />
+                  <TodayBlocks blocks={blocks} onRefresh={refreshBlocks} studentId={studentId} />
                   {studentId && <ActivityFeed studentId={studentId} />}
                 </div>
               )

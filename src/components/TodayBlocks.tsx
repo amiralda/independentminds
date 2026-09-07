@@ -10,7 +10,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { CheckCircle2, Play, Clock, AlertCircle, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { useCheckAndAwardBadges } from "@/hooks/useAchievements";
-import { useAuth } from "@/contexts/AuthContext";
 import { StudentRecords } from "@/components/StudentRecords";
 import { useAwardPoints, POINT_VALUES } from "@/hooks/useRewards";
 import { checkAndAwardStreak } from "@/hooks/useStreakBonus";
@@ -36,6 +35,7 @@ interface Block {
 interface Props {
   blocks: Block[];
   onRefresh: () => void;
+  studentId: string | null;
 }
 
 const statusIcon = (status: string) => {
@@ -47,13 +47,12 @@ const statusIcon = (status: string) => {
   }
 };
 
-export function TodayBlocks({ blocks, onRefresh }: Props) {
+export function TodayBlocks({ blocks, onRefresh, studentId }: Props) {
   const { t } = useI18n();
   const queryClient = useQueryClient();
-  const { profile } = useAuth();
-  const checkBadges = useCheckAndAwardBadges(profile?.studentId || "CHRIS");
+  const checkBadges = useCheckAndAwardBadges(studentId || "");
   const awardPoints = useAwardPoints();
-  const { data: pointSettings = [] } = usePointSettings(profile?.studentId || null);
+  const { data: pointSettings = [] } = usePointSettings(studentId);
   const [completingBlock, setCompletingBlock] = useState<Block | null>(null);
   const [showRecords, setShowRecords] = useState(false);
   const [rating, setRating] = useState(3);
@@ -113,7 +112,6 @@ export function TodayBlocks({ blocks, onRefresh }: Props) {
       actual_start: now,
     }).eq("id", block.id);
 
-    const studentId = profile?.studentId;
     if (studentId) {
       const trackId = await findTrackForSubject(block.subject, studentId);
       if (trackId) {
@@ -151,7 +149,6 @@ export function TodayBlocks({ blocks, onRefresh }: Props) {
     }).eq("id", completingBlock.id);
 
     // Also log to activity_logs
-    const studentId = profile?.studentId;
     if (studentId) {
       const trackId = await findTrackForSubject(completingBlock.subject, studentId);
       if (trackId) {
@@ -193,7 +190,7 @@ export function TodayBlocks({ blocks, onRefresh }: Props) {
     checkBadges.mutate();
 
     // Award points for completing a block
-    const sid = profile?.studentId;
+    const sid = studentId;
     if (sid) {
       const blockPts = getPointValue(pointSettings, "block_complete");
       if (blockPts > 0) {
@@ -380,8 +377,8 @@ export function TodayBlocks({ blocks, onRefresh }: Props) {
           <DialogHeader>
             <DialogTitle className="font-display">📄 Student Records</DialogTitle>
           </DialogHeader>
-          {profile?.studentId && <StudentRecords studentId={profile.studentId} />}
-          {!profile?.studentId && <p className="text-muted-foreground text-sm">No student selected.</p>}
+          {studentId && <StudentRecords studentId={studentId} />}
+          {!studentId && <p className="text-muted-foreground text-sm">No student selected.</p>}
         </DialogContent>
       </Dialog>
     </div>

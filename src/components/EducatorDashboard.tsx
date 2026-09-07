@@ -177,7 +177,7 @@ export function EducatorDashboard() {
                 <Skeleton className="h-24 w-full rounded-xl" />
               </div>
             ) : (
-              <TodayBlocks blocks={blocks} onRefresh={refreshBlocks} />
+              <TodayBlocks blocks={blocks} onRefresh={refreshBlocks} studentId={selectedStudentId} />
             )
           )}
           {tab === "activity" && <ActivityFeed studentId={selectedStudentId} />}
