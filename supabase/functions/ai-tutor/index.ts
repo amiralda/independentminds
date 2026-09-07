@@ -72,19 +72,51 @@ serve(async (req) => {
     }
 
     const userId = user.id;
-    const { data: profile } = await supabase
-      .from("profiles").select("role, display_name, student_id").eq("id", userId).single();
+    // Role lives in user_roles, not profiles — profiles has never had a role column.
+    const { data: roleRow } = await supabase
+      .from("user_roles").select("role").eq("user_id", userId).maybeSingle();
+    const role = roleRow?.role || "parent";
 
-    if (!profile || !["parent", "student"].includes(profile.role)) {
+    if (!["parent", "student"].includes(role)) {
       return new Response(JSON.stringify({ error: "Forbidden" }), {
         status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Rate limiting: 30/hour
     const serviceClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, {
       auth: { autoRefreshToken: false, persistSession: false },
     });
+
+    // Subscription gate — mirrors useSubscription.ts's isActive logic exactly
+    // (trialing/active, or past_due within a 7-day grace period).
+    const { data: subRow } = await serviceClient
+      .from("subscriptions")
+      .select("status, current_period_end")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    const PAST_DUE_GRACE_MS = 7 * 24 * 60 * 60 * 1000;
+    const withinPastDueGrace = (periodEnd: string | null) => {
+      if (!periodEnd) return false;
+      const periodEndMs = new Date(periodEnd).getTime();
+      if (!Number.isFinite(periodEndMs)) return false;
+      return Date.now() <= periodEndMs + PAST_DUE_GRACE_MS;
+    };
+    const subStatus = subRow?.status;
+    const hasGrace = subStatus === "past_due" && withinPastDueGrace(subRow?.current_period_end ?? null);
+    const isActive = subStatus === "trialing" || subStatus === "active" || hasGrace;
+
+    if (!isActive) {
+      return new Response(JSON.stringify({
+        error: "subscription_required",
+        message: "An active subscription is required to use Mr A.",
+        message_ht: "Ou bezwen yon abònman aktif pou itilize Mr A.",
+      }), {
+        status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Rate limiting: 30/hour
     const now = new Date();
     const windowStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours()).toISOString();
     const nextHour = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours() + 1).toISOString();
@@ -113,25 +145,25 @@ serve(async (req) => {
     const remaining = rateData ? Math.max(0, 30 - rateData.count) : 30;
     const { messages, subjectMode, studentId: reqStudentId } = await req.json();
 
-    // Ownership check: verify the caller owns/is the requested student
-    let effectiveStudentId: string;
-    if (reqStudentId) {
-      const { data: ownedStudent } = await serviceClient
-        .from("students")
-        .select("student_id")
-        .eq("student_id", reqStudentId)
-        .eq("parent_id", userId)
-        .maybeSingle();
-      const isOwnStudentProfile = profile.student_id === reqStudentId;
-      if (!ownedStudent && !isOwnStudentProfile) {
-        return new Response(JSON.stringify({ error: "Forbidden: student access denied" }), {
-          status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      effectiveStudentId = reqStudentId;
-    } else {
-      effectiveStudentId = profile.student_id || userId;
+    if (!reqStudentId || typeof reqStudentId !== "string") {
+      return new Response(JSON.stringify({ error: "Missing studentId" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
+
+    // Ownership check: verify the caller is this student's parent (students.id is the real join key).
+    const { data: ownedStudent } = await serviceClient
+      .from("students")
+      .select("id")
+      .eq("id", reqStudentId)
+      .eq("parent_id", userId)
+      .maybeSingle();
+    if (!ownedStudent) {
+      return new Response(JSON.stringify({ error: "Forbidden: student access denied" }), {
+        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const effectiveStudentId = reqStudentId;
     const subject = subjectMode || "general";
 
     // Load last 20 messages from conversation history
