@@ -17,9 +17,6 @@ interface CompletedBlock {
   status: string;
   actual_start: string | null;
   actual_end: string | null;
-  self_rating: number | null;
-  time4learning_score: number | null;
-  notes: string | null;
 }
 
 export function ActivityFeed({ studentId }: { studentId: string }) {
@@ -35,11 +32,11 @@ export function ActivityFeed({ studentId }: { studentId: string }) {
     queryFn: async (): Promise<CompletedBlock[]> => {
       const { data, error } = await supabase
         .from("daily_plan")
-        .select("id, subject, status, actual_start, actual_end, self_rating, time4learning_score, notes")
+        .select("id, subject, status, actual_start, actual_end")
         .eq("student_id", studentId)
-        .eq("plan_date", today)
+        .eq("planned_date", today)
         .in("status", ["Done", "In Progress"])
-        .order("block_order", { ascending: true });
+        .order("created_at", { ascending: true });
       if (error) throw error;
       return (data as CompletedBlock[]) || [];
     },
@@ -149,10 +146,7 @@ export function ActivityFeed({ studentId }: { studentId: string }) {
                   {block.actual_end && (
                     <span>{t("activity.completed")}: {new Date(block.actual_end).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
                   )}
-                  {block.self_rating != null && <span>⭐ {block.self_rating}/5</span>}
-                  {block.time4learning_score != null && <span>Score: {block.time4learning_score}%</span>}
                 </div>
-                {block.notes && <p className="text-xs text-muted-foreground mt-0.5 italic">"{block.notes}"</p>}
               </div>
               <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                 block.status === "Done" ? "bg-success/20 text-success" : "bg-warning/20 text-warning"
