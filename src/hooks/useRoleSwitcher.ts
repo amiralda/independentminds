@@ -48,16 +48,7 @@ export function useRoleSwitcher(): RoleSwitcherState {
         }
       }
 
-      // Check if user is an educator
-      const { data: educatorRow } = await supabase
-        .from("educators" as any)
-        .select("id")
-        .eq("user_id", user.id)
-        .limit(1);
-
-      if (educatorRow && (educatorRow as any[]).length > 0 && !detectedRoles.includes("educator")) {
-        detectedRoles.push("educator");
-      }
+      // educators-table check removed: accept-educator-invite always grants the same 'educator' row in user_roles too, so the check above is a complete signal.
 
       setRoles(detectedRoles.length > 0 ? detectedRoles : [profile.role as ActiveRole]);
 
