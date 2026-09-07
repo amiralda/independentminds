@@ -48,53 +48,39 @@ export function ReportsPanel({ studentId }: { studentId: string }) {
   };
 
   // Fetch all done blocks grouped by date
+  interface ReportBlock { planned_date: string; status: string; subject: string }
+  interface ReportData { daily_plan: ReportBlock[] }
+
+  const invokeReportData = async (body: Record<string, string>): Promise<ReportBlock[]> => {
+    const { data, error } = await supabase.functions.invoke("weekly-report-data", { body });
+    if (error) throw error;
+    return (data as ReportData).daily_plan;
+  };
+
   const { data: allDone = [], isLoading } = useQuery({
     queryKey: ["reports_all_done", studentId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("daily_plan")
-        .select("plan_date, status, subject, time4learning_score")
-        .eq("student_id", studentId)
-        .eq("status", "Done")
-        .order("plan_date");
-      if (error) throw error;
-      return data || [];
-    },
+    queryFn: () => invokeReportData({ studentId, status: "Done" }),
   });
 
   // Fetch last 7 days blocks for velocity
   const { data: recentBlocks = [] } = useQuery({
     queryKey: ["reports_recent", studentId],
-    queryFn: async () => {
+    queryFn: () => {
       const sevenAgo = new Date(Date.now() - 7 * 86400000).toISOString().split("T")[0];
-      const { data, error } = await supabase
-        .from("daily_plan")
-        .select("plan_date, status, subject, time4learning_score")
-        .eq("student_id", studentId)
-        .gte("plan_date", sevenAgo)
-        .order("plan_date");
-      if (error) throw error;
-      return data || [];
+      return invokeReportData({ studentId, startDate: sevenAgo });
     },
   });
 
   // Fetch current week blocks for weekly sprint
   const { data: weekBlocks = [] } = useQuery({
     queryKey: ["reports_week", studentId],
-    queryFn: async () => {
+    queryFn: () => {
       const now = new Date();
       const dayOfWeek = now.getDay();
       const monday = new Date(now);
       monday.setDate(now.getDate() - ((dayOfWeek + 6) % 7));
       const monStr = monday.toISOString().split("T")[0];
-      const { data, error } = await supabase
-        .from("daily_plan")
-        .select("plan_date, status, subject, time4learning_score, self_rating")
-        .eq("student_id", studentId)
-        .gte("plan_date", monStr)
-        .order("plan_date");
-      if (error) throw error;
-      return data || [];
+      return invokeReportData({ studentId, startDate: monStr });
     },
   });
 
@@ -115,7 +101,7 @@ export function ReportsPanel({ studentId }: { studentId: string }) {
   // Group done by date
   const doneByDate: Record<string, number> = {};
   allDone.forEach(b => {
-    doneByDate[b.plan_date] = (doneByDate[b.plan_date] || 0) + 1;
+    doneByDate[b.planned_date] = (doneByDate[b.planned_date] || 0) + 1;
   });
 
   // Build burndown points (weekly intervals for readability)
@@ -146,16 +132,12 @@ export function ReportsPanel({ studentId }: { studentId: string }) {
 
   // === Velocity ===
   const last7Done = recentBlocks.filter(b => b.status === "Done");
-  const uniqueDays = new Set(recentBlocks.map(b => b.plan_date)).size;
+  const uniqueDays = new Set(recentBlocks.map(b => b.planned_date)).size;
   const avgVelocity = uniqueDays > 0 ? Math.round((last7Done.length / uniqueDays) * 10) / 10 : 0;
   const onTrack = avgVelocity >= 20;
 
   // === Weekly sprint ===
   const weekDone = weekBlocks.filter(b => b.status === "Done");
-  const weekScores = weekDone.filter(b => b.time4learning_score != null).map(b => b.time4learning_score!);
-  const weekRatings = weekDone.filter(b => b.self_rating != null).map(b => b.self_rating!);
-  const avgScore = weekScores.length > 0 ? Math.round(weekScores.reduce((a, b) => a + b, 0) / weekScores.length) : 0;
-  const avgFocus = weekRatings.length > 0 ? (weekRatings.reduce((a, b) => a + b, 0) / weekRatings.length).toFixed(1) : "—";
 
   // === Daily velocity bar chart (last 7 days) ===
   const velocityByDay: Record<string, number> = {};
@@ -164,7 +146,7 @@ export function ReportsPanel({ studentId }: { studentId: string }) {
     velocityByDay[d] = 0;
   }
   recentBlocks.filter(b => b.status === "Done").forEach(b => {
-    if (velocityByDay[b.plan_date] !== undefined) velocityByDay[b.plan_date]++;
+    if (velocityByDay[b.planned_date] !== undefined) velocityByDay[b.planned_date]++;
   });
   const velocityData = Object.entries(velocityByDay).map(([date, count]) => ({
     day: new Date(date + "T00:00:00").toLocaleDateString("en-US", { weekday: "short" }),
@@ -177,7 +159,7 @@ export function ReportsPanel({ studentId }: { studentId: string }) {
   const monthlyData: Record<string, Record<string, { done: number; total: number }>> = {};
   allDone.forEach(b => {
     if (!CORE_SUBJECTS.includes(b.subject)) return;
-    const month = b.plan_date.slice(0, 7);
+    const month = b.planned_date.slice(0, 7);
     if (!monthlyData[month]) monthlyData[month] = {};
     if (!monthlyData[month][b.subject]) monthlyData[month][b.subject] = { done: 0, total: 0 };
     monthlyData[month][b.subject].done++;
@@ -288,18 +270,10 @@ export function ReportsPanel({ studentId }: { studentId: string }) {
       {/* Weekly Sprint Summary */}
       <div className="rounded-2xl bg-card border p-5 shadow-sm">
         <h3 className="font-display font-semibold mb-4">📊 Weekly Sprint</h3>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 gap-3">
           <div className="rounded-xl bg-primary/5 border border-primary/20 p-4 text-center">
             <p className="font-display text-3xl font-bold text-primary">{weekDone.length}</p>
             <p className="text-xs text-muted-foreground mt-1">Total Done</p>
-          </div>
-          <div className="rounded-xl bg-secondary/10 border border-secondary/20 p-4 text-center">
-            <p className="font-display text-3xl font-bold text-secondary">{avgScore}%</p>
-            <p className="text-xs text-muted-foreground mt-1">Avg Score</p>
-          </div>
-          <div className="rounded-xl bg-accent/10 border border-accent/20 p-4 text-center">
-            <p className="font-display text-3xl font-bold text-accent">{avgFocus}</p>
-            <p className="text-xs text-muted-foreground mt-1">Focus Level</p>
           </div>
         </div>
       </div>

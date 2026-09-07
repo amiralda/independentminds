@@ -43,63 +43,28 @@ export function WeeklyProgressReport({ studentId }: { studentId: string }) {
   const [sending, setSending] = useState(false);
   const week = getWeekRange(weekOffset);
 
-  const { data: blocks = [], isLoading: blocksLoading } = useQuery({
-    queryKey: ["weekly_blocks", studentId, week.start],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("daily_plan")
-        .select("plan_date, status, subject, self_rating, time4learning_score")
-        .eq("student_id", studentId)
-        .gte("plan_date", week.start)
-        .lte("plan_date", week.end)
-        .order("plan_date");
+  interface WeeklyReportData {
+    daily_plan: { planned_date: string; status: string; subject: string }[];
+    check_ins: { timestamp: string; mood: string; focus: string }[];
+    achievements: { name: string; type: string; criteria_met_at: string }[];
+    reward_points: { points: number }[];
+  }
+
+  const { data: reportData, isLoading: blocksLoading } = useQuery({
+    queryKey: ["weekly_report_data", studentId, week.start],
+    queryFn: async (): Promise<WeeklyReportData> => {
+      const { data, error } = await supabase.functions.invoke("weekly-report-data", {
+        body: { studentId, startDate: week.start, endDate: week.end },
+      });
       if (error) throw error;
-      return data || [];
+      return data as WeeklyReportData;
     },
   });
 
-  const { data: checkIns = [] } = useQuery({
-    queryKey: ["weekly_checkins", studentId, week.start],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("check_ins")
-        .select("timestamp, mood, focus")
-        .eq("student_id", studentId)
-        .gte("timestamp", week.start + "T00:00:00")
-        .lte("timestamp", week.end + "T23:59:59")
-        .order("timestamp");
-      if (error) throw error;
-      return data || [];
-    },
-  });
-
-  const { data: badges = [] } = useQuery({
-    queryKey: ["weekly_badges", studentId, week.start],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("achievements")
-        .select("name, type, criteria_met_at")
-        .eq("student_id", studentId)
-        .gte("criteria_met_at", week.start + "T00:00:00")
-        .lte("criteria_met_at", week.end + "T23:59:59");
-      if (error) throw error;
-      return data || [];
-    },
-  });
-
-  const { data: pointsEarned = 0 } = useQuery({
-    queryKey: ["weekly_points", studentId, week.start],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("reward_points")
-        .select("points")
-        .eq("student_id", studentId)
-        .gte("created_at", week.start + "T00:00:00")
-        .lte("created_at", week.end + "T23:59:59");
-      if (error) throw error;
-      return (data || []).reduce((sum, r) => sum + r.points, 0);
-    },
-  });
+  const blocks = useMemo(() => reportData?.daily_plan ?? [], [reportData]);
+  const checkIns = useMemo(() => reportData?.check_ins ?? [], [reportData]);
+  const badges = reportData?.achievements ?? [];
+  const pointsEarned = (reportData?.reward_points ?? []).reduce((sum, r) => sum + r.points, 0);
 
   // Derived data
   const stats = useMemo(() => {
@@ -116,9 +81,9 @@ export function WeeklyProgressReport({ studentId }: { studentId: string }) {
       dayMap[ds] = { done: 0, total: 0 };
     }
     blocks.forEach(b => {
-      if (dayMap[b.plan_date]) {
-        dayMap[b.plan_date].total++;
-        if (b.status === "Done") dayMap[b.plan_date].done++;
+      if (dayMap[b.planned_date]) {
+        dayMap[b.planned_date].total++;
+        if (b.status === "Done") dayMap[b.planned_date].done++;
       }
     });
     const dailyData = Object.entries(dayMap).map(([date, v]) => ({
@@ -135,7 +100,7 @@ export function WeeklyProgressReport({ studentId }: { studentId: string }) {
       .sort((a, b) => b.value - a.value);
 
     // Streak (consecutive days with at least 1 done block)
-    const daysWithDone = new Set(done.map(b => b.plan_date));
+    const daysWithDone = new Set(done.map(b => b.planned_date));
     let streak = 0;
     for (let i = 6; i >= 0; i--) {
       const d = new Date(week.start + "T00:00:00");
@@ -146,10 +111,6 @@ export function WeeklyProgressReport({ studentId }: { studentId: string }) {
       else if (streak > 0) break;
     }
 
-    // Avg score
-    const scores = done.filter(b => b.time4learning_score != null).map(b => b.time4learning_score!);
-    const avgScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
-
     // Mood trend
     const moodValues: Record<string, number> = { "😊": 5, "😌": 4, "😐": 3, "😞": 2, "😤": 1 };
     const focusValues: Record<string, number> = { "🎯": 5, "👍": 4, "😐": 3, "😴": 2, "🤯": 1 };
@@ -159,7 +120,7 @@ export function WeeklyProgressReport({ studentId }: { studentId: string }) {
       focus: focusValues[c.focus] || 3,
     }));
 
-    return { done: done.length, total, rate, dailyData, subjectData, streak, avgScore, moodTrend };
+    return { done: done.length, total, rate, dailyData, subjectData, streak, moodTrend };
   }, [blocks, checkIns, week.start]);
 
   const handleSend = async () => {
@@ -215,7 +176,6 @@ export function WeeklyProgressReport({ studentId }: { studentId: string }) {
       [t("report.pointsEarned"), `${pointsEarned}`],
       [t("nav.badges"), `${badges.length}`],
     ];
-    if (stats.avgScore !== null) summaryItems.push([t("report.avgScore"), `${stats.avgScore}%`]);
 
     summaryItems.forEach(([label, value]) => {
       doc.setFont("helvetica", "bold");
@@ -362,14 +322,6 @@ export function WeeklyProgressReport({ studentId }: { studentId: string }) {
               <Line type="monotone" dataKey="focus" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3 }} name={t("report.focus")} />
             </LineChart>
           </ResponsiveContainer>
-        </div>
-      )}
-
-      {/* Avg Score */}
-      {stats.avgScore !== null && (
-        <div className="rounded-xl bg-primary/5 border border-primary/20 p-4 text-center">
-          <p className="text-xs text-muted-foreground mb-1">{t("report.avgScore")}</p>
-          <p className="font-display text-3xl font-bold text-primary">{stats.avgScore}%</p>
         </div>
       )}
 
