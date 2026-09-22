@@ -29,6 +29,17 @@ Canonical URL: https://www.independentmindsedu.org (www, not apex)
 - [x] T3: Enforce sender policy in process-email-queue
 - [x] T4: /refund page + failed-login tracking + payment alerts
 - [x] T5: Stripe billing (schema → webhooks → gating → UI)
+- [x] T6: Milestone 3 — RLS & auth audit (recursion check, cross-family isolation, server-side paywall gates for AI tutor + weekly reports)
+
+## Stripe live-mode gate (decided 2026-08-30, do not flip without user sign-off)
+Staying on `pk_test_...` (Vercel) / `sk_test_...` (Supabase) deliberately.
+Do NOT swap to `pk_live_...`/`sk_live_...` until ALL 5 are done:
+- [ ] Email DNS corrected
+- [x] Supabase failure rate investigated (2026-08-30 — root causes identified, not yet fixed; see docs/ACTIVITY_LOG.md)
+- [x] `search_path` fixed on `has_role`, `handle_new_user`, `rls_auto_enable` (confirmed already locked down 2026-09-06 from a prior session; also closed anon/PUBLIC RPC exposure on all 3 this session — see ACTIVITY_LOG)
+- [ ] Final pricing/terms review completed
+- [x] AI Tutor actually working (2026-09-22 — final decision: OpenAI direct (Dany's own account), not Lovable's gateway or OpenRouter. Model `gpt-4.1`. `ai-tutor` migrated off `google/gemini-2.5-flash`, `AI_GATEWAY_URL`/`AI_GATEWAY_API_KEY` now point at a real OpenAI account, live-tested end to end against the deployed function — 200, real streaming response, `model` field confirmed `gpt-4.1-2025-04-14`. `extract-schedule` (shares the same secrets, not currently deployed) fixed to the same model in source for consistency — see docs/ACTIVITY_LOG.md)
+When all 5 are checked, confirm with user before touching live keys.
 
 ## Audit findings (Apr 2026, do not re-audit)
 Build/lint/tests: PASS (87/87). No secrets committed. 
@@ -53,8 +64,8 @@ Never skip this step. Never put long logs in
 CLAUDE.md — details go in ACTIVITY_LOG.md only.
 
 ## Recent
-2026-08-23 — Merge T1-T5 to main + Supabase backend deploy — fixed stale project ref (wkvattbvybvgaeobtidl→gyvjcwuwfwrwwwnuwlex) in config.toml/checklist/email templates, ff-merged feat/stripe-billing into main and pushed, applied 5 migrations and deployed 3 Stripe edge functions to gyvjcwuwfwrwwwnuwlex; Stripe secrets still pending in dashboard.
-2026-07-12 — T5 Stripe billing — completed phased Stripe rollout plus Stripe launch checklist (dashboard setup + smoke tests) with validations and final build/test pass.
-2026-07-12 — T4 Launch ops/legal gaps — refund page, auth-failure tracking, and payment-failure alert scaffold added; validations passed.
-2026-07-12 — T3 Enforce sender policy — queue sender locked to default, ops alerts sender allowlisted, lint/tsc passed.
-2026-07-12 — T2 Normalize apex→www — canonical www email template URLs set and dns-monitor now checks apex plus www; lint/tsc passed.
+2026-09-22 — AI Tutor provider migration: ai-tutor + extract-schedule switched from Lovable gateway/gemini-2.5-flash to OpenAI gpt-4.1 (user's own OpenAI account). Endpoint/request/SSE format already matched OpenAI's standard shape, so only the model string changed. AI_GATEWAY_URL/AI_GATEWAY_API_KEY repointed at real OpenAI values; ai-tutor deployed (v4) and live-tested end to end with the test-parent fixture — real streaming gpt-4.1 response confirmed. Closes the last open Stripe live-mode gate item on AI Tutor. Found (not fixed, out of scope): ai_conversations table's real schema (id/student_id/subject/messages jsonb/updated_at) doesn't match what ai-tutor reads/writes (role/content/created_at columns) — history load and message persistence silently no-op; core chat response unaffected. See docs/ACTIVITY_LOG.md.
+2026-09-07 (Milestone 3 follow-up) — Confirmed AI Tutor is live, public, checkmarked copy on /pricing (Pricing.tsx renders config/plans.ts highlights, unauthenticated route) at every tier including Basic — traced AI_GATEWAY_API_KEY/AI_GATEWAY_URL via git blame to a pure rename of the original LOVABLE_API_KEY/hardcoded ai.gateway.lovable.dev (2026-07-10, "gateway neutral migration") — no new provider was ever actually wired in. Added as a 5th Stripe live-mode gate condition since no real customers exist yet (still test-mode) but this must be resolved before going live. Provider decision deferred to next session. See docs/ACTIVITY_LOG.md.
+2026-09-07 (Milestone 3) — RLS/auth audit (read-only) then fixed both confirmed server-side gaps: added a subscription check to ai-tutor and built a new weekly-report-data edge function to gate WeeklyProgressReport/ReportsPanel the same way. Along the way found + fixed ai-tutor's role/ownership checks were ALSO broken (profiles.role/student_id don't exist; wrong join column) — the feature had never actually been deployed before, so this was its first-ever working deploy, not a regression. All 3 fixes committed+pushed+deployed, live-tested (402/403/200 paths confirmed). Audit found zero live RLS recursion risks; cross-family isolation airtight for parents; co-guardian access confirmed non-functional (known gap, safe direction). See docs/ACTIVITY_LOG.md.
+2026-09-07 (4th follow-up) — Fixed the last 2 confirmed active bugs from the Milestone 2 log cross-check: students.grade_level (added via migration) and messages_log.timestamp/type/recipient in AdminMessages.tsx. Milestone 2 considered closed pending the deliberately-held admin_notifications/educators decision. See docs/ACTIVITY_LOG.md.
+2026-09-07 (3rd follow-up) — Committed+pushed+deployed useRoleSwitcher.ts fix and ActivityFeed.tsx daily_plan fallback fix. Re-ran the live-log cross-check against the full 2026-08-30 diagnostic list: found 3 more missing tables (merge_requests, dns_monitor_history, admin_sent_notifications) plus students.grade_level/messages_log.timestamp/type (fixed next turn) and profiles.role in AdminNotificationCenter.tsx (bundled with the held admin_notifications feature). See docs/ACTIVITY_LOG.md.
