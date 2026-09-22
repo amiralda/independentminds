@@ -12,26 +12,31 @@ export default function AdminUsers() {
   const [mergeRequests, setMergeRequests] = useState<unknown[]>([]);
   const [roles, setRoles] = useState<unknown[]>([]);
   const [coGuardians, setCoGuardians] = useState<unknown[]>([]);
+  const [monitorRequests, setMonitorRequests] = useState<unknown[]>([]);
+  const [reviewingId, setReviewingId] = useState<string | null>(null);
   const [stats, setStats] = useState({ parents: 0, admins: 0, pendingMerges: 0, coGuardianCount: 0 });
   const tick = useAutoRefresh();
 
   useEffect(() => {
     const load = async () => {
-      const [profilesRes, mergesRes, rolesRes, guardiansRes] = await Promise.all([
+      const [profilesRes, mergesRes, rolesRes, guardiansRes, monitorReqRes] = await Promise.all([
         supabase.from("profiles").select("*").order("created_at", { ascending: false }),
         supabase.from("merge_requests").select("*").order("created_at", { ascending: false }).limit(20),
         supabase.from("user_roles").select("*"),
         supabase.from("co_guardians").select("*"),
+        supabase.from("monitor_requests" as any).select("*").order("created_at", { ascending: false }).limit(20),
       ]);
       const p = profilesRes.data || [];
       const r = rolesRes.data || [];
       const m = mergesRes.data || [];
       const g = guardiansRes.data || [];
+      const mr = monitorReqRes.data || [];
 
       setProfiles(p);
       setRoles(r);
       setMergeRequests(m);
       setCoGuardians(g);
+      setMonitorRequests(mr);
       setStats({
         parents: p.filter((x: unknown) => x.role === "parent").length,
         admins: r.filter((x: unknown) => x.role === "admin").length,
@@ -52,6 +57,23 @@ export default function AdminUsers() {
     } else {
       toast.success(`Merge request ${action}`);
       setMergeRequests((prev) => prev.map((m) => (m.id === id ? { ...m, status: action } : m)));
+    }
+  };
+
+  const handleMonitorRequest = async (id: string, decision: "approved" | "rejected") => {
+    setReviewingId(id);
+    try {
+      const { data, error } = await supabase.functions.invoke("review-monitor-request", {
+        body: { request_id: id, decision },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success(`Monitor request ${decision}`);
+      setMonitorRequests((prev) => prev.map((r: unknown) => (r.id === id ? { ...r, status: decision } : r)));
+    } catch (err: unknown) {
+      toast.error(err.message || "Failed to review request");
+    } finally {
+      setReviewingId(null);
     }
   };
 
@@ -194,6 +216,65 @@ export default function AdminUsers() {
             {mergeRequests.length === 0 && (
               <TableRow className="border-white/10">
                 <TableCell colSpan={4} className="text-center text-white/40 py-8">No merge requests</TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Monitor Access Requests */}
+      <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
+        <div className="p-4 border-b border-white/10">
+          <h2 className="text-white font-semibold">Monitor Access Requests</h2>
+        </div>
+        <Table>
+          <TableHeader>
+            <TableRow className="border-white/10 hover:bg-white/5">
+              <TableHead className="text-white/60">User</TableHead>
+              <TableHead className="text-white/60">Organization</TableHead>
+              <TableHead className="text-white/60">Reason</TableHead>
+              <TableHead className="text-white/60">Families</TableHead>
+              <TableHead className="text-white/60">Status</TableHead>
+              <TableHead className="text-white/60">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {monitorRequests.map((r: unknown) => (
+              <TableRow key={r.id} className="border-white/10 hover:bg-white/5">
+                <TableCell className="text-white/70 text-xs font-mono">{r.user_id?.slice(0, 8)}…</TableCell>
+                <TableCell className="text-white/70 text-xs">{r.organization_name || "—"}</TableCell>
+                <TableCell className="text-white/70 text-xs max-w-xs truncate" title={r.reason}>{r.reason || "—"}</TableCell>
+                <TableCell className="text-white/70 text-xs">{r.expected_families_count ?? "—"}</TableCell>
+                <TableCell>
+                  <span className={`px-2 py-0.5 rounded-full text-xs ${
+                    r.status === "pending" ? "bg-amber-500/20 text-amber-400" :
+                    r.status === "approved" ? "bg-emerald-500/20 text-emerald-400" :
+                    "bg-red-500/20 text-red-400"
+                  }`}>{r.status}</span>
+                </TableCell>
+                <TableCell>
+                  {r.status === "pending" && (
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm" variant="outline"
+                        className="text-xs h-7 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
+                        disabled={reviewingId === r.id}
+                        onClick={() => handleMonitorRequest(r.id, "approved")}
+                      >Approve</Button>
+                      <Button
+                        size="sm" variant="outline"
+                        className="text-xs h-7 border-red-500/30 text-red-400 hover:bg-red-500/10"
+                        disabled={reviewingId === r.id}
+                        onClick={() => handleMonitorRequest(r.id, "rejected")}
+                      >Reject</Button>
+                    </div>
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
+            {monitorRequests.length === 0 && (
+              <TableRow className="border-white/10">
+                <TableCell colSpan={6} className="text-center text-white/40 py-8">No monitor access requests</TableCell>
               </TableRow>
             )}
           </TableBody>

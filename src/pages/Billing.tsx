@@ -2,13 +2,15 @@ import { useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { CheckCircle2, Loader2, TriangleAlert } from "lucide-react";
 import { toast } from "sonner";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { useI18n } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/useSubscription";
 import { PLAN_BY_KEY, type PlanKey } from "@/config/plans";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { SEO } from "@/components/SEO";
 
 export default function Billing() {
@@ -17,6 +19,64 @@ export default function Billing() {
   const [searchParams] = useSearchParams();
   const subscription = useSubscription();
   const [loadingPortal, setLoadingPortal] = useState(false);
+  const queryClient = useQueryClient();
+  const [monitorForm, setMonitorForm] = useState({ organization_name: "", reason: "", expected_families_count: "" });
+  const [submittingMonitorRequest, setSubmittingMonitorRequest] = useState(false);
+
+  const { data: isMonitor } = useQuery({
+    queryKey: ["is-monitor", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("user_roles" as any)
+        .select("role")
+        .eq("user_id", user!.id)
+        .eq("role", "monitor")
+        .maybeSingle();
+      if (error) throw error;
+      return !!data;
+    },
+  });
+
+  const { data: latestMonitorRequest } = useQuery({
+    queryKey: ["monitor-request", user?.id],
+    enabled: !!user?.id && isMonitor === false,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("monitor_requests" as any)
+        .select("id, status, created_at")
+        .eq("user_id", user!.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data as { id: string; status: string; created_at: string } | null;
+    },
+  });
+
+  const submitMonitorRequest = async () => {
+    if (!user || !monitorForm.reason.trim()) return;
+    setSubmittingMonitorRequest(true);
+    try {
+      const { error } = await supabase.from("monitor_requests" as any).insert({
+        user_id: user.id,
+        organization_name: monitorForm.organization_name.trim() || null,
+        reason: monitorForm.reason.trim(),
+        expected_families_count: monitorForm.expected_families_count
+          ? parseInt(monitorForm.expected_families_count, 10)
+          : null,
+      });
+      if (error) throw error;
+      toast.success(t("monitorRequest.submitted"));
+      setMonitorForm({ organization_name: "", reason: "", expected_families_count: "" });
+      queryClient.invalidateQueries({ queryKey: ["monitor-request", user.id] });
+    } catch (error: unknown) {
+      console.error("monitor request:", error);
+      toast.error(t("monitorRequest.error"));
+    } finally {
+      setSubmittingMonitorRequest(false);
+    }
+  };
 
   const { data: rawSubscription } = useQuery({
     queryKey: ["subscription-details", user?.id],
@@ -150,6 +210,60 @@ export default function Billing() {
             <p>{t("billing.activePlanNotice")}</p>
           </div>
         )}
+
+        {/* Request Monitor Access */}
+        <div className="rounded-2xl border bg-card p-6 space-y-4">
+          <div className="space-y-1">
+            <h2 className="font-display text-xl font-bold">{t("monitorRequest.title")}</h2>
+            <p className="text-sm text-muted-foreground">{t("monitorRequest.description")}</p>
+          </div>
+
+          {isMonitor ? (
+            <p className="text-sm font-medium text-emerald-700">{t("monitorRequest.alreadyMonitor")}</p>
+          ) : latestMonitorRequest?.status === "pending" ? (
+            <p className="text-sm font-medium text-amber-700">{t("monitorRequest.pending")}</p>
+          ) : (
+            <div className="space-y-3">
+              {latestMonitorRequest?.status === "rejected" && (
+                <p className="text-sm text-muted-foreground">{t("monitorRequest.rejectedNotice")}</p>
+              )}
+              <div>
+                <label className="text-sm font-medium">{t("monitorRequest.organizationLabel")}</label>
+                <Input
+                  className="mt-1"
+                  value={monitorForm.organization_name}
+                  onChange={(e) => setMonitorForm((f) => ({ ...f, organization_name: e.target.value }))}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">{t("monitorRequest.reasonLabel")}</label>
+                <Textarea
+                  className="mt-1"
+                  value={monitorForm.reason}
+                  onChange={(e) => setMonitorForm((f) => ({ ...f, reason: e.target.value }))}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">{t("monitorRequest.familiesCountLabel")}</label>
+                <Input
+                  className="mt-1"
+                  type="number"
+                  min={0}
+                  value={monitorForm.expected_families_count}
+                  onChange={(e) => setMonitorForm((f) => ({ ...f, expected_families_count: e.target.value }))}
+                />
+              </div>
+              <Button
+                onClick={submitMonitorRequest}
+                disabled={submittingMonitorRequest || !monitorForm.reason.trim()}
+                className="font-display"
+              >
+                {submittingMonitorRequest ? <Loader2 size={16} className="mr-2 animate-spin" /> : null}
+                {t("monitorRequest.submit")}
+              </Button>
+            </div>
+          )}
+        </div>
       </section>
     </div>
   );
