@@ -165,7 +165,7 @@ export function AddStudentFullForm({ open, onClose, onBack }: Props) {
       }
 
       // Create student
-      const { error: studentError } = await supabase.from("students").insert({
+      const { data: newStudent, error: studentError } = await supabase.from("students").insert({
         student_id: studentId.toUpperCase(),
         display_name: name,
         grade_level: parseInt(grade),
@@ -177,31 +177,36 @@ export function AddStudentFullForm({ open, onClose, onBack }: Props) {
         language_pref: languagePref,
         address: address || null,
         profile_photo_url: photoUrl,
-      } as any);
+      } as any).select("id").single();
 
       if (studentError) throw studentError;
+
+      // subject_tracks/daily_plan key off the generated uuid (students.id),
+      // not the human-readable text label.
+      const newStudentUuid = (newStudent as { id: string }).id;
 
       // Create default tracks
       const tracks = DEFAULT_TRACKS.map(track => ({
         ...track,
-        student_id: studentId.toUpperCase(),
+        student_id: newStudentUuid,
         enabled: true,
       }));
       const { error: tracksError } = await supabase.from("subject_tracks").insert(tracks as any);
       if (tracksError) console.error("Track creation error:", tracksError);
 
-      // Insert schedule blocks if unknown
+      // Insert schedule blocks if unknown. daily_plan has no time-range
+      // columns (no start_time/end_time/notes/block_order) — only
+      // planned_date/subject/title/status — so the extracted start/end time
+      // and notes are folded into `title` for now rather than dropped
+      // silently; a real per-block time range needs a schema change.
       if (extractedSchedule.length > 0) {
         const today = new Date().toISOString().split("T")[0];
-        const blocks = extractedSchedule.map((row, idx) => ({
-          student_id: studentId.toUpperCase(),
-          plan_date: today,
-          block_order: idx + 1,
+        const blocks = extractedSchedule.map((row) => ({
+          student_id: newStudentUuid,
+          planned_date: today,
           subject: row.subject,
-          start_time: row.start_time,
-          end_time: row.end_time,
-          notes: row.notes || null,
-          status: "Planned",
+          title: `${row.subject} (${row.start_time}-${row.end_time})${row.notes ? ` — ${row.notes}` : ""}`,
+          status: "planned",
         }));
         const { error: blocksError } = await supabase.from("daily_plan").insert(blocks as any);
         if (blocksError) console.error("Schedule block error:", blocksError);

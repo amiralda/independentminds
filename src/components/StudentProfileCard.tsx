@@ -46,7 +46,7 @@ export function StudentProfileCard({ studentId }: Props) {
       const { data, error } = await supabase
         .from("students")
         .select("student_id, display_name, grade_level, date_of_birth, nationality, address, profile_photo_url, enrollment_date, academic_year, parent_name, parent_email, parent_whatsapp")
-        .eq("student_id", studentId)
+        .eq("id", studentId)
         .single();
       if (error) throw error;
       return data as any as StudentData;
@@ -124,7 +124,7 @@ export function StudentProfileCard({ studentId }: Props) {
           grade_level: form.grade_level,
           academic_year: form.academic_year || null,
         })
-        .eq("student_id", studentId);
+        .eq("id", studentId);
       if (error) { console.error("Profile update error:", error); toast.error("Failed to update: " + error.message); return; }
       toast.success("Profile updated!");
       setEditing(false);
@@ -141,11 +141,13 @@ export function StudentProfileCard({ studentId }: Props) {
     if (file.size > 5 * 1024 * 1024) { toast.error("Image must be under 5MB"); return; }
     setUploading(true);
     const ext = file.name.split(".").pop();
-    const path = `${studentId}/avatar.${ext}`;
+    // Storage RLS scopes access by the student's TEXT label (folder name),
+    // matching AddStudentFullForm.tsx's upload convention — not the uuid id.
+    const path = `${student?.student_id || studentId}/avatar.${ext}`;
     const { error: uploadError } = await supabase.storage.from("student-photos").upload(path, file, { upsert: true });
     if (uploadError) { toast.error("Upload failed"); setUploading(false); return; }
     // Store the storage path (not a public URL) — bucket is private; UI signs on read.
-    await supabase.from("students").update({ profile_photo_url: path }).eq("student_id", studentId);
+    await supabase.from("students").update({ profile_photo_url: path }).eq("id", studentId);
     queryClient.invalidateQueries({ queryKey: ["student_profile", studentId] });
     queryClient.invalidateQueries({ queryKey: ["student_photo_signed", studentId] });
     toast.success("Photo updated!");
