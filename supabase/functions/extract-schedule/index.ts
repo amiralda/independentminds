@@ -98,7 +98,7 @@ ${isBase64 ? content.substring(0, 5000) : content.substring(0, 10000)}`;
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "gpt-4.1",
         messages: [
           { role: "system", content: "You extract schedule data from documents. Always respond with valid JSON only, no markdown." },
           { role: "user", content: prompt },

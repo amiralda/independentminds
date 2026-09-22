@@ -248,7 +248,7 @@ Student grade: ${grade}. Subject focus: ${subject}. Language: ${language}.`;
     const response = await fetch(`${AI_GATEWAY_URL}/v1/chat/completions`, {
       method: "POST",
       headers: { Authorization: `Bearer ${AI_GATEWAY_API_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ model: "google/gemini-2.5-flash", messages: aiMessages, stream: true }),
+      body: JSON.stringify({ model: "gpt-4.1", messages: aiMessages, stream: true }),
     });
 
     if (!response.ok) {
