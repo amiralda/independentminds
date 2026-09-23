@@ -20,30 +20,30 @@ export default function Billing() {
   const subscription = useSubscription();
   const [loadingPortal, setLoadingPortal] = useState(false);
   const queryClient = useQueryClient();
-  const [monitorForm, setMonitorForm] = useState({ organization_name: "", reason: "", expected_families_count: "" });
-  const [submittingMonitorRequest, setSubmittingMonitorRequest] = useState(false);
+  const [managerForm, setManagerForm] = useState({ organization_name: "", reason: "", expected_families_count: "" });
+  const [submittingManagerRequest, setSubmittingManagerRequest] = useState(false);
 
-  const { data: isMonitor } = useQuery({
-    queryKey: ["is-monitor", user?.id],
+  const { data: isManager } = useQuery({
+    queryKey: ["is-manager", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("user_roles" as any)
         .select("role")
         .eq("user_id", user!.id)
-        .eq("role", "monitor")
+        .eq("role", "manager")
         .maybeSingle();
       if (error) throw error;
       return !!data;
     },
   });
 
-  const { data: latestMonitorRequest } = useQuery({
-    queryKey: ["monitor-request", user?.id],
-    enabled: !!user?.id && isMonitor === false,
+  const { data: latestManagerRequest } = useQuery({
+    queryKey: ["manager-request", user?.id],
+    enabled: !!user?.id && isManager === false,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("monitor_requests" as any)
+        .from("manager_requests" as any)
         .select("id, status, created_at")
         .eq("user_id", user!.id)
         .order("created_at", { ascending: false })
@@ -54,27 +54,27 @@ export default function Billing() {
     },
   });
 
-  const submitMonitorRequest = async () => {
-    if (!user || !monitorForm.reason.trim()) return;
-    setSubmittingMonitorRequest(true);
+  const submitManagerRequest = async () => {
+    if (!user || !managerForm.reason.trim()) return;
+    setSubmittingManagerRequest(true);
     try {
-      const { error } = await supabase.from("monitor_requests" as any).insert({
+      const { error } = await supabase.from("manager_requests" as any).insert({
         user_id: user.id,
-        organization_name: monitorForm.organization_name.trim() || null,
-        reason: monitorForm.reason.trim(),
-        expected_families_count: monitorForm.expected_families_count
-          ? parseInt(monitorForm.expected_families_count, 10)
+        organization_name: managerForm.organization_name.trim() || null,
+        reason: managerForm.reason.trim(),
+        expected_families_count: managerForm.expected_families_count
+          ? parseInt(managerForm.expected_families_count, 10)
           : null,
       });
       if (error) throw error;
-      toast.success(t("monitorRequest.submitted"));
-      setMonitorForm({ organization_name: "", reason: "", expected_families_count: "" });
-      queryClient.invalidateQueries({ queryKey: ["monitor-request", user.id] });
+      toast.success(t("managerRequest.submitted"));
+      setManagerForm({ organization_name: "", reason: "", expected_families_count: "" });
+      queryClient.invalidateQueries({ queryKey: ["manager-request", user.id] });
     } catch (error: unknown) {
-      console.error("monitor request:", error);
-      toast.error(t("monitorRequest.error"));
+      console.error("manager request:", error);
+      toast.error(t("managerRequest.error"));
     } finally {
-      setSubmittingMonitorRequest(false);
+      setSubmittingManagerRequest(false);
     }
   };
 
@@ -211,55 +211,55 @@ export default function Billing() {
           </div>
         )}
 
-        {/* Request Monitor Access */}
+        {/* Request Manager Access */}
         <div className="rounded-2xl border bg-card p-6 space-y-4">
           <div className="space-y-1">
-            <h2 className="font-display text-xl font-bold">{t("monitorRequest.title")}</h2>
-            <p className="text-sm text-muted-foreground">{t("monitorRequest.description")}</p>
+            <h2 className="font-display text-xl font-bold">{t("managerRequest.title")}</h2>
+            <p className="text-sm text-muted-foreground">{t("managerRequest.description")}</p>
           </div>
 
-          {isMonitor ? (
-            <p className="text-sm font-medium text-emerald-700">{t("monitorRequest.alreadyMonitor")}</p>
-          ) : latestMonitorRequest?.status === "pending" ? (
-            <p className="text-sm font-medium text-amber-700">{t("monitorRequest.pending")}</p>
+          {isManager ? (
+            <p className="text-sm font-medium text-emerald-700">{t("managerRequest.alreadyManager")}</p>
+          ) : latestManagerRequest?.status === "pending" ? (
+            <p className="text-sm font-medium text-amber-700">{t("managerRequest.pending")}</p>
           ) : (
             <div className="space-y-3">
-              {latestMonitorRequest?.status === "rejected" && (
-                <p className="text-sm text-muted-foreground">{t("monitorRequest.rejectedNotice")}</p>
+              {latestManagerRequest?.status === "rejected" && (
+                <p className="text-sm text-muted-foreground">{t("managerRequest.rejectedNotice")}</p>
               )}
               <div>
-                <label className="text-sm font-medium">{t("monitorRequest.organizationLabel")}</label>
+                <label className="text-sm font-medium">{t("managerRequest.organizationLabel")}</label>
                 <Input
                   className="mt-1"
-                  value={monitorForm.organization_name}
-                  onChange={(e) => setMonitorForm((f) => ({ ...f, organization_name: e.target.value }))}
+                  value={managerForm.organization_name}
+                  onChange={(e) => setManagerForm((f) => ({ ...f, organization_name: e.target.value }))}
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">{t("monitorRequest.reasonLabel")}</label>
+                <label className="text-sm font-medium">{t("managerRequest.reasonLabel")}</label>
                 <Textarea
                   className="mt-1"
-                  value={monitorForm.reason}
-                  onChange={(e) => setMonitorForm((f) => ({ ...f, reason: e.target.value }))}
+                  value={managerForm.reason}
+                  onChange={(e) => setManagerForm((f) => ({ ...f, reason: e.target.value }))}
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">{t("monitorRequest.familiesCountLabel")}</label>
+                <label className="text-sm font-medium">{t("managerRequest.familiesCountLabel")}</label>
                 <Input
                   className="mt-1"
                   type="number"
                   min={0}
-                  value={monitorForm.expected_families_count}
-                  onChange={(e) => setMonitorForm((f) => ({ ...f, expected_families_count: e.target.value }))}
+                  value={managerForm.expected_families_count}
+                  onChange={(e) => setManagerForm((f) => ({ ...f, expected_families_count: e.target.value }))}
                 />
               </div>
               <Button
-                onClick={submitMonitorRequest}
-                disabled={submittingMonitorRequest || !monitorForm.reason.trim()}
+                onClick={submitManagerRequest}
+                disabled={submittingManagerRequest || !managerForm.reason.trim()}
                 className="font-display"
               >
-                {submittingMonitorRequest ? <Loader2 size={16} className="mr-2 animate-spin" /> : null}
-                {t("monitorRequest.submit")}
+                {submittingManagerRequest ? <Loader2 size={16} className="mr-2 animate-spin" /> : null}
+                {t("managerRequest.submit")}
               </Button>
             </div>
           )}

@@ -64,7 +64,12 @@ interface NavItem {
   labelKey: string;
 }
 
-const NAV_ITEMS: NavItem[] = [
+// Educator system isn't wired to the database yet -- the tab errors when a
+// parent tries to use it. Hidden (not removed) until it is; flip to true to
+// bring the tab back. EducatorsPanel and its code are untouched.
+const EDUCATORS_TAB_ENABLED = false;
+
+const ALL_NAV_ITEMS: NavItem[] = [
   { key: "activity", icon: Activity, labelKey: "nav.feed" },
   { key: "profile", icon: UserCircle, labelKey: "role.parent" },
   { key: "progress", icon: BarChart3, labelKey: "nav.progress" },
@@ -82,16 +87,19 @@ const NAV_ITEMS: NavItem[] = [
   { key: "inbox", icon: Inbox, labelKey: "nav.inbox" },
 ];
 
+const NAV_ITEMS = ALL_NAV_ITEMS.filter((item) => item.key !== "educators" || EDUCATORS_TAB_ENABLED);
+
 export function DadPanel({ onAddStudent, initialTab }: Props) {
   const { t, lang } = useI18n();
   const { students, selectedStudentId, setSelectedStudentId, setViewingAsStudent, user } = useAuth();
   const studentId = selectedStudentId || "";
   const [menuOpen, setMenuOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<DadTab>(initialTab || "activity");
+  const isTabAvailable = (tab?: DadTab) => !!tab && NAV_ITEMS.some((n) => n.key === tab);
+  const [activeTab, setActiveTab] = useState<DadTab>(isTabAvailable(initialTab) ? initialTab! : "activity");
 
   // Allow parent to switch tab from outside
   useEffect(() => {
-    if (initialTab) setActiveTab(initialTab);
+    if (isTabAvailable(initialTab)) setActiveTab(initialTab!);
   }, [initialTab]);
 
   // Listen for beta task navigation events
@@ -304,7 +312,7 @@ export function DadPanel({ onAddStudent, initialTab }: Props) {
           {activeTab === "records" && <StudentRecords studentId={studentId} />}
           {activeTab === "rewards" && <RewardsManagement studentId={studentId} />}
           {activeTab === "guardians" && <CoGuardiansPanel studentId={studentId} />}
-          {activeTab === "educators" && <EducatorsPanel studentId={studentId} />}
+          {EDUCATORS_TAB_ENABLED && activeTab === "educators" && <EducatorsPanel studentId={studentId} />}
           {activeTab === "inbox" && <InboxPanel />}
           
         </>

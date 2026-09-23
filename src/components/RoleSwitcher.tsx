@@ -6,7 +6,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Users, User, GraduationCap, BookOpenCheck, Check } from "lucide-react";
+import { Users, User, GraduationCap, BookOpenCheck, Briefcase, Check } from "lucide-react";
 
 interface Props {
   roles: ActiveRole[];
@@ -18,6 +18,7 @@ const ROLE_CONFIG: Record<ActiveRole, { icon: React.ElementType; colorClass: str
   parent: { icon: User, colorClass: "text-primary", labelKey: "role.parent" },
   student: { icon: GraduationCap, colorClass: "text-purple-500", labelKey: "role.student" },
   educator: { icon: BookOpenCheck, colorClass: "text-[#D85A30]", labelKey: "role.educator" },
+  manager: { icon: Briefcase, colorClass: "text-emerald-600", labelKey: "role.manager" },
 };
 
 export function RoleSwitcher({ roles, activeRole, onSwitch }: Props) {

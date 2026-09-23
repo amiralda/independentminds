@@ -56,7 +56,7 @@ Deno.serve(async (req) => {
     }
 
     const { data: reqRow, error: fetchErr } = await admin
-      .from("monitor_requests")
+      .from("manager_requests")
       .select("id, user_id, status")
       .eq("id", request_id)
       .maybeSingle();
@@ -72,11 +72,11 @@ Deno.serve(async (req) => {
     }
 
     const { error: updateErr } = await admin
-      .from("monitor_requests")
+      .from("manager_requests")
       .update({ status: decision, reviewed_by: caller.id, reviewed_at: new Date().toISOString() })
       .eq("id", request_id);
     if (updateErr) {
-      console.error("Failed to update monitor_requests:", updateErr);
+      console.error("Failed to update manager_requests:", updateErr);
       return new Response(JSON.stringify({ error: "Failed to update request" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -87,10 +87,10 @@ Deno.serve(async (req) => {
       // any role the requester already has.
       const { error: roleErr } = await admin
         .from("user_roles")
-        .upsert({ user_id: reqRow.user_id, role: "monitor" }, { onConflict: "user_id,role", ignoreDuplicates: true });
+        .upsert({ user_id: reqRow.user_id, role: "manager" }, { onConflict: "user_id,role", ignoreDuplicates: true });
       if (roleErr) {
-        console.error("Failed to grant monitor role:", roleErr);
-        return new Response(JSON.stringify({ error: "Request marked approved but failed to grant monitor role" }), {
+        console.error("Failed to grant manager role:", roleErr);
+        return new Response(JSON.stringify({ error: "Request marked approved but failed to grant manager role" }), {
           status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
@@ -100,7 +100,7 @@ Deno.serve(async (req) => {
       status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
-    console.error("review-monitor-request error:", err);
+    console.error("review-manager-request error:", err);
     return new Response(JSON.stringify({ error: err.message || "Internal error" }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

@@ -32,6 +32,7 @@ import { useBetaTester } from "@/hooks/useBetaTester";
 import { RoleSwitcher } from "@/components/RoleSwitcher";
 import { useRoleSwitcher } from "@/hooks/useRoleSwitcher";
 import { EducatorDashboard } from "@/components/EducatorDashboard";
+import { ManagerDashboard } from "@/components/ManagerDashboard";
 import { SubscriptionGate } from "@/components/SubscriptionGate";
 
 type StudentTab = "today" | "tracks" | "checkin" | "badges" | "trophies" | "library" | "tutor" | "profile" | "rewards";
@@ -292,6 +293,10 @@ const Index = () => {
         ) : role === "educator" ? (
           <div className="py-4">
             <EducatorDashboard />
+          </div>
+        ) : role === "manager" ? (
+          <div className="py-4">
+            <ManagerDashboard />
           </div>
         ) : (
           <div className="py-4">

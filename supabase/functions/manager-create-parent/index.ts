@@ -37,15 +37,15 @@ Deno.serve(async (req) => {
       auth: { autoRefreshToken: false, persistSession: false },
     });
 
-    // Only monitors (or admins, for support) may create a parent this way.
+    // Only managers (or admins, for support) may create a parent this way.
     const { data: roleRows } = await admin
       .from("user_roles")
       .select("role")
       .eq("user_id", caller.id)
-      .in("role", ["monitor", "admin"]);
-    const callerRole = roleRows?.find(r => r.role === "monitor") ? "monitor" : roleRows?.find(r => r.role === "admin") ? "admin" : null;
+      .in("role", ["manager", "admin"]);
+    const callerRole = roleRows?.find(r => r.role === "manager") ? "manager" : roleRows?.find(r => r.role === "admin") ? "admin" : null;
     if (!callerRole) {
-      return new Response(JSON.stringify({ error: "Forbidden: monitor role required" }), {
+      return new Response(JSON.stringify({ error: "Forbidden: manager role required" }), {
         status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -72,7 +72,7 @@ Deno.serve(async (req) => {
         data: {
           adult_confirmed: true,
           display_name: display_name || normalizedEmail.split("@")[0],
-          created_by_monitor: caller.id,
+          created_by_manager: caller.id,
         },
         redirectTo: `${SITE_URL}/reset-password`,
       },
@@ -88,24 +88,24 @@ Deno.serve(async (req) => {
     const actionLink = linkData.properties?.action_link ?? null;
 
     // Marker-only subscriptions row (Part 2 will wire real billing/invoicing
-    // for monitor-covered parents; status 'incomplete' already reads as
+    // for manager-covered parents; status 'incomplete' already reads as
     // "not active" everywhere, same as a brand-new unpaid signup).
     const { error: subErr } = await admin.from("subscriptions").insert({
       user_id: newParentId,
       status: "incomplete",
-      covered_by_monitor_id: caller.id,
+      covered_by_manager_id: caller.id,
     });
     if (subErr) {
       console.error("Failed to create marker subscription row:", subErr);
     }
 
-    const { error: linkErr } = await admin.from("monitor_parents").insert({
-      monitor_id: caller.id,
+    const { error: linkErr } = await admin.from("manager_parents").insert({
+      manager_id: caller.id,
       parent_id: newParentId,
     });
     if (linkErr) {
-      console.error("Failed to create monitor_parents link:", linkErr);
-      return new Response(JSON.stringify({ error: "Parent account created but failed to link to monitor" }), {
+      console.error("Failed to create manager_parents link:", linkErr);
+      return new Response(JSON.stringify({ error: "Parent account created but failed to link to manager" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -119,7 +119,7 @@ Deno.serve(async (req) => {
       status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
-    console.error("monitor-create-parent error:", err);
+    console.error("manager-create-parent error:", err);
     return new Response(JSON.stringify({ error: err.message || "Internal error" }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

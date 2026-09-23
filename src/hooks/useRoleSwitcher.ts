@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
-export type ActiveRole = "parent" | "student" | "educator";
+export type ActiveRole = "parent" | "student" | "educator" | "manager";
 
 interface RoleSwitcherState {
   roles: ActiveRole[];
@@ -44,6 +44,9 @@ export function useRoleSwitcher(): RoleSwitcherState {
           }
           if (r.role === "educator" && !detectedRoles.includes("educator")) {
             detectedRoles.push("educator");
+          }
+          if (r.role === "manager" && !detectedRoles.includes("manager")) {
+            detectedRoles.push("manager");
           }
         }
       }

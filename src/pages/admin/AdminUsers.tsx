@@ -12,31 +12,31 @@ export default function AdminUsers() {
   const [mergeRequests, setMergeRequests] = useState<unknown[]>([]);
   const [roles, setRoles] = useState<unknown[]>([]);
   const [coGuardians, setCoGuardians] = useState<unknown[]>([]);
-  const [monitorRequests, setMonitorRequests] = useState<unknown[]>([]);
+  const [managerRequests, setManagerRequests] = useState<unknown[]>([]);
   const [reviewingId, setReviewingId] = useState<string | null>(null);
   const [stats, setStats] = useState({ parents: 0, admins: 0, pendingMerges: 0, coGuardianCount: 0 });
   const tick = useAutoRefresh();
 
   useEffect(() => {
     const load = async () => {
-      const [profilesRes, mergesRes, rolesRes, guardiansRes, monitorReqRes] = await Promise.all([
+      const [profilesRes, mergesRes, rolesRes, guardiansRes, managerReqRes] = await Promise.all([
         supabase.from("profiles").select("*").order("created_at", { ascending: false }),
         supabase.from("merge_requests").select("*").order("created_at", { ascending: false }).limit(20),
         supabase.from("user_roles").select("*"),
         supabase.from("co_guardians").select("*"),
-        supabase.from("monitor_requests" as any).select("*").order("created_at", { ascending: false }).limit(20),
+        supabase.from("manager_requests" as any).select("*").order("created_at", { ascending: false }).limit(20),
       ]);
       const p = profilesRes.data || [];
       const r = rolesRes.data || [];
       const m = mergesRes.data || [];
       const g = guardiansRes.data || [];
-      const mr = monitorReqRes.data || [];
+      const mr = managerReqRes.data || [];
 
       setProfiles(p);
       setRoles(r);
       setMergeRequests(m);
       setCoGuardians(g);
-      setMonitorRequests(mr);
+      setManagerRequests(mr);
       setStats({
         parents: p.filter((x: unknown) => x.role === "parent").length,
         admins: r.filter((x: unknown) => x.role === "admin").length,
@@ -60,16 +60,16 @@ export default function AdminUsers() {
     }
   };
 
-  const handleMonitorRequest = async (id: string, decision: "approved" | "rejected") => {
+  const handleManagerRequest = async (id: string, decision: "approved" | "rejected") => {
     setReviewingId(id);
     try {
-      const { data, error } = await supabase.functions.invoke("review-monitor-request", {
+      const { data, error } = await supabase.functions.invoke("review-manager-request", {
         body: { request_id: id, decision },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      toast.success(`Monitor request ${decision}`);
-      setMonitorRequests((prev) => prev.map((r: unknown) => (r.id === id ? { ...r, status: decision } : r)));
+      toast.success(`Manager request ${decision}`);
+      setManagerRequests((prev) => prev.map((r: unknown) => (r.id === id ? { ...r, status: decision } : r)));
     } catch (err: unknown) {
       toast.error(err.message || "Failed to review request");
     } finally {
@@ -222,10 +222,10 @@ export default function AdminUsers() {
         </Table>
       </div>
 
-      {/* Monitor Access Requests */}
+      {/* Manager Access Requests */}
       <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
         <div className="p-4 border-b border-white/10">
-          <h2 className="text-white font-semibold">Monitor Access Requests</h2>
+          <h2 className="text-white font-semibold">Manager Access Requests</h2>
         </div>
         <Table>
           <TableHeader>
@@ -239,7 +239,7 @@ export default function AdminUsers() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {monitorRequests.map((r: unknown) => (
+            {managerRequests.map((r: unknown) => (
               <TableRow key={r.id} className="border-white/10 hover:bg-white/5">
                 <TableCell className="text-white/70 text-xs font-mono">{r.user_id?.slice(0, 8)}…</TableCell>
                 <TableCell className="text-white/70 text-xs">{r.organization_name || "—"}</TableCell>
@@ -259,22 +259,22 @@ export default function AdminUsers() {
                         size="sm" variant="outline"
                         className="text-xs h-7 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
                         disabled={reviewingId === r.id}
-                        onClick={() => handleMonitorRequest(r.id, "approved")}
+                        onClick={() => handleManagerRequest(r.id, "approved")}
                       >Approve</Button>
                       <Button
                         size="sm" variant="outline"
                         className="text-xs h-7 border-red-500/30 text-red-400 hover:bg-red-500/10"
                         disabled={reviewingId === r.id}
-                        onClick={() => handleMonitorRequest(r.id, "rejected")}
+                        onClick={() => handleManagerRequest(r.id, "rejected")}
                       >Reject</Button>
                     </div>
                   )}
                 </TableCell>
               </TableRow>
             ))}
-            {monitorRequests.length === 0 && (
+            {managerRequests.length === 0 && (
               <TableRow className="border-white/10">
-                <TableCell colSpan={6} className="text-center text-white/40 py-8">No monitor access requests</TableCell>
+                <TableCell colSpan={6} className="text-center text-white/40 py-8">No manager access requests</TableCell>
               </TableRow>
             )}
           </TableBody>
