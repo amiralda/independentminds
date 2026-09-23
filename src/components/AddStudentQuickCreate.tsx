@@ -61,27 +61,31 @@ export function AddStudentQuickCreate({ open, onClose, onBack }: Props) {
 
     setSaving(true);
     try {
-      const { error: studentError } = await supabase.from("students").insert({
+      const { data: newStudent, error: studentError } = await supabase.from("students").insert({
         student_id: studentId.toUpperCase(),
         display_name: name,
         grade_level: parseInt(grade),
         parent_id: user.id,
         parent_name: user.user_metadata?.display_name || user.email,
         parent_email: user.email,
-      } as any);
+      } as any).select("id").single();
 
       if (studentError) throw studentError;
+
+      // subject_tracks and the selection key off the generated uuid
+      // (students.id), not the human-readable text label.
+      const newStudentUuid = (newStudent as { id: string }).id;
 
       // Create default tracks
       const tracks = DEFAULT_TRACKS.map(track => ({
         ...track,
-        student_id: studentId.toUpperCase(),
+        student_id: newStudentUuid,
         enabled: true,
       }));
       const { error: tracksError } = await supabase.from("subject_tracks").insert(tracks as any);
       if (tracksError) console.error("Track creation error:", tracksError);
 
-      setSelectedStudentId(studentId.toUpperCase());
+      setSelectedStudentId(newStudentUuid);
       refreshStudents();
       setCreated(true);
       toast.success(t("student.created"));

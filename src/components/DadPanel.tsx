@@ -114,7 +114,7 @@ export function DadPanel({ onAddStudent, initialTab }: Props) {
     return () => window.removeEventListener('beta-navigate-tab', handler);
   }, []);
 
-  const selectedStudent = students.find(s => s.student_id === selectedStudentId);
+  const selectedStudent = students.find(s => s.id === selectedStudentId);
   const activeNavItem = NAV_ITEMS.find(n => n.key === activeTab);
 
   return (
@@ -163,35 +163,35 @@ export function DadPanel({ onAddStudent, initialTab }: Props) {
                   {t("dadpanel.students")}
                 </p>
                 {students.map(s => (
-                  <div key={s.student_id} className="flex items-center gap-1">
+                  <div key={s.id} className="flex items-center gap-1">
                     <button
-                      onClick={() => { setSelectedStudentId(s.student_id); setMenuOpen(false); }}
+                      onClick={() => { setSelectedStudentId(s.id); setMenuOpen(false); }}
                       className={`flex-1 flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all ${
-                        selectedStudentId === s.student_id
+                        selectedStudentId === s.id
                           ? "bg-primary/10 text-primary border border-primary/20"
                           : "hover:bg-muted text-foreground"
                       }`}
                     >
                       <div className="w-9 h-9 rounded-full bg-secondary/20 flex items-center justify-center flex-shrink-0">
-                        <GraduationCap size={18} className={selectedStudentId === s.student_id ? "text-primary" : "text-muted-foreground"} />
+                        <GraduationCap size={18} className={selectedStudentId === s.id ? "text-primary" : "text-muted-foreground"} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-sm truncate">{s.display_name}</p>
                         <p className="text-[10px] text-muted-foreground">{t("student.grade")} {s.grade_level}</p>
                       </div>
-                      {selectedStudentId === s.student_id && (
+                      {selectedStudentId === s.id && (
                         <Check size={16} className="text-primary flex-shrink-0" />
                       )}
                     </button>
                     <button
                       onClick={async () => {
-                        setSelectedStudentId(s.student_id);
+                        setSelectedStudentId(s.id);
                         setViewingAsStudent(true);
                         setMenuOpen(false);
                         try {
                           await supabase.from("impersonation_logs" as any).insert({
                             parent_id: user?.id,
-                            student_id: s.student_id,
+                            student_id: s.id,
                             action: "start",
                           } as any);
                         } catch (error) {

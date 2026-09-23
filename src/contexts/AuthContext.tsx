@@ -18,10 +18,13 @@ interface ProfileRow {
   onboarding_complete: boolean | null;
 }
 
+// selectedStudentId is always a StudentRecord.id (students.id, uuid) --
+// every per-student table keys on that uuid, never on the text student_id label.
 interface StudentRecord {
   id: string;
   student_id: string | null;
   display_name: string;
+  grade_level: number | null;
   parent_id: string | null;
 }
 
@@ -188,20 +191,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Fetch students where user is primary parent
     const { data: ownStudents } = await supabase
       .from("students")
-      .select("id, student_id, display_name, parent_id")
+      .select("id, student_id, display_name, grade_level, parent_id")
       .eq("parent_id", session.user.id)
       .order("display_name");
 
     // Co-guardian student access was never implemented backend-side
     // (get_co_guardian_students RPC does not exist) — only own students for now.
-    const allStudents = (ownStudents || []) as StudentRecord[];
+    // via unknown: the generated types.ts predates students.grade_level
+    // (the column exists in the database).
+    const allStudents = (ownStudents || []) as unknown as StudentRecord[];
 
     setStudents(allStudents);
-    if (!selectedStudentId && allStudents.length > 0) {
+    if (allStudents.length === 0) return;
+    // Keep the current selection only if it is one of these students' uuids;
+    // otherwise (none yet, a deleted student, a legacy text label) re-pick.
+    // Functional update: this runs async (e.g. refreshStudents() right after
+    // adding a student), so the closed-over selectedStudentId may be stale.
+    setSelectedStudentId(prev => {
+      if (prev && allStudents.some(s => s.id === prev)) return prev;
       const saved = typeof window !== "undefined" ? window.localStorage.getItem("im_selected_student") : null;
       const found = allStudents.find(s => s.id === saved);
-      setSelectedStudentId(found ? found.id : allStudents[0].id);
-    }
+      return found ? found.id : allStudents[0].id;
+    });
   };
 
   const refreshStudents = () => {

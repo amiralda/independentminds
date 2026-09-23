@@ -1,5 +1,39 @@
 # Activity Log
 
+## 2026-09-23 — selectedStudentId is the student uuid everywhere (DadPanel/AuthContext and friends)
+- Summary: AuthContext selected students by `students.id` (uuid), but DadPanel, StudentSwitcherDropdown, StudentSelector and Index compared or set the text label `students.student_id` (e.g. "CH1312-94606"). That caused three visible problems:
+  - The selected student was never highlighted in the sidebar.
+  - The top student card (StudentSwitcherDropdown) was hidden.
+  - Picking the student in the menu turned the selection into the text label, so every per-student tab queried uuid FK columns with text and got 400s / empty data.
+
+  Every per-student table (`daily_plan`, `check_ins`, `subject_tracks`, `reward_points`, `reward_redemptions`, `achievements`, `activity_logs`, `ai_conversations`, `learning_tools`) has `student_id uuid → students(id)`, confirmed in the DB. Fix: all selection/compare/key sites now use `s.id`:
+  - DadPanel (menu, highlight, "view as student", impersonation log payload)
+  - StudentSwitcherDropdown
+  - StudentSelector
+  - Index "viewing as student" lookup
+  - TelegramSettings `students` lookups (`.eq("id", …)`)
+
+  Both add-student flows now select the new student by its uuid. AddStudentQuickCreate now gets the uuid back (`.select("id").single()`), which also fixes its `subject_tracks` insert that sent the text label into a uuid column.
+
+  AuthContext changes:
+  - It loads `grade_level` for the card, which was previously "Grade undefined". A missing grade is now hidden.
+  - It re-picks the selection when the stored one isn't one of the parent's uuids (deleted student / legacy text label in `im_selected_student`).
+  - This uses a functional state update so an async `refreshStudents()` right after adding a student can't clobber the new selection.
+
+  EducatorDashboard keeps its own local selection (educator system is hidden/unwired) and was not touched.
+- Files touched: `src/contexts/AuthContext.tsx`, `src/components/DadPanel.tsx`, `src/components/StudentSwitcherDropdown.tsx`, `src/components/StudentSelector.tsx`, `src/pages/Index.tsx`, `src/components/TelegramSettings.tsx`, `src/components/AddStudentFullForm.tsx`, `src/components/AddStudentQuickCreate.tsx`, `CLAUDE.md`, `docs/ACTIVITY_LOG.md`.
+- Validation: tsc 0 new errors and 4 fewer (472 → 468; the stale generated types.ts lacks `students.grade_level`, hence one `as unknown` cast); `eslint src` clean; build PASS; vitest 96/96.
+  - Real-browser E2E (Playwright, Pixel 7 viewport, real login as test-parent, local builds against production Supabase), BEFORE (HEAD 5573097) vs AFTER, each with fresh storage and with a legacy text label pre-seeded in `im_selected_student`:
+    - Before: top card NOT shown, menu highlight false, menu click stores the TEXT LABEL, Tracks tab requests `student_id=eq.TEST-0001` → 400 ×3, track not shown.
+    - After (both storage cases): selection = uuid, top card shown ("Test Student"), menu highlight true, menu click keeps the uuid, Tracks tab requests by uuid → 200, the track is displayed.
+  - Temporary test track removed; no E2E leftovers.
+- Risks + rollback: `git revert` this commit (frontend only, no DB change). Any browser holding a legacy text label in `im_selected_student` is auto-corrected to the uuid on the next load.
+- Blockers/human actions needed, found and NOT fixed (separate pre-existing bugs, same "code vs real schema" class):
+  - (1) **Admin → Students tab is empty**: `AdminStudents.tsx` selects `students.updated_at`, which doesn't exist → PostgREST 400 (42703); the component ignores `error` and renders "No students found". The same query without `updated_at` returns all 3 students as admin (RLS is fine).
+  - (2) `students.monitoring_enabled` (TelegramSettings hourly-monitor toggle) doesn't exist.
+  - (3) Tables `impersonation_logs` and `currency_settings` don't exist (impersonation logging and currency settings silently no-op).
+  - (4) `src/integrations/supabase/types.ts` is stale vs the live schema; regenerating it would surface this whole class at compile time.
+
 ## 2026-09-23 — Fix multi-role accounts defaulting to "student" (AuthContext)
 - Summary: Reported bug: Dany AUGUSTIN's account (`parent` + `admin`) showed the student view on mobile Brave. Root cause is in `AuthContext.tsx`: it read `user_roles` with `.maybeSingle()`, which errors (PGRST116) on more than one row. That error was never checked, so `roleRow` was null and `profile.role` fell back to `"student"`. `useRoleSwitcher` then saw `["student","parent"]` and, with no saved `im_active_role` in localStorage, defaulted to the first entry, `"student"`. Desktop looked fine only because the role had been switched there once and saved. Nothing about this is mobile- or Brave-specific (Brave Shields don't block first-party localStorage); a fresh/private/cleared browser storage just exposes it. Dates from 2026-08-30 (`0256878`), not from this week's changes. It affected every multi-role account: Dany, Aristilde Deslande (`manager` + `parent`), test-admin.
   Fix: AuthContext now reads ALL `user_roles` rows and picks the primary role with new `resolvePrimaryRole()` (`src/lib/profile.ts`), a pure, unit-tested helper:

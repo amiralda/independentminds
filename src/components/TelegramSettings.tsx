@@ -51,7 +51,7 @@ export function TelegramSettings() {
       const { data, error } = await supabase
         .from("students")
         .select("monitoring_enabled")
-        .eq("student_id", selectedStudentId!)
+        .eq("id", selectedStudentId!)
         .single();
       if (error) throw error;
       return (data as any)?.monitoring_enabled as boolean ?? true;
@@ -63,7 +63,7 @@ export function TelegramSettings() {
       const { error } = await supabase
         .from("students")
         .update({ monitoring_enabled: enabled } as any)
-        .eq("student_id", selectedStudentId!);
+        .eq("id", selectedStudentId!);
       if (error) throw error;
     },
     onSuccess: (_, enabled) => {

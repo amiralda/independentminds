@@ -237,7 +237,7 @@ export function AddStudentFullForm({ open, onClose, onBack }: Props) {
       }
 
       toast.success(t("student.created"));
-      setSelectedStudentId(studentId.toUpperCase());
+      setSelectedStudentId(newStudentUuid);
       refreshStudents();
       resetAndClose();
     } catch (err: unknown) {

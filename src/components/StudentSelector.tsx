@@ -33,7 +33,7 @@ export function StudentSelector({ onAddStudent }: Props) {
         </SelectTrigger>
         <SelectContent>
           {students.map(s => (
-            <SelectItem key={s.student_id} value={s.student_id}>
+            <SelectItem key={s.id} value={s.id}>
               <span className="flex items-center gap-2">
                 <GraduationCap size={14} />
                 {s.display_name}

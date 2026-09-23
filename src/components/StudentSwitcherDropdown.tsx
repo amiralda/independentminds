@@ -12,7 +12,7 @@ export function StudentSwitcherDropdown() {
   const { t } = useI18n();
   const { students, selectedStudentId, setSelectedStudentId } = useAuth();
 
-  const selected = students.find(s => s.student_id === selectedStudentId);
+  const selected = students.find(s => s.id === selectedStudentId);
 
   if (!selected) return null;
 
@@ -27,7 +27,7 @@ export function StudentSwitcherDropdown() {
             {selected.display_name}
           </p>
           <p className="text-[10px] text-muted-foreground">
-            {`${t("student.gradeLabel")} ${selected.grade_level}`}
+            {selected.grade_level != null ? `${t("student.gradeLabel")} ${selected.grade_level}` : ""}
           </p>
         </div>
       </div>
@@ -48,7 +48,7 @@ export function StudentSwitcherDropdown() {
             {selected.display_name}
           </p>
           <p className="text-[10px] text-muted-foreground">
-            {`${t("student.gradeLabel")} ${selected.grade_level}`}
+            {selected.grade_level != null ? `${t("student.gradeLabel")} ${selected.grade_level}` : ""}
           </p>
         </div>
         <ChevronDown size={14} className="text-muted-foreground flex-shrink-0" />
@@ -56,10 +56,10 @@ export function StudentSwitcherDropdown() {
       <DropdownMenuContent align="start" className="w-56">
         {students.map(s => (
           <DropdownMenuItem
-            key={s.student_id}
-            onClick={() => setSelectedStudentId(s.student_id)}
+            key={s.id}
+            onClick={() => setSelectedStudentId(s.id)}
             className={`flex items-center gap-3 ${
-              s.student_id === selectedStudentId ? "bg-primary/10" : ""
+              s.id === selectedStudentId ? "bg-primary/10" : ""
             }`}
           >
             <div className="w-7 h-7 rounded-full bg-secondary/20 flex items-center justify-center flex-shrink-0">
@@ -68,7 +68,7 @@ export function StudentSwitcherDropdown() {
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium truncate">{s.display_name}</p>
               <p className="text-[10px] text-muted-foreground">
-                {`${t("student.gradeLabel")} ${s.grade_level}`}
+                {s.grade_level != null ? `${t("student.gradeLabel")} ${s.grade_level}` : ""}
               </p>
             </div>
           </DropdownMenuItem>

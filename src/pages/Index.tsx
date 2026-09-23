@@ -57,7 +57,7 @@ const Index = () => {
   // When parent is viewing as student, treat role as "student" for rendering
   const role = (effectiveRole === "parent" && viewingAsStudent) ? "student" : effectiveRole;
   const studentId = selectedStudentId;
-  const viewingStudent = viewingAsStudent ? students.find(s => s.student_id === selectedStudentId) : null;
+  const viewingStudent = viewingAsStudent ? students.find(s => s.id === selectedStudentId) : null;
   const displayName = viewingAsStudent && viewingStudent ? viewingStudent.display_name : (profile?.username || profile?.displayName || "User");
 
   const { data: blocks = [], isLoading } = useDailyBlocks(studentId);
