@@ -6,6 +6,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { ArrowLeft, ArrowRight, Camera, Upload, FileText, Check, X, Loader2 } from "lucide-react";
 import { generateStudentId } from "@/lib/generateStudentId";
@@ -56,6 +60,10 @@ export function AddStudentFullForm({ open, onClose, onBack }: Props) {
   const [extractedSchedule, setExtractedSchedule] = useState<ScheduleRow[]>([]);
   const [extracting, setExtracting] = useState(false);
   const [scheduleValidated, setScheduleValidated] = useState(false);
+
+  // Global duplicate warning: set when another student with the same name +
+  // DOB exists anywhere on the platform. A warning, not a block.
+  const [duplicateWarningOpen, setDuplicateWarningOpen] = useState(false);
 
   // Auto-generate student ID from name + DOB
   useEffect(() => {
@@ -140,7 +148,7 @@ export function AddStudentFullForm({ open, onClose, onBack }: Props) {
     setScheduleValidated(false);
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (skipDuplicateCheck = false) => {
     if (!name.trim() || !studentId.trim() || !user) {
       toast.error(t("student.nameIdRequired"));
       return;
@@ -148,6 +156,22 @@ export function AddStudentFullForm({ open, onClose, onBack }: Props) {
 
     setSaving(true);
     try {
+      // RLS only lets a parent see their own family's students, so the check
+      // runs through student_duplicate_exists — a SECURITY DEFINER RPC that
+      // searches every family but returns only true/false (no other family's
+      // data). Skipped without a DOB: name alone is too common platform-wide.
+      if (!skipDuplicateCheck && dob) {
+        const { data: exists, error: dupError } = await supabase.rpc("student_duplicate_exists" as any, {
+          p_display_name: name,
+          p_date_of_birth: dob,
+        } as any);
+        if (dupError) console.error("Duplicate check error:", dupError);
+        else if (exists === true) {
+          setDuplicateWarningOpen(true);
+          return;
+        }
+      }
+
       let photoUrl: string | null = null;
 
       // Upload photo if provided
@@ -237,6 +261,7 @@ export function AddStudentFullForm({ open, onClose, onBack }: Props) {
     setScheduleFile(null);
     setExtractedSchedule([]);
     setScheduleValidated(false);
+    setDuplicateWarningOpen(false);
     onClose();
   };
 
@@ -489,7 +514,7 @@ export function AddStudentFullForm({ open, onClose, onBack }: Props) {
               <Button variant="outline" onClick={() => setStep(2)}>
                 <ArrowLeft size={14} className="mr-1" /> {t("action.back")}
               </Button>
-              <Button onClick={handleSubmit} disabled={saving} className="font-display bg-secondary text-secondary-foreground hover:bg-secondary/90">
+              <Button onClick={() => handleSubmit()} disabled={saving} className="font-display bg-secondary text-secondary-foreground hover:bg-secondary/90">
                 {saving ? <Loader2 size={14} className="mr-2 animate-spin" /> : <Check size={14} className="mr-2" />}
                 {saving ? t("loading") : t("student.createStudent")}
               </Button>
@@ -497,6 +522,26 @@ export function AddStudentFullForm({ open, onClose, onBack }: Props) {
           </div>
         )}
       </DialogContent>
+
+      <AlertDialog open={duplicateWarningOpen} onOpenChange={setDuplicateWarningOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("student.duplicateTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("student.duplicateBody")}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("student.duplicateCancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setDuplicateWarningOpen(false);
+                handleSubmit(true);
+              }}
+            >
+              {t("student.duplicateContinue")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 }

@@ -7,7 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useI18n } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/useSubscription";
-import { PLAN_BY_KEY, type PlanKey } from "@/config/plans";
+import { PLAN_BY_KEY, type AssignablePlanKey } from "@/config/plans";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -92,7 +92,7 @@ export default function Billing() {
     },
   });
 
-  const plan = subscription.planKey ? PLAN_BY_KEY[subscription.planKey as PlanKey] : null;
+  const plan = subscription.planKey ? PLAN_BY_KEY[subscription.planKey as AssignablePlanKey] ?? null : null;
 
   const stateNotice = useMemo(() => {
     const state = searchParams.get("state");

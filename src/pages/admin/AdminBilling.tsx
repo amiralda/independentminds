@@ -1,7 +1,9 @@
-import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { CreditCard, AlertTriangle, Loader2 } from "lucide-react";
+import { useMemo, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { CreditCard, AlertTriangle, Loader2, Save } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { ASSIGNABLE_PLAN_KEYS, PLAN_BY_KEY } from "@/config/plans";
 
 interface SubscriptionRow {
   user_id: string;
@@ -21,6 +23,11 @@ interface BillingEventRow {
 }
 
 export default function AdminBilling() {
+  const queryClient = useQueryClient();
+  // Pending plan edits keyed by user_id; absent = unchanged.
+  const [planDrafts, setPlanDrafts] = useState<Record<string, string>>({});
+  const [savingUserId, setSavingUserId] = useState<string | null>(null);
+
   const { data, isLoading, error } = useQuery({
     queryKey: ["admin-billing"],
     queryFn: async () => {
@@ -54,6 +61,32 @@ export default function AdminBilling() {
     }
     return counts;
   }, [data?.subscriptions]);
+
+  // admin_set_plan_key is an admin-only SECURITY DEFINER RPC that updates
+  // subscriptions.plan_key only (admins have no direct UPDATE policy).
+  const savePlan = async (userId: string) => {
+    const planKey = planDrafts[userId];
+    if (!planKey) return;
+    setSavingUserId(userId);
+    try {
+      const { error: rpcError } = await supabase.rpc("admin_set_plan_key" as any, {
+        p_user_id: userId,
+        p_plan_key: planKey,
+      } as any);
+      if (rpcError) throw rpcError;
+      toast.success(`Plan updated to ${PLAN_BY_KEY[planKey as keyof typeof PLAN_BY_KEY]?.name ?? planKey}`);
+      setPlanDrafts((prev) => {
+        const next = { ...prev };
+        delete next[userId];
+        return next;
+      });
+      await queryClient.invalidateQueries({ queryKey: ["admin-billing"] });
+    } catch (err: unknown) {
+      toast.error((err as Error).message || "Failed to update plan");
+    } finally {
+      setSavingUserId(null);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -103,15 +136,47 @@ export default function AdminBilling() {
                 <th className="text-left px-4 py-2">Plan</th>
                 <th className="text-left px-4 py-2">Status</th>
                 <th className="text-left px-4 py-2">Period End</th>
+                <th className="text-left px-4 py-2">Change Plan</th>
               </tr>
             </thead>
             <tbody>
               {data?.subscriptions.map((row) => (
-                <tr key={`${row.user_id}-${row.plan_key}`} className="border-t border-white/10 text-white/90">
+                <tr key={row.user_id} className="border-t border-white/10 text-white/90">
                   <td className="px-4 py-2">{row.profiles?.display_name || row.user_id}</td>
                   <td className="px-4 py-2 uppercase">{row.plan_key}</td>
                   <td className="px-4 py-2 capitalize">{row.status}</td>
                   <td className="px-4 py-2">{row.current_period_end ? new Date(row.current_period_end).toLocaleString() : "-"}</td>
+                  <td className="px-4 py-2">
+                    <div className="flex items-center gap-2">
+                      <select
+                        aria-label={`Plan for ${row.profiles?.display_name || row.user_id}`}
+                        value={planDrafts[row.user_id] ?? row.plan_key ?? "basic"}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          setPlanDrafts((prev) => {
+                            const next = { ...prev };
+                            if (value === row.plan_key) delete next[row.user_id];
+                            else next[row.user_id] = value;
+                            return next;
+                          });
+                        }}
+                        className="rounded-md border border-white/20 bg-slate-900 px-2 py-1 text-white"
+                      >
+                        {ASSIGNABLE_PLAN_KEYS.map((key) => (
+                          <option key={key} value={key}>{PLAN_BY_KEY[key].name}</option>
+                        ))}
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => savePlan(row.user_id)}
+                        disabled={!planDrafts[row.user_id] || savingUserId === row.user_id}
+                        className="inline-flex items-center gap-1 rounded-md bg-white/10 px-2 py-1 text-xs font-medium text-white hover:bg-white/20 disabled:opacity-40"
+                      >
+                        {savingUserId === row.user_id ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />}
+                        Save
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
