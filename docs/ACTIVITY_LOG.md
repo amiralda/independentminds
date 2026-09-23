@@ -1,5 +1,28 @@
 # Activity Log
 
+## 2026-09-23 — Fix multi-role accounts defaulting to "student" (AuthContext)
+- Summary: Reported bug: Dany AUGUSTIN's account (`parent` + `admin`) showed the student view on mobile Brave. Root cause is in `AuthContext.tsx`: it read `user_roles` with `.maybeSingle()`, which errors (PGRST116) on more than one row. That error was never checked, so `roleRow` was null and `profile.role` fell back to `"student"`. `useRoleSwitcher` then saw `["student","parent"]` and, with no saved `im_active_role` in localStorage, defaulted to the first entry, `"student"`. Desktop looked fine only because the role had been switched there once and saved. Nothing about this is mobile- or Brave-specific (Brave Shields don't block first-party localStorage); a fresh/private/cleared browser storage just exposes it. Dates from 2026-08-30 (`0256878`), not from this week's changes. It affected every multi-role account: Dany, Aristilde Deslande (`manager` + `parent`), test-admin.
+  Fix: AuthContext now reads ALL `user_roles` rows and picks the primary role with new `resolvePrimaryRole()` (`src/lib/profile.ts`), a pure, unit-tested helper:
+  - `parent` first, because the app keys the parent experience off `profile.role === "parent"` (student list fetch in AuthContext, 5 `isParent` checks).
+  - Then `manager` → `educator` → `admin` in a fixed order, since rows come back unordered.
+  - Then any other non-student role.
+  - `"student"` only when that is genuinely all the account has.
+
+  Single-role accounts resolve exactly as before. A failed roles read now retries like a failed profile read instead of being taken as "no roles". The saved active role in localStorage still takes precedence in `useRoleSwitcher` (unchanged).
+- Files touched: `src/contexts/AuthContext.tsx`, `src/lib/profile.ts`, `src/lib/profile.test.ts`, `CLAUDE.md`, `docs/ACTIVITY_LOG.md`.
+- Validation: tsc 0 new errors (472 pre-existing, identical set); `eslint src` clean; build PASS; vitest 96/96 (4 new `resolvePrimaryRole` tests).
+  - Real-browser E2E (Playwright, fresh context = empty localStorage, Pixel 7 mobile viewport, real login, reading Index's `data-role`):
+    - Production **before** the fix: test-admin (`admin,parent`, Dany's shape) → `student` (bug reproduced); test-parent → `parent`.
+    - Local build of the fix against production Supabase:
+      - test-admin → `parent`.
+      - test-parent temporarily `manager,parent` (Aristilde's shape) → `parent`.
+      - test-parent temporarily `student` only → `student`, so no false positive.
+      - test-parent `parent` → `parent`.
+  - test-parent's roles were restored to `[parent]`, and all accounts' roles were verified identical to before.
+  - Dany/Aristilde were not logged into directly (no credentials); their exact role shapes were covered by the cases above.
+- Risks + rollback: `git revert` this commit (frontend-only; no DB change). Behaviour change for multi-role users with no saved choice: they now land on their real role instead of the student view.
+- Blockers/human actions needed: Users whose browser already saved `im_active_role="student"` while multi-role will no longer be matched to it (student is no longer in their detected roles), so they fall back to parent automatically. No action needed.
+
 ## 2026-09-23 — Revoke anon/PUBLIC EXECUTE on get_managed_parent_ids
 - Summary: `get_managed_parent_ids(_uid)` is SECURITY DEFINER and trusts its `_uid` argument. Before this change it was executable by PUBLIC and anon, so a signed-out caller could POST `/rest/v1/rpc/get_managed_parent_ids` with any user's id and get the real parent ids linked to them via manager_parents/co_guardians. The exposure was 0 in production at the time (0 links existed), but it was confirmed in a rolled-back simulation. Migration `20260923120000_revoke_anon_get_managed_parent_ids.sql`: `REVOKE EXECUTE … FROM PUBLIC, anon`, while authenticated/service_role keep it, because the 13 "parent manages X" RLS policies call it as `get_managed_parent_ids(auth.uid())` under the caller's role.
 - Files touched: `supabase/migrations/20260923120000_revoke_anon_get_managed_parent_ids.sql` (new), `CLAUDE.md`, `docs/ACTIVITY_LOG.md`.

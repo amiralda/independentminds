@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Session, User } from "@supabase/supabase-js";
-import { resolveProfileDisplayName } from "@/lib/profile";
+import { resolveProfileDisplayName, resolvePrimaryRole } from "@/lib/profile";
 
 type Role = "student" | "parent";
 
@@ -103,22 +103,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let cancelled = false;
 
     const fetchProfile = async (retries = 3) => {
-      const [{ data, error }, { data: roleRow }] = await Promise.all([
+      const [{ data, error: profileError }, { data: roleRows, error: rolesError }] = await Promise.all([
         supabase
           .from("profiles")
           .select("display_name, language_pref, onboarding_complete")
           .eq("id", session.user.id)
           .maybeSingle<ProfileRow>(),
+        // All rows, not .maybeSingle(): an account can hold several roles
+        // (e.g. parent + admin), and maybeSingle() errors on >1 row, which
+        // used to silently turn such accounts into "student".
         supabase
           .from("user_roles")
           .select("role")
-          .eq("user_id", session.user.id)
-          .maybeSingle(),
+          .eq("user_id", session.user.id),
       ]);
 
       if (cancelled) return;
 
-      const role = (roleRow?.role as Role) || "student";
+      const role = resolvePrimaryRole((roleRows ?? []).map((r: { role: string }) => r.role)) as Role;
+      // A failed roles read must not be mistaken for "no roles" (= student):
+      // retry it the same way as a failed profile read.
+      const error = profileError ?? rolesError;
 
       if (error) {
         console.error("Failed to load profile", error);
