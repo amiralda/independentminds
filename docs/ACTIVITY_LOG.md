@@ -1,5 +1,19 @@
 # Activity Log
 
+## 2026-09-23 — Revoke anon/PUBLIC EXECUTE on get_managed_parent_ids
+- Summary: `get_managed_parent_ids(_uid)` is SECURITY DEFINER and trusts its `_uid` argument. Before this change it was executable by PUBLIC and anon, so a signed-out caller could POST `/rest/v1/rpc/get_managed_parent_ids` with any user's id and get the real parent ids linked to them via manager_parents/co_guardians. The exposure was 0 in production at the time (0 links existed), but it was confirmed in a rolled-back simulation. Migration `20260923120000_revoke_anon_get_managed_parent_ids.sql`: `REVOKE EXECUTE … FROM PUBLIC, anon`, while authenticated/service_role keep it, because the 13 "parent manages X" RLS policies call it as `get_managed_parent_ids(auth.uid())` under the caller's role.
+- Files touched: `supabase/migrations/20260923120000_revoke_anon_get_managed_parent_ids.sql` (new), `CLAUDE.md`, `docs/ACTIVITY_LOG.md`.
+- Validation: tsc 0 new errors (472 pre-existing); `npm run lint` over `src` clean; build PASS; vitest 92/92. The Supabase advisor no longer reports the anon SECURITY DEFINER finding.
+  - Live HTTP, anon: the RPC went from 200 + ids to **401 `permission denied for function get_managed_parent_ids`**. All 13 RLS tables now return 401 to anon; `inbox_messages`/`rewards_catalog`/`schedule_templates` changed from `[]` to 401, and no public page queries them (checked routes, AuthContext and syncManager).
+  - Live HTTP, RLS with real accounts: a parent sees their own students and subject_tracks; a manager sees the managed family's student and the dashboard RPC shows student_count=1; admin still reads all.
+  - Same family through a co-guardian link only: the student is visible.
+  - With no link, isolation holds (0 rows).
+  - All test data was cleaned up (family auth user, student, links, temporary manager role); Aristilde Deslande is still `[manager, parent]`.
+- Risks + rollback: `GRANT EXECUTE ON FUNCTION public.get_managed_parent_ids(uuid) TO PUBLIC, anon;`. Behaviour change: anon queries on the 13 tables now error (401) instead of returning `[]`.
+- Blockers/human actions needed:
+  - **Remaining gap, not fixed:** a *signed-in* user can still call the RPC directly with another user's `_uid` and receive linked parent ids (ids only; RLS still blocks the data itself). It cannot be closed by revoking from authenticated, since RLS needs it. It needs the function to ignore `_uid` unless it equals `auth.uid()` (or a separate RLS-only helper).
+  - `npm run lint` currently fails on 4 errors, all in the uncommitted, user-owned reminder functions (checkin-reminder/daily-report/morning-reminder/weekly-badge: `result.ok ? sent++ : failed++`). They are not in any commit and were left untouched on purpose.
+
 ## 2026-09-22 — Task 6/6: Manager dashboard
 - Summary: New `ManagerDashboard.tsx`, rendered by Index.tsx when the active role is `manager`. `useRoleSwitcher` now detects the `manager` user_roles row and RoleSwitcher has a Manager entry, so Aristilde Deslande (`[manager, parent]`) gets a Parent/Manager switcher. The families list comes from new `get_my_managed_families()` (SECURITY DEFINER, filtered on `manager_id = auth.uid()`, the same `manager_parents` link the families' RLS uses). It returns only parent_id/display_name/email/student_count/added_at and never the full profile (e.g. `telegram_chat_id`); a row-level policy on `profiles` was rejected for that reason. An "Add family" form calls `manager-create-parent` and shows the returned invite link with a copy button. No other UI called that function before. All new strings are in 10 languages (`manager.*`, `role.manager`).
 - Files touched: `src/components/ManagerDashboard.tsx` (new), `src/pages/Index.tsx`, `src/hooks/useRoleSwitcher.ts`, `src/components/RoleSwitcher.tsx`, `src/lib/i18n.tsx`, `supabase/migrations/20260922190000_rename_monitor_to_manager.sql` (function `get_my_managed_families`). Commit `0b63dc6`.

@@ -64,8 +64,8 @@ Never skip this step. Never put long logs in
 CLAUDE.md — details go in ACTIVITY_LOG.md only.
 
 ## Recent
+2026-09-23 — Revoke anon/PUBLIC EXECUTE on get_managed_parent_ids — Done: anon RPC now 401 instead of returning linked parent ids; parent/manager/co-guardian/admin RLS re-verified live, test data cleaned. Remaining gap: signed-in users can still call it with another _uid (ids only). See docs/ACTIVITY_LOG.md.
 2026-09-22 — Task 6/6 Manager dashboard — Done: families list (name, student count, date added) via get_my_managed_families() scoped to manager_id=auth.uid() + Add family → manager-create-parent + invite link; E2E PASS, commit 0b63dc6, Vercel READY. See docs/ACTIVITY_LOG.md.
 2026-09-22 — Task 5/6 Hide Educator tab — Done: DadPanel Educators tab hidden behind EDUCATORS_TAB_ENABLED=false (code kept; system not wired to DB); build PASS, commit 0b63dc6.
 2026-09-22 — Task 4/6 Monitor→Manager rename — Done: RENAME-only migration, user_roles updated in place (Aristilde Deslande = [manager, parent]), get_managed_parent_ids() recreated; old functions = 410 stubs (delete after supabase login); E2E PASS, commit 0b63dc6.
 2026-09-22 — Task 3/6 Super Pro + admin plan editor — Done: super_pro (status-based gates, trigger blocks stripe-webhook reverts), AdminBilling dropdown via admin-only RPC, Dany = super_pro; E2E PASS, commit ecc1d50.
-2026-09-22 — Task 2/6 Global duplicate-student warning — Done: boolean-only SECURITY DEFINER RPC + continue/cancel dialog in AddStudentFullForm; E2E PASS, commit ecc1d50.
