@@ -1,21 +1,98 @@
 # Activity Log
 
-## 2026-09-22 (6th follow-up) — Rename Monitor → Manager platform-wide; hide Educators tab; Manager dashboard
-- Summary: Three tasks, one continuous flow.
-  **Task 1 — Monitor → Manager (rename, no data loss):** Migration `20260922190000_rename_monitor_to_manager.sql` uses only RENAME/UPDATE: `monitor_parents`→`manager_parents` (`monitor_id`→`manager_id`), `monitor_requests`→`manager_requests`, `subscriptions.covered_by_monitor_id`→`covered_by_manager_id`, all their constraints + policies renamed, `user_roles` CHECK swapped `'monitor'`→`'manager'` with an in-place `UPDATE` (Aristilde Deslande's row kept, now `manager`). Critical catch: `get_managed_parent_ids()` (RLS helper behind 13 "parent manages X" policies) references the table by NAME in its SQL body, which does not follow a rename — recreated in the same transaction against `manager_parents`, otherwise every parent would have lost access to their data. Edge functions renamed via `git mv`: `monitor-create-parent`→`manager-create-parent`, `review-monitor-request`→`review-manager-request` (contents updated; auth metadata key `created_by_monitor`→`created_by_manager`). Frontend: Billing.tsx "Request Manager Access" section, AdminUsers.tsx "Manager Access Requests", i18n keys `monitorRequest.*`→`managerRequest.*` (HT: "Mande Aksè Manager"). Deliberately NOT renamed (unrelated to the role): hourly-monitor, dns-monitor, dns_monitor_history, `monitoring_enabled`, the lucide `Monitor` icon, "help monitor a student" copy. Historical migrations left untouched (immutable history).
-  **Task 2 — Educators tab hidden:** `DadPanel.tsx` gets `EDUCATORS_TAB_ENABLED = false`; the nav item is filtered out, the panel render is guarded, and `initialTab`/beta-navigate can no longer land on it. No Educator code removed — flip the flag to restore.
-  **Task 3 — Manager dashboard:** New `ManagerDashboard.tsx` rendered by Index.tsx when active role is `manager` (`useRoleSwitcher` now detects the `manager` user_roles row; RoleSwitcher has a Manager entry, so Aristilde gets a Parent/Manager switcher). Lists families via new `get_my_managed_families()` (SECURITY DEFINER, `manager_id = auth.uid()` — same link the RLS uses; returns only parent_id/display_name/email/student_count/added_at, never the full profile e.g. telegram_chat_id). "Add family" form calls `manager-create-parent` and shows the returned invite link with a copy button (no other UI invoked that function before). All new strings in 10 languages.
-- Files touched: `supabase/migrations/20260922190000_rename_monitor_to_manager.sql` (new), `supabase/functions/manager-create-parent/index.ts` (renamed from monitor-create-parent), `supabase/functions/review-manager-request/index.ts` (renamed from review-monitor-request), `src/components/ManagerDashboard.tsx` (new), `src/components/DadPanel.tsx`, `src/components/RoleSwitcher.tsx`, `src/hooks/useRoleSwitcher.ts`, `src/pages/Index.tsx`, `src/pages/Billing.tsx`, `src/pages/admin/AdminUsers.tsx`, `src/lib/i18n.tsx`, `CLAUDE.md`, `docs/ACTIVITY_LOG.md`
-- Validation: tsc — 0 new errors (472 pre-existing, identical set before/after); eslint on all changed files PASS; `npm run build` PASS; vitest 92/92 PASS. Live E2E over HTTP against production Supabase with test-parent/test-admin, 19/19 PASS: anon blocked from families RPC (401); non-manager sees 0 families + cannot create a family (403); old function names return 410; parent RLS still works through the recreated helper; real manager_requests submit (201) → self-approve blocked (403) → admin approve (200) → re-approve blocked (409) → `manager` role granted; manager creates a family + gets invite link (200); dashboard RPC lists it (name, 0 students, date, email) with no extra profile fields; another user doesn't see it; after inserting a student, count updates to 1 and the manager reads that student via RLS. All test data cleaned up (student, link, subscription, auth user, request, temporary role) and verified. Aristilde Deslande confirmed `[manager, parent]` with subscription untouched, before and after tests.
-- Risks + rollback: Reverse RENAMEs + `UPDATE user_roles SET role='monitor'` + old CHECK + old `get_managed_parent_ids()` body (from 20260922150000); `git revert` the commit; redeploy the old two functions from git history. Brief window (~1–2 min) between migration and Vercel READY where the still-live old frontend's Billing/AdminUsers monitor_requests queries errored (non-fatal; 0 rows existed).
-- Blockers/human actions needed: Old remote functions `monitor-create-parent` / `review-monitor-request` could not be deleted (Supabase CLI not logged in) — overwritten with 410 "Gone" stubs instead (not in repo). Delete with `supabase functions delete monitor-create-parent` and `supabase functions delete review-monitor-request` after `supabase login`. Pre-existing (not introduced here): advisor flags `get_managed_parent_ids(_uid)` as anon-executable with an arbitrary uuid (leaks linked parent ids only) — worth a REVOKE in a future session. Stripe billing for Managers explicitly out of scope. Also: this session's temporary tsc-baseline worktree removal (previous task) had emptied node_modules through a junction — restored with `npm ci`; no source affected.
+## 2026-09-22 — Task 6/6: Manager dashboard
+- Summary: New `ManagerDashboard.tsx`, rendered by Index.tsx when the active role is `manager`. `useRoleSwitcher` now detects the `manager` user_roles row and RoleSwitcher has a Manager entry, so Aristilde Deslande (`[manager, parent]`) gets a Parent/Manager switcher. The families list comes from new `get_my_managed_families()` (SECURITY DEFINER, filtered on `manager_id = auth.uid()`, the same `manager_parents` link the families' RLS uses). It returns only parent_id/display_name/email/student_count/added_at and never the full profile (e.g. `telegram_chat_id`); a row-level policy on `profiles` was rejected for that reason. An "Add family" form calls `manager-create-parent` and shows the returned invite link with a copy button. No other UI called that function before. All new strings are in 10 languages (`manager.*`, `role.manager`).
+- Files touched: `src/components/ManagerDashboard.tsx` (new), `src/pages/Index.tsx`, `src/hooks/useRoleSwitcher.ts`, `src/components/RoleSwitcher.tsx`, `src/lib/i18n.tsx`, `supabase/migrations/20260922190000_rename_monitor_to_manager.sql` (function `get_my_managed_families`). Commit `0b63dc6`.
+- Validation: tsc 0 new errors (472 pre-existing, identical set); eslint PASS; build PASS; vitest 92/92. Live HTTP E2E on production Supabase:
+  - anon gets 401 on the RPC.
+  - A non-manager sees 0 families and gets 403 when creating one.
+  - A manager creates a family (200 + invite link) and the RPC lists it (name, 0 students, date, email, no extra profile fields).
+  - Another user does not see it.
+  - After a student is added, student_count becomes 1 and the manager reads that student through RLS.
+  - All test data was cleaned up. Vercel READY.
+- Risks + rollback: `git revert 0b63dc6` (frontend); `DROP FUNCTION public.get_my_managed_families();`.
+- Blockers/human actions needed: Stripe billing for Managers (automatic payment, family limits per plan) is explicitly out of scope. `manager-create-parent` inserts the marker subscription; if a subscriptions row already exists it only logs the error, which is non-fatal.
 
-## 2026-09-22 (5th follow-up) — Remove duplicate student; global duplicate-student warning; Super Pro plan + admin plan editor
-- Summary: (1) Deleted duplicate "Christian Dany AUGUSTIN" `0583302b…` (kept `71140924…`); only FK dependents were 4 `subject_tracks` rows, deleted first; JSON backup of all 5 rows kept locally. Note: the kept student has 0 subject_tracks (the duplicate held the defaults). (2) New `student_duplicate_exists(name, dob)` SECURITY DEFINER RPC — searches all families (RLS would hide them) but returns only a boolean; authenticated only; skipped without DOB. AddStudentFullForm shows a "Continue anyway / Cancel" AlertDialog on a match (warning, not a block). (3) `super_pro` plan_key (no CHECK constraint existed). All gates (ai-tutor, weekly-report-data, SubscriptionGate) key off `status`, so super_pro inherits everything; `planIncludes()` ranks it above pro; Billing page shows it; not sold on Pricing. `protect_super_pro_plan` trigger stops stripe-webhook upserts from reverting super_pro (Dany has an active Stripe `plus` sub that would have reverted it on the next invoice). AdminBilling gets a per-user plan dropdown + Save via admin-only `admin_set_plan_key()` RPC (updates plan_key only; admins have no UPDATE policy on subscriptions). Dany (`ae29fe11…`) set to `super_pro`.
-- Files touched: `supabase/migrations/20260922180000_duplicate_check_and_super_pro.sql` (new), `src/components/AddStudentFullForm.tsx`, `src/config/plans.ts`, `src/config/plans.test.ts` (new), `src/lib/i18n.tsx`, `src/pages/Billing.tsx`, `src/pages/admin/AdminBilling.tsx` — commit `ecc1d50`.
-- Validation: tsc 0 new errors (472 pre-existing); eslint PASS; build PASS; vitest 92/92; 12/12 SQL role-simulation security tests (rolled back); 10/10 live HTTP E2E (cross-family duplicate → true while RLS still returns 0 rows; anon 401; non-admin 403; invalid plan 400; admin set super_pro 204). Vercel READY.
-- Risks + rollback: `git revert ecc1d50`; `DROP FUNCTION student_duplicate_exists, admin_set_plan_key; DROP TRIGGER protect_super_pro_plan ON subscriptions`; set Dany's plan_key back to `plus`; restore the duplicate student from the JSON backup if ever needed. Admin-set basic/plus/pro on a Stripe-billed user will still be overwritten by the next Stripe event (only super_pro is protected).
-- Blockers/human actions needed: Logged late (in the 6th follow-up) — the logging step was missed at the end of this task.
+## 2026-09-22 — Task 5/6: Hide Educator button in Parent Dashboard
+- Summary: The Educator system isn't wired to the database, so the "Educators" tab in the Parent Dashboard (`DadPanel`) errored when a parent used it. It is now hidden behind `EDUCATORS_TAB_ENABLED = false`:
+  - The nav item is filtered out.
+  - The `EducatorsPanel` render is guarded.
+  - `initialTab` / `beta-navigate-tab` events can no longer land on the hidden tab.
+
+  No Educator code was removed. EducatorsPanel, EducatorDashboard and the educator role switcher are untouched.
+- Files touched: `src/components/DadPanel.tsx`. Commit `0b63dc6`.
+- Validation: tsc 0 new errors; eslint PASS; build PASS; vitest 92/92. Not covered by HTTP E2E, because this is a UI-only visibility change; verified through code + build.
+- Risks + rollback: Set `EDUCATORS_TAB_ENABLED = true` in `DadPanel.tsx` (or `git revert 0b63dc6`).
+- Blockers/human actions needed: Wire the Educator system to the database before re-enabling.
+
+## 2026-09-22 — Task 4/6: Rename Monitor → Manager platform-wide
+- Summary: Migration `20260922190000_rename_monitor_to_manager.sql` uses only RENAME/UPDATE (no DROP+CREATE), so no data is lost:
+  - `monitor_parents` → `manager_parents` (`monitor_id` → `manager_id`)
+  - `monitor_requests` → `manager_requests`
+  - `subscriptions.covered_by_monitor_id` → `covered_by_manager_id`
+  - Every related constraint and policy was renamed.
+  - The `user_roles` CHECK was swapped from `'monitor'` to `'manager'`, with an in-place `UPDATE`.
+
+  Critical catch: the RLS helper `get_managed_parent_ids()` sits behind 13 "parent manages X" policies and names the table in its SQL body, which a rename does not update. It was recreated in the same transaction; without that, every parent would have lost access to their data.
+
+  Edge functions were renamed via `git mv`: `monitor-create-parent` → `manager-create-parent` and `review-monitor-request` → `review-manager-request`. Their contents were updated too, including the metadata key `created_by_monitor` → `created_by_manager`.
+
+  Frontend: Billing.tsx now has "Request Manager Access", AdminUsers.tsx has "Manager Access Requests", and the i18n keys moved from `monitorRequest.*` to `managerRequest.*` (HT: "Mande Aksè Manager").
+
+  Deliberately NOT renamed, because they are unrelated to the role: hourly-monitor, dns-monitor, dns_monitor_history, `monitoring_enabled`, the lucide `Monitor` icon, and the "help monitor a student" copy. Historical migrations were left untouched.
+- Files touched: `supabase/migrations/20260922190000_rename_monitor_to_manager.sql` (new), `supabase/functions/manager-create-parent/index.ts` (renamed), `supabase/functions/review-manager-request/index.ts` (renamed), `src/pages/Billing.tsx`, `src/pages/admin/AdminUsers.tsx`, `src/lib/i18n.tsx`. Commit `0b63dc6`.
+- Validation: tsc 0 new errors; eslint PASS; build PASS; vitest 92/92.
+  - DB after the rename: Aristilde Deslande = `[manager, parent]`, subscription untouched (checked before and after the tests); 0 "monitor" objects left; the helper references `manager_parents`.
+  - Live HTTP E2E: parent RLS still works through the recreated helper; the old function names return 410.
+  - Full request flow: submit (201) → self-approve blocked (403) → admin approve (200) → re-approve blocked (409) → `manager` role granted.
+- Risks + rollback:
+  - Reverse the RENAMEs.
+  - Run `UPDATE user_roles SET role='monitor' WHERE role='manager'`.
+  - Restore the old CHECK and the old `get_managed_parent_ids()` body (from 20260922150000).
+  - `git revert 0b63dc6`.
+  - Redeploy the old functions from git history.
+- Blockers/human actions needed:
+  - The old remote functions could not be deleted because the Supabase CLI is not logged in. They were overwritten with 410 "Gone" stubs (not in the repo). After `supabase login`, run `supabase functions delete monitor-create-parent` and `supabase functions delete review-monitor-request`.
+  - For about 1–2 minutes between the migration and Vercel READY, the old frontend's monitor_requests queries errored. This was non-fatal; 0 rows existed.
+  - Pre-existing, not introduced here: `get_managed_parent_ids(_uid)` is anon-executable with any uuid and leaks linked parent ids. A REVOKE should be done in a future session.
+
+## 2026-09-22 — Task 3/6: Super Pro plan + admin plan editor
+- Summary:
+  - **Plan key:** `super_pro` added as a plan_key. No CHECK constraint existed, so no schema change was needed.
+  - **Access gates:** all of them (ai-tutor, weekly-report-data, SubscriptionGate) check `status`, not `plan_key`, so super_pro automatically gets everything pro has.
+  - **App code:** `planIncludes()` in `src/config/plans.ts` ranks super_pro above pro, with an unknown key treated as basic. The Billing page shows "Super Pro". It is not sold on Pricing.
+  - **Stripe protection:** trigger `protect_super_pro_plan` stops stripe-webhook upserts from reverting super_pro. Dany has an active Stripe `plus` sub, which would have reverted it at the next `invoice.paid`. Only `admin_set_plan_key()` can change a super_pro.
+  - **Admin editor:** AdminBilling has a plan dropdown (basic/plus/pro/super_pro) plus a Save button on each row. Save calls `admin_set_plan_key()` (SECURITY DEFINER, admin-only, updates plan_key only, fixed list). Admins had no UPDATE policy on subscriptions, and a broad one was rejected.
+  - **Dany:** `ae29fe11…` set to `super_pro`.
+- Files touched: `supabase/migrations/20260922180000_duplicate_check_and_super_pro.sql`, `src/config/plans.ts`, `src/config/plans.test.ts` (new), `src/pages/Billing.tsx`, `src/pages/admin/AdminBilling.tsx`. Commit `ecc1d50`. Local working tree only (uncommitted, pre-existing user changes): `super_pro` added to `shouldOfferAltChannel` in checkin-reminder/daily-report/morning-reminder/weekly-badge.
+- Validation: tsc 0 new errors; eslint PASS; build PASS; vitest 92/92 (5 new plan tests).
+  - SQL role simulation (rolled back): a Stripe-style upsert keeps super_pro; non-admin forbidden; invalid key rejected.
+  - Live HTTP: non-admin 403; invalid plan 400; admin sets super_pro 204; Dany confirmed `super_pro / active`.
+  - Vercel READY.
+- Risks + rollback: `git revert ecc1d50`; `DROP TRIGGER protect_super_pro_plan ON subscriptions; DROP FUNCTION protect_super_pro_plan(), admin_set_plan_key(uuid,text);`; `UPDATE subscriptions SET plan_key='plus' WHERE user_id='ae29fe11-98f4-4c72-9ce5-4e3a2c53c122';`.
+- Blockers/human actions needed: basic/plus/pro set by an admin on a Stripe-billed user will still be overwritten by the next Stripe event; only super_pro is protected.
+
+## 2026-09-22 — Task 2/6: Global duplicate-student warning
+- Summary: RLS limits each parent to their own family, so a client SELECT cannot see duplicates in other families. New `student_duplicate_exists(name, dob)`:
+  - SECURITY DEFINER; searches ALL families but returns only a boolean, never ids or another family's data.
+  - Authenticated only (anon revoked).
+  - Name comparison ignores case and extra whitespace.
+  - Skipped when DOB is empty, since a name alone is too common platform-wide.
+
+  In AddStudentFullForm, a match shows an AlertDialog: "A student with this name/DOB seems to already exist", with "Continue anyway" or "Cancel". It is a warning, not a block. New strings are in 10 languages.
+- Files touched: `supabase/migrations/20260922180000_duplicate_check_and_super_pro.sql`, `src/components/AddStudentFullForm.tsx`, `src/lib/i18n.tsx`. Commit `ecc1d50`.
+- Validation: tsc 0 new errors; eslint PASS; build PASS; vitest 92/92.
+  - SQL role simulation: another family gets `true`, while RLS still returns 0 rows; wrong DOB or null DOB returns false; anon gets permission denied.
+  - Live HTTP: anon 401; another family's parent gets `true`; RLS still returns 0 rows.
+- Risks + rollback: `DROP FUNCTION public.student_duplicate_exists(text, date);` + `git revert ecc1d50`.
+- Blockers/human actions needed: A signed-in user who already knows a child's exact name AND DOB can confirm the child exists on the platform. That is the only information revealed. Accepted trade-off.
+
+## 2026-09-22 — Task 1/6: Remove duplicate student
+- Summary: Deleted the duplicate "Christian Dany AUGUSTIN" `0583302b-73e9-49a2-998e-43eca2fda9dc` (created 16:14:42) and kept `71140924-fa81-4bbe-aac0-5fbf7faca9c1` (15:33:38). Before deleting, all 9 tables with an FK to `students` were checked. Only `subject_tracks` had rows (4), and those were deleted first, in one transaction. A JSON backup of all 5 rows was kept locally.
+- Files touched: None (data only, production DB).
+- Validation: After deletion, a single "Christian Dany AUGUSTIN" row remains (`71140924…`); 0 orphaned rows.
+- Risks + rollback: Re-insert the student + 4 subject_tracks from the JSON backup (session scratchpad `backup_duplicate_student_0583302b.json`).
+- Blockers/human actions needed: The kept student has **0 subject_tracks**; the duplicate held the 4 default tracks. Re-create them if needed.
 
 ## 2026-09-22 (4th follow-up) — Grant Aristilde Deslande Monitor access + "Request Monitor Access" feature
 - Summary: Two explicit tasks, executed as one continuous flow (no mid-task confirmation, per instruction).
