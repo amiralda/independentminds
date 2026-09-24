@@ -34,7 +34,7 @@ Canonical URL: https://www.independentmindsedu.org (www, not apex)
 ## Stripe live-mode gate (decided 2026-08-30, do not flip without user sign-off)
 Staying on `pk_test_...` (Vercel) / `sk_test_...` (Supabase) deliberately.
 Do NOT swap to `pk_live_...`/`sk_live_...` until ALL 5 are done:
-- [ ] Email DNS corrected
+- [x] Email DNS corrected (2026-09-24 — confirmed by the user: Resend domain independentmindsedu.org verified and a real test send succeeded in a separate session; corroborated here by production messages_log: daily cron emails status 'sent' since 2026-09-21, 0 'failed' in the last 3 days — see docs/ACTIVITY_LOG.md)
 - [x] Supabase failure rate investigated (2026-08-30 — root causes identified, not yet fixed; see docs/ACTIVITY_LOG.md)
 - [x] `search_path` fixed on `has_role`, `handle_new_user`, `rls_auto_enable` (confirmed already locked down 2026-09-06 from a prior session; also closed anon/PUBLIC RPC exposure on all 3 this session — see ACTIVITY_LOG)
 - [ ] Final pricing/terms review completed
@@ -64,8 +64,8 @@ Never skip this step. Never put long logs in
 CLAUDE.md — details go in ACTIVITY_LOG.md only.
 
 ## Recent
+2026-09-24 — Email DNS confirmed — Done: user confirmed Resend domain verified + real test send succeeded (separate session); messages_log shows production cron emails 'sent' daily since 2026-09-21, 0 failed. Stripe gate now 4/5 checked (only pricing/terms review open). See docs/ACTIVITY_LOG.md.
 2026-09-24 — Student login accounts + working 'student' role + audited view-as — Done: students.user_id, server-side invites (never metadata), student RLS (own data only; own row writes = photo only via trigger), impersonation_logs (log-first, server-stamped), create-student-account fn, ai-tutor student branch, Manager/admin view-as, AdminStudents updated_at fix. 40+ live API + browser E2E checks PASS, test data cleaned. COPPA: first layer only, lawyer review required before real under-13 use. See docs/ACTIVITY_LOG.md.
 2026-09-23 — selectedStudentId = student uuid everywhere — Done: DadPanel/StudentSwitcherDropdown/StudentSelector/Index/TelegramSettings/add-student flows used the text student_id label (no highlight, hidden top card, per-student tabs 400 after a menu pick); now uuid, stale/legacy selection auto-repaired. Real-browser E2E before/after PASS. Found, not fixed: Admin Students tab selects nonexistent students.updated_at (400 → empty list). See docs/ACTIVITY_LOG.md.
 2026-09-23 — Fix multi-role accounts shown as "student" — Done: AuthContext read user_roles with .maybeSingle() (errors on 2+ rows → silent 'student' fallback, hit Dany/Aristilde/test-admin on any fresh browser); now reads all rows via resolvePrimaryRole() (parent first, student only if that's all). Real-browser E2E: bug reproduced on prod, fixed build → parent; student-only → student. See docs/ACTIVITY_LOG.md.
 2026-09-23 — Revoke anon/PUBLIC EXECUTE on get_managed_parent_ids — Done: anon RPC now 401 instead of returning linked parent ids; parent/manager/co-guardian/admin RLS re-verified live, test data cleaned. Remaining gap: signed-in users can still call it with another _uid (ids only). See docs/ACTIVITY_LOG.md.
-2026-09-22 — Task 6/6 Manager dashboard — Done: families list (name, student count, date added) via get_my_managed_families() scoped to manager_id=auth.uid() + Add family → manager-create-parent + invite link; E2E PASS, commit 0b63dc6, Vercel READY. See docs/ACTIVITY_LOG.md.

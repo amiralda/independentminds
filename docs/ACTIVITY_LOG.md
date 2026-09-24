@@ -1,5 +1,12 @@
 # Activity Log
 
+## 2026-09-24 — Email DNS confirmed (Resend, independentmindsedu.org)
+- Summary: The user confirmed that the Resend domain `independentmindsedu.org` is verified and that a real test send succeeded earlier today in a separate session (that session's details are not in this log). Recorded as CONFIRMED, and the Stripe live-mode gate item "Email DNS corrected" is now checked in CLAUDE.md. This supersedes the older entry below where `RESEND_API_KEY` was found unset (`hasKey: false`) at the time.
+- Files touched: `CLAUDE.md`, `docs/ACTIVITY_LOG.md`.
+- Validation: Independent read-only corroboration in production. `messages_log` shows the cron emails (`morning_reminder`, `daily_report`, `checkin_reminder`, channel `email`) with status `sent` every day from 2026-09-21 through 2026-09-24 12:00 UTC, and 0 `failed` rows in the last 3 days. These functions only record `sent` when the Resend API accepts the message, so the key and sending domain are working. This proves API acceptance, not inbox delivery; inbox delivery was the user's own test.
+- Risks + rollback: Docs only. Uncheck the gate item if email sending regresses.
+- Blockers/human actions needed: The Stripe live-mode gate still has one open item, "Final pricing/terms review completed". Per CLAUDE.md, confirm with the user before touching live keys even once all items are checked.
+
 ## 2026-09-24 — Student login accounts, working 'student' role, audited "view as student", AdminStudents fix
 - Summary: Approved plan (decisions 1–5 as recommended, plus: keep copy-link UX even though email DNS was reported fixed; fix AdminStudents in the same session).
   **Schema/RLS** (migration `20260924120000_student_accounts.sql`, additive only; no existing policy changed or dropped):
@@ -56,7 +63,7 @@
     - Marking a task started/done in the UI still fails for everyone: the code writes `"In Progress"`/`"Done"` while the CHECK allows only `planned/started/done`; it also writes nonexistent `daily_plan` columns (`self_rating`, `time4learning_score`, `notes`); and the `award_points` RPC doesn't exist. The student's DB permission for it is in place and tested.
     - `ai-tutor` history reads/writes `role`/`content`/`created_at` columns that `ai_conversations` doesn't have, so history is never persisted (answers still work).
     - Per decision 2, student writes to `activity_logs`/`achievements` from the UI are refused (read-only).
-  - The Stripe live-mode gate's "Email DNS corrected" checkbox was reported fixed by the user but was not verified or checked here.
+  - Email DNS: see the 2026-09-24 "Email DNS confirmed" entry (confirmed and checked in CLAUDE.md).
 
 ## 2026-09-23 — selectedStudentId is the student uuid everywhere (DadPanel/AuthContext and friends)
 - Summary: AuthContext selected students by `students.id` (uuid), but DadPanel, StudentSwitcherDropdown, StudentSelector and Index compared or set the text label `students.student_id` (e.g. "CH1312-94606"). That caused three visible problems:
