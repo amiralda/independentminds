@@ -23,15 +23,16 @@ export function StudentStatsBar({ studentId, todayDone, todayTotal }: Props) {
     queryKey: ["student_velocity", studentId],
     queryFn: async () => {
       const sevenAgo = new Date(Date.now() - 7 * 86400000).toISOString().split("T")[0];
+      // Real columns: planned_date, lowercase status.
       const { data } = await supabase
         .from("daily_plan")
-        .select("plan_date, status")
+        .select("planned_date, status")
         .eq("student_id", studentId)
-        .gte("plan_date", sevenAgo);
+        .gte("planned_date", sevenAgo);
 
       const byDate: Record<string, number> = {};
       (data || []).forEach(b => {
-        if (b.status === "Done") byDate[b.plan_date] = (byDate[b.plan_date] || 0) + 1;
+        if (b.status === "done") byDate[b.planned_date] = (byDate[b.planned_date] || 0) + 1;
       });
 
       const days = Object.keys(byDate).length;

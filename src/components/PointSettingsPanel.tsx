@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Coins, Save } from "lucide-react";
 import { toast } from "sonner";
 
@@ -23,9 +24,9 @@ export function PointSettingsPanel({ studentId }: Props) {
   const queryClient = useQueryClient();
   const parentId = students.find((s) => s.id === studentId)?.parent_id ?? null;
   const isOwnParent = !!user && parentId === user.id;
-  const [value, setValue] = useState(String(DEFAULT_POINTS_PER_TASK));
+  const [value, setValue] = useState<string | null>(null);
 
-  const { data: current = DEFAULT_POINTS_PER_TASK } = useQuery({
+  const { data: current, isLoading } = useQuery({
     queryKey: ["points_per_task", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -39,7 +40,11 @@ export function PointSettingsPanel({ studentId }: Props) {
     enabled: isOwnParent,
   });
 
-  useEffect(() => setValue(String(current)), [current]);
+  // Fill the input once the saved value arrives; never show the default
+  // first (a late load would overwrite what the parent already typed).
+  useEffect(() => {
+    if (current !== undefined) setValue(String(current));
+  }, [current]);
 
   const save = useMutation({
     mutationFn: async (points: number) => {
@@ -70,7 +75,9 @@ export function PointSettingsPanel({ studentId }: Props) {
         <Coins size={16} className="text-secondary" />
         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t("points.perTask")}</p>
       </div>
-      {isOwnParent ? (
+      {isOwnParent && (isLoading || value === null) ? (
+        <Skeleton className="h-12 w-full rounded-lg" />
+      ) : isOwnParent ? (
         <>
           <div className="flex items-center gap-2 bg-muted/50 rounded-lg px-3 py-2.5">
             <Input
@@ -80,7 +87,7 @@ export function PointSettingsPanel({ studentId }: Props) {
               inputMode="numeric"
               aria-label={t("points.perTask")}
               className="w-24 h-9 text-center"
-              value={value}
+              value={value ?? ""}
               onChange={(e) => setValue(e.target.value)}
             />
             <Button size="sm" onClick={handleSave} disabled={save.isPending} className="font-display">
