@@ -13,6 +13,7 @@ import {
 import { toast } from "sonner";
 import { ArrowLeft, ArrowRight, Camera, Upload, FileText, Check, X, Loader2 } from "lucide-react";
 import { generateStudentId } from "@/lib/generateStudentId";
+import { createStudentLogin, InviteLinkBox } from "@/components/StudentLoginInvite";
 
 const DEFAULT_TRACKS = [
   { name: "Core Academics", category: "Core Academics", daily_target: 10, unit_type: "lessons", icon: "BookOpen", color: "secondary" },
@@ -64,6 +65,11 @@ export function AddStudentFullForm({ open, onClose, onBack }: Props) {
   // Global duplicate warning: set when another student with the same name +
   // DOB exists anywhere on the platform. A warning, not a block.
   const [duplicateWarningOpen, setDuplicateWarningOpen] = useState(false);
+
+  // Optional student login: created right after the student row; the
+  // "set your password" link is shown here for the parent to hand over.
+  const [studentEmail, setStudentEmail] = useState("");
+  const [inviteLink, setInviteLink] = useState<string | null>(null);
 
   // Auto-generate student ID from name + DOB
   useEffect(() => {
@@ -239,6 +245,15 @@ export function AddStudentFullForm({ open, onClose, onBack }: Props) {
       toast.success(t("student.created"));
       setSelectedStudentId(newStudentUuid);
       refreshStudents();
+
+      if (studentEmail.trim()) {
+        const link = await createStudentLogin(newStudentUuid, studentEmail);
+        if (link) {
+          toast.success(t("studentLogin.created"));
+          setInviteLink(link); // keep the dialog open to show the link
+          return;
+        }
+      }
       resetAndClose();
     } catch (err: unknown) {
       toast.error(err.message || "Failed to add student");
@@ -249,6 +264,8 @@ export function AddStudentFullForm({ open, onClose, onBack }: Props) {
 
   const resetAndClose = () => {
     setStep(1);
+    setStudentEmail("");
+    setInviteLink(null);
     setName("");
     setStudentId("");
     setGrade("7");
@@ -510,6 +527,24 @@ export function AddStudentFullForm({ open, onClose, onBack }: Props) {
               </ul>
             </div>
 
+            <div className="rounded-lg border p-3 space-y-1.5">
+              <label className="text-sm font-medium">{t("studentLogin.optionalEmail")}</label>
+              <Input
+                type="email"
+                value={studentEmail}
+                onChange={e => setStudentEmail(e.target.value)}
+                placeholder="student@example.com"
+                disabled={!!inviteLink}
+              />
+              <p className="text-[11px] text-muted-foreground">{t("studentLogin.optionalHint")}</p>
+            </div>
+
+            {inviteLink ? (
+              <div className="space-y-2">
+                <InviteLinkBox link={inviteLink} />
+                <Button onClick={resetAndClose} className="w-full font-display">{t("studentLogin.done")}</Button>
+              </div>
+            ) : (
             <div className="grid grid-cols-2 gap-2">
               <Button variant="outline" onClick={() => setStep(2)}>
                 <ArrowLeft size={14} className="mr-1" /> {t("action.back")}
@@ -519,6 +554,7 @@ export function AddStudentFullForm({ open, onClose, onBack }: Props) {
                 {saving ? t("loading") : t("student.createStudent")}
               </Button>
             </div>
+            )}
           </div>
         )}
       </DialogContent>

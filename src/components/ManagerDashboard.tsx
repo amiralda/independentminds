@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Briefcase, Copy, Loader2, UserPlus, Users } from "lucide-react";
+import { Briefcase, ChevronDown, ChevronRight, Copy, Eye, Loader2, UserPlus, Users } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth, type StudentRecord } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,7 +19,30 @@ interface ManagedFamily {
 
 export function ManagerDashboard() {
   const { t } = useI18n();
-  const { user } = useAuth();
+  const { user, startImpersonation } = useAuth();
+  const [expandedFamily, setExpandedFamily] = useState<string | null>(null);
+
+  // Students of one managed family -- readable through the same
+  // get_managed_parent_ids() RLS the families already rely on.
+  const { data: familyStudents = [], isLoading: loadingStudents } = useQuery({
+    queryKey: ["managed-family-students", expandedFamily],
+    enabled: !!expandedFamily,
+    queryFn: async () => {
+      const { data, error: qError } = await supabase
+        .from("students")
+        .select("id, student_id, display_name, grade_level, parent_id")
+        .eq("parent_id", expandedFamily!)
+        .order("display_name");
+      if (qError) throw qError;
+      return (data ?? []) as unknown as StudentRecord[];
+    },
+  });
+
+  const viewAsStudent = async (student: StudentRecord) => {
+    // Logged to impersonation_logs first; no log, no student view.
+    const ok = await startImpersonation(student);
+    if (!ok) toast.error(t("impersonation.logFailed"));
+  };
   const queryClient = useQueryClient();
   const [showAddForm, setShowAddForm] = useState(false);
   const [email, setEmail] = useState("");
@@ -149,14 +172,50 @@ export function ManagerDashboard() {
               </thead>
               <tbody>
                 {families.map((f) => (
-                  <tr key={f.parent_id} className="border-t">
+                  <Fragment key={f.parent_id}>
+                  <tr className="border-t">
                     <td className="px-4 py-2">
-                      <div className="font-medium">{f.display_name || f.email || "—"}</div>
-                      {f.email && f.display_name && <div className="text-xs text-muted-foreground">{f.email}</div>}
+                      <button
+                        type="button"
+                        className="flex items-start gap-1 text-left"
+                        onClick={() => setExpandedFamily(expandedFamily === f.parent_id ? null : f.parent_id)}
+                        aria-expanded={expandedFamily === f.parent_id}
+                        disabled={f.student_count === 0}
+                      >
+                        {f.student_count > 0 && (expandedFamily === f.parent_id ? <ChevronDown size={14} className="mt-1" /> : <ChevronRight size={14} className="mt-1" />)}
+                        <span>
+                          <span className="font-medium block">{f.display_name || f.email || "—"}</span>
+                          {f.email && f.display_name && <span className="text-xs text-muted-foreground block">{f.email}</span>}
+                        </span>
+                      </button>
                     </td>
                     <td className="px-4 py-2">{f.student_count}</td>
                     <td className="px-4 py-2">{new Date(f.added_at).toLocaleDateString()}</td>
                   </tr>
+                  {expandedFamily === f.parent_id && (
+                    <tr className="bg-muted/30">
+                      <td colSpan={3} className="px-4 py-2">
+                        {loadingStudents ? (
+                          <Skeleton className="h-8 w-full" />
+                        ) : familyStudents.length === 0 ? (
+                          <p className="text-xs text-muted-foreground">{t("manager.noStudents")}</p>
+                        ) : (
+                          <ul className="space-y-1">
+                            {familyStudents.map((s) => (
+                              <li key={s.id} className="flex items-center justify-between gap-2">
+                                <span className="text-sm">{s.display_name}</span>
+                                <Button size="sm" variant="outline" onClick={() => viewAsStudent(s)}>
+                                  <Eye size={14} className="mr-1" />
+                                  {t("impersonation.viewAs")}
+                                </Button>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </td>
+                    </tr>
+                  )}
+                  </Fragment>
                 ))}
               </tbody>
             </table>

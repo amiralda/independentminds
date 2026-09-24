@@ -73,11 +73,15 @@ serve(async (req) => {
 
     const userId = user.id;
     // Role lives in user_roles, not profiles — profiles has never had a role column.
-    const { data: roleRow } = await supabase
-      .from("user_roles").select("role").eq("user_id", userId).maybeSingle();
-    const role = roleRow?.role || "parent";
+    // All rows: an account can hold several roles (e.g. parent + admin), and
+    // .maybeSingle() errors on >1 row.
+    const { data: roleRows } = await supabase
+      .from("user_roles").select("role").eq("user_id", userId);
+    const roles = (roleRows ?? []).map((r: { role: string }) => r.role);
+    const isParent = roles.includes("parent") || roles.length === 0;
+    const isStudent = !isParent && roles.includes("student");
 
-    if (!["parent", "student"].includes(role)) {
+    if (!isParent && !isStudent) {
       return new Response(JSON.stringify({ error: "Forbidden" }), {
         status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -87,12 +91,27 @@ serve(async (req) => {
       auth: { autoRefreshToken: false, persistSession: false },
     });
 
+    // A student account is bound to exactly one students row (students.user_id)
+    // and is covered by its parent's subscription.
+    let studentSelf: { id: string; parent_id: string } | null = null;
+    if (isStudent) {
+      const { data } = await serviceClient
+        .from("students").select("id, parent_id").eq("user_id", userId).maybeSingle();
+      if (!data) {
+        return new Response(JSON.stringify({ error: "Forbidden: no student profile linked" }), {
+          status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      studentSelf = data;
+    }
+    const subscriptionUserId = studentSelf ? studentSelf.parent_id : userId;
+
     // Subscription gate — mirrors useSubscription.ts's isActive logic exactly
     // (trialing/active, or past_due within a 7-day grace period).
     const { data: subRow } = await serviceClient
       .from("subscriptions")
       .select("status, current_period_end")
-      .eq("user_id", userId)
+      .eq("user_id", subscriptionUserId)
       .maybeSingle();
 
     const PAST_DUE_GRACE_MS = 7 * 24 * 60 * 60 * 1000;
@@ -151,13 +170,20 @@ serve(async (req) => {
       });
     }
 
-    // Ownership check: verify the caller is this student's parent (students.id is the real join key).
-    const { data: ownedStudent } = await serviceClient
-      .from("students")
-      .select("id")
-      .eq("id", reqStudentId)
-      .eq("parent_id", userId)
-      .maybeSingle();
+    // Ownership check (students.id is the real join key): a student may only
+    // use their own row; a parent only their own children.
+    let ownedStudent: { id: string } | null = null;
+    if (studentSelf) {
+      ownedStudent = reqStudentId === studentSelf.id ? { id: studentSelf.id } : null;
+    } else {
+      const { data } = await serviceClient
+        .from("students")
+        .select("id")
+        .eq("id", reqStudentId)
+        .eq("parent_id", userId)
+        .maybeSingle();
+      ownedStudent = data;
+    }
     if (!ownedStudent) {
       return new Response(JSON.stringify({ error: "Forbidden: student access denied" }), {
         status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },

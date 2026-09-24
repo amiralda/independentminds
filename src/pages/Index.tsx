@@ -40,7 +40,7 @@ type StudentTab = "today" | "tracks" | "checkin" | "badges" | "trophies" | "libr
 const Index = () => {
   const { t, lang } = useI18n();
   const navigate = useNavigate();
-  const { profile, selectedStudentId, viewingAsStudent, setViewingAsStudent, students, user } = useAuth();
+  const { profile, selectedStudentId, viewingAsStudent, impersonatedStudent, stopImpersonation, students, user } = useAuth();
   const { isAdmin } = useAdminAuth();
   const { isBetaTester } = useBetaTester();
   const { roles, activeRole, setActiveRole, hasMultipleRoles } = useRoleSwitcher();
@@ -54,10 +54,12 @@ const Index = () => {
   const actualRole = profile?.role || "student";
   // Use role switcher's active role if user has multiple roles, otherwise use profile role
   const effectiveRole = hasMultipleRoles ? activeRole : actualRole;
-  // When parent is viewing as student, treat role as "student" for rendering
-  const role = (effectiveRole === "parent" && viewingAsStudent) ? "student" : effectiveRole;
+  // When a parent/Manager/admin is viewing as a student, render the student view
+  const role = viewingAsStudent ? "student" : effectiveRole;
   const studentId = selectedStudentId;
-  const viewingStudent = viewingAsStudent ? students.find(s => s.id === selectedStudentId) : null;
+  const viewingStudent = viewingAsStudent
+    ? (impersonatedStudent ?? students.find(s => s.id === selectedStudentId) ?? null)
+    : null;
   const displayName = viewingAsStudent && viewingStudent ? viewingStudent.display_name : (profile?.username || profile?.displayName || "User");
 
   const { data: blocks = [], isLoading } = useDailyBlocks(studentId);
@@ -215,7 +217,7 @@ const Index = () => {
       </header>
 
       {/* Back to Parent banner when viewing as student */}
-      {viewingAsStudent && actualRole === "parent" && (
+      {viewingAsStudent && (
         <div className="bg-accent border-b border-accent-foreground/10 sticky top-[44px] sm:top-[52px] z-40">
           <div className="container py-2 flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 min-w-0">
@@ -227,18 +229,7 @@ const Index = () => {
               </span>
             </div>
             <button
-              onClick={async () => {
-                setViewingAsStudent(false);
-                try {
-                  await supabase.from("impersonation_logs" as any).insert({
-                    parent_id: user?.id,
-                    student_id: selectedStudentId,
-                    action: "end",
-                  } as any);
-                } catch (error) {
-                  console.debug("Failed to log impersonation end", error);
-                }
-              }}
+              onClick={() => { void stopImpersonation(); }}
             >
               {lang === "HT" ? "Retounen" : "Back to Parent"}
             </button>

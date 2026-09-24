@@ -91,7 +91,7 @@ const NAV_ITEMS = ALL_NAV_ITEMS.filter((item) => item.key !== "educators" || EDU
 
 export function DadPanel({ onAddStudent, initialTab }: Props) {
   const { t, lang } = useI18n();
-  const { students, selectedStudentId, setSelectedStudentId, setViewingAsStudent, user } = useAuth();
+  const { students, selectedStudentId, setSelectedStudentId, startImpersonation } = useAuth();
   const studentId = selectedStudentId || "";
   const [menuOpen, setMenuOpen] = useState(false);
   const isTabAvailable = (tab?: DadTab) => !!tab && NAV_ITEMS.some((n) => n.key === tab);
@@ -185,18 +185,10 @@ export function DadPanel({ onAddStudent, initialTab }: Props) {
                     </button>
                     <button
                       onClick={async () => {
-                        setSelectedStudentId(s.id);
-                        setViewingAsStudent(true);
                         setMenuOpen(false);
-                        try {
-                          await supabase.from("impersonation_logs" as any).insert({
-                            parent_id: user?.id,
-                            student_id: s.id,
-                            action: "start",
-                          } as any);
-                        } catch (error) {
-                          console.debug("Failed to log impersonation start", error);
-                        }
+                        // Audit log is written first; no log, no student view.
+                        const ok = await startImpersonation(s);
+                        if (!ok) toast.error(t("impersonation.logFailed"));
                       }}
                       className="p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-accent-foreground transition-colors flex-shrink-0"
                       title={`${t("dadpanel.loginAs")} ${s.display_name}`}

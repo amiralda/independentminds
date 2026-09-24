@@ -1,5 +1,63 @@
 # Activity Log
 
+## 2026-09-24 — Student login accounts, working 'student' role, audited "view as student", AdminStudents fix
+- Summary: Approved plan (decisions 1–5 as recommended, plus: keep copy-link UX even though email DNS was reported fixed; fix AdminStudents in the same session).
+  **Schema/RLS** (migration `20260924120000_student_accounts.sql`, additive only; no existing policy changed or dropped):
+  - `students.user_id` (uuid, nullable, unique, FK auth.users ON DELETE SET NULL).
+  - `student_account_invites`: RLS on, no policies, so service role only.
+  - `impersonation_logs` (actor_id, actor_role, student_id, action start/end, reason, created_at). Append-only for users; the actor, role and time are stamped server-side by a trigger, so they can't be spoofed. INSERT only if `can_impersonate_student()`. SELECT for own rows and admin.
+  - Helpers: `get_my_student_id()`, `can_impersonate_student()`, `get_my_effective_subscription()` (a student is covered by its parent's subscription).
+  - `handle_new_user()`: a new branch **only** when an unexpired, unconsumed server-side invite matches the email. It creates the profile with `adult_confirmed=false`, role `student`, links the EXISTING students row, and consumes the invite. Every other signup is unchanged.
+  - Linking is deliberately NOT driven by user metadata: a client controls metadata on a normal signUp.
+  - Student policies (all `student_id = get_my_student_id()`, so never siblings):
+    - read own students row / daily_plan / subject_tracks / check_ins / ai_conversations / achievements / reward_points / activity_logs;
+    - insert own check_ins; insert/update own ai_conversations;
+    - update own students row: trigger `guard_student_self_update` allows ONLY `profile_photo_url`;
+    - update own daily_plan: trigger allows only `status` + its `actual_start`/`actual_end` timestamps;
+    - storage: own photo folder.
+  - Admin read-only SELECT policies on the per-student tables (for admin "view as").
+
+  **Edge functions**:
+  - New `create-student-account`: caller must pass `can_impersonate_student`; refuses a student that already has a login and refuses emails already in use (409); creates the invite, then `generateLink('invite')`; verifies the link and returns the set-password link for the parent to copy.
+  - `ai-tutor` (v5): reads all roles instead of `.maybeSingle()`; a student account is gated on its parent's subscription and may only use its own students row.
+
+  **Frontend**:
+  - AuthContext loads a student account's own row.
+  - Central `startImpersonation`/`stopImpersonation`: the log is written FIRST (no log = no student view) and the end is logged. It supports students outside the viewer's own list (Manager families, admin), guarded against the selection auto-repair.
+  - DadPanel view-as button goes through it. ManagerDashboard lists each family's students with "View as". AdminStudents gets "View as".
+  - `useSubscription` uses the effective-subscription RPC.
+  - "Create login" in StudentProfileCard (parent view) and an optional student-email step in AddStudentFullForm; both show the link with a copy button.
+  - The student can change their own photo.
+  - 16 new i18n keys × 10 languages.
+
+  **AdminStudents fix**: removed the nonexistent `students.updated_at` from the query (it caused a 400 and a silently empty list), surfaced load errors, and added Login and "View as" columns.
+- Files touched: `supabase/migrations/20260924120000_student_accounts.sql` (new), `supabase/functions/create-student-account/index.ts` (new), `supabase/functions/ai-tutor/index.ts`, `src/contexts/AuthContext.tsx`, `src/pages/Index.tsx`, `src/components/DadPanel.tsx`, `src/components/ManagerDashboard.tsx`, `src/components/StudentLoginInvite.tsx` (new), `src/components/StudentProfileCard.tsx`, `src/components/AddStudentFullForm.tsx`, `src/hooks/useSubscription.ts`, `src/pages/admin/AdminStudents.tsx`, `src/lib/i18n.tsx`, `CLAUDE.md`, `docs/ACTIVITY_LOG.md`.
+- Validation: tsc 0 new errors (468 → 466); `eslint src` clean; build PASS; vitest 96/96.
+  - **Live API E2E against production** (test-parent, test-admin, a temporary sibling):
+    - Account setup: create login for another family's student 403; create login for own student 200 + link; second login for the same student 409.
+    - Password flow: the link redirects to /reset-password with a session (303); the student sets a password (200); **the student logs in with email+password (200)**. The role is `student` only, `adult_confirmed=false`, and it's linked to the EXISTING row.
+    - Isolation: the student sees only their own students row, tasks and check-ins; sibling rows return 0; there is no direct read of subscriptions; the effective subscription is the parent's (`active`).
+    - Allowed writes: check-in for self 201; own photo 200; mark own task done 200.
+    - Blocked writes: check-in for sibling 403; **grade_level / date_of_birth / display_name → 403**; renaming a task 403; the sibling's photo/task → 0 rows touched.
+    - Grade and DOB were verified unchanged in the DB.
+    - AI Tutor: own studentId → 200 streamed answer; sibling → 403.
+    - View-as: parent view-as logged (actor_role=parent); spoofed actor_id overwritten; another family's student 403; the log is not editable; admin view-as logged (actor_role=admin); admin read access works.
+    - A Manager (rolled-back simulation with Aristilde): blocked without a family link, allowed with one (actor_role=manager).
+    - Metadata hijack signUp: rejected, 0 accounts created, no row linked.
+  - **Real-browser E2E** (Playwright, mobile, local build against production):
+    - The student account renders the student view, with no sibling data and no parent sidebar.
+    - Parent "view as" via the sidebar: the POST to impersonation_logs returns 201 BEFORE the view switches, and the banner shows who is being viewed. "Back" returns to the parent view and the end is logged (201).
+  - All test data was removed and verified: 0 e2e auth users/students/tasks/check-ins, 0 invites, 0 impersonation logs, and Test Student is back to its original values.
+  - Supabase security advisor: nothing new callable by anon. The INFO "RLS enabled, no policy" on `student_account_invites` is intentional (service-role only).
+- Risks + rollback: `git revert` the commit; redeploy ai-tutor v4 from git history. For the DB, drop the new policies, triggers, functions and tables in reverse order, run `ALTER TABLE students DROP COLUMN user_id`, and restore the previous `handle_new_user()` body (the "unchanged" branch only). Existing parent/Manager/admin access is untouched by design.
+- Blockers/human actions needed:
+  - **COPPA / minors:** Student accounts are created with `adult_confirmed=false` and use an email the parent controls. **adult_confirmed=false + imèl paran kontwole se yon premye kouch pwoteksyon, PA yon konsantman COPPA konplè verifye — mande revizyon ak yon avoka anvan vrè timoun anba 13 lane itilize sistèm lan an mas.**
+  - **Pre-existing bugs found, not fixed (outside this task):**
+    - Marking a task started/done in the UI still fails for everyone: the code writes `"In Progress"`/`"Done"` while the CHECK allows only `planned/started/done`; it also writes nonexistent `daily_plan` columns (`self_rating`, `time4learning_score`, `notes`); and the `award_points` RPC doesn't exist. The student's DB permission for it is in place and tested.
+    - `ai-tutor` history reads/writes `role`/`content`/`created_at` columns that `ai_conversations` doesn't have, so history is never persisted (answers still work).
+    - Per decision 2, student writes to `activity_logs`/`achievements` from the UI are refused (read-only).
+  - The Stripe live-mode gate's "Email DNS corrected" checkbox was reported fixed by the user but was not verified or checked here.
+
 ## 2026-09-23 — selectedStudentId is the student uuid everywhere (DadPanel/AuthContext and friends)
 - Summary: AuthContext selected students by `students.id` (uuid), but DadPanel, StudentSwitcherDropdown, StudentSelector and Index compared or set the text label `students.student_id` (e.g. "CH1312-94606"). That caused three visible problems:
   - The selected student was never highlighted in the sidebar.

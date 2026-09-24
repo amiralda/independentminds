@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { StudentLoginInvite } from "@/components/StudentLoginInvite";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,6 +21,7 @@ interface StudentData {
   nationality: string | null;
   address: string | null;
   profile_photo_url: string | null;
+  user_id: string | null;
   enrollment_date: string | null;
   academic_year: string | null;
   parent_name: string | null;
@@ -39,13 +41,15 @@ export function StudentProfileCard({ studentId }: Props) {
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const isParent = profile?.role === "parent";
+  // A student account may change only its own photo (enforced by a DB trigger too).
+  const canChangePhoto = isParent || profile?.role === "student";
 
   const { data: student, isLoading } = useQuery({
     queryKey: ["student_profile", studentId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("students")
-        .select("student_id, display_name, grade_level, date_of_birth, nationality, address, profile_photo_url, enrollment_date, academic_year, parent_name, parent_email, parent_whatsapp")
+        .select("student_id, display_name, grade_level, date_of_birth, nationality, address, profile_photo_url, enrollment_date, academic_year, parent_name, parent_email, parent_whatsapp, user_id")
         .eq("id", studentId)
         .single();
       if (error) throw error;
@@ -180,7 +184,7 @@ export function StudentProfileCard({ studentId }: Props) {
                   {student.display_name.split(" ").map(n => n[0]).join("").slice(0, 2)}
                 </AvatarFallback>
               </Avatar>
-              {isParent && (
+              {canChangePhoto && (
                 <button
                   onClick={() => fileRef.current?.click()}
                   disabled={uploading}
@@ -294,6 +298,13 @@ export function StudentProfileCard({ studentId }: Props) {
       </Dialog>
 
       {/* Co-Guardians Section */}
+      {isParent && (
+        <StudentLoginInvite
+          studentId={studentId}
+          hasLogin={!!student?.user_id}
+          onCreated={() => queryClient.invalidateQueries({ queryKey: ["student_profile", studentId] })}
+        />
+      )}
       {isParent && <StudentCoGuardiansSection studentId={studentId} />}
     </div>
   );

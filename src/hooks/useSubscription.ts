@@ -38,13 +38,12 @@ export function useSubscription(): UseSubscriptionResult {
     queryKey: ["subscription", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
-      const { data: row, error } = await supabase
-        .from("subscriptions" as any)
-        .select("status, plan_key, current_period_end, trial_ends_at")
-        .eq("user_id", user!.id)
-        .maybeSingle();
+      // The caller's own subscription, or -- for a student account with none --
+      // the subscription of the parent it belongs to (server-side, RLS-safe).
+      const { data: rows, error } = await supabase.rpc("get_my_effective_subscription" as any);
 
       if (error) throw error;
+      const row = Array.isArray(rows) ? rows[0] : rows;
       return (row ?? null) as SubscriptionRow | null;
     },
   });

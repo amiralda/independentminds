@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Session, User } from "@supabase/supabase-js";
 import { resolveProfileDisplayName, resolvePrimaryRole } from "@/lib/profile";
@@ -20,7 +20,7 @@ interface ProfileRow {
 
 // selectedStudentId is always a StudentRecord.id (students.id, uuid) --
 // every per-student table keys on that uuid, never on the text student_id label.
-interface StudentRecord {
+export interface StudentRecord {
   id: string;
   student_id: string | null;
   display_name: string;
@@ -40,6 +40,11 @@ interface AuthContextType {
   updateProfile: (updates: Partial<{ language_pref: string; onboarding_complete: boolean }>) => Promise<void>;
   viewingAsStudent: boolean;
   setViewingAsStudent: (v: boolean) => void;
+  /** Student being viewed via "view as student" (may be outside `students`, e.g. a Manager family or admin). */
+  impersonatedStudent: StudentRecord | null;
+  /** Logs to impersonation_logs FIRST; only enters the student view if the log was written. */
+  startImpersonation: (student: StudentRecord, reason?: string) => Promise<boolean>;
+  stopImpersonation: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -54,6 +59,9 @@ const AuthContext = createContext<AuthContextType>({
   updateProfile: async () => {},
   viewingAsStudent: false,
   setViewingAsStudent: () => {},
+  impersonatedStudent: null,
+  startImpersonation: async () => false,
+  stopImpersonation: async () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -63,6 +71,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [students, setStudents] = useState<StudentRecord[]>([]);
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [viewingAsStudent, setViewingAsStudent] = useState(false);
+  const [impersonatedStudent, setImpersonatedStudent] = useState<StudentRecord | null>(null);
+  const selectionBeforeImpersonation = useRef<string | null>(null);
+  // While viewing as a student outside our own list (Manager family, admin),
+  // fetchStudents' selection repair must not snap back to our own student.
+  const impersonatingRef = useRef(false);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -175,10 +188,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => { cancelled = true; };
   }, [session?.user?.id, session?.user]);
 
-  // Fetch students for parent users
+  // Fetch students for parent users, or a student account's own row
   useEffect(() => {
     if (!session?.user || !profile) return;
-    if (profile.role === "parent") {
+    if (profile.role === "parent" || profile.role === "student") {
       fetchStudents();
     }
   // `fetchStudents` is intentionally excluded to avoid refetch loops from function identity changes.
@@ -188,11 +201,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const fetchStudents = async () => {
     if (!session?.user) return;
 
-    // Fetch students where user is primary parent
+    // Parent: students where user is primary parent. Student account: its
+    // own linked row only (students.user_id).
+    const ownershipColumn = profile?.role === "student" ? "user_id" : "parent_id";
     const { data: ownStudents } = await supabase
       .from("students")
       .select("id, student_id, display_name, grade_level, parent_id")
-      .eq("parent_id", session.user.id)
+      // cast: the generated types.ts predates students.user_id
+      .eq(ownershipColumn as "parent_id", session.user.id)
       .order("display_name");
 
     // Co-guardian student access was never implemented backend-side
@@ -208,6 +224,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Functional update: this runs async (e.g. refreshStudents() right after
     // adding a student), so the closed-over selectedStudentId may be stale.
     setSelectedStudentId(prev => {
+      if (impersonatingRef.current) return prev;
       if (prev && allStudents.some(s => s.id === prev)) return prev;
       const saved = typeof window !== "undefined" ? window.localStorage.getItem("im_selected_student") : null;
       const found = allStudents.find(s => s.id === saved);
@@ -240,6 +257,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const startImpersonation = async (student: StudentRecord, reason?: string) => {
+    if (!session?.user) return false;
+    // Mandatory audit trail: no log row, no student view. The server stamps
+    // actor/role/time and RLS only accepts students the caller may manage.
+    const { error } = await supabase.from("impersonation_logs" as any).insert({
+      actor_id: session.user.id,
+      student_id: student.id,
+      action: "start",
+      reason: reason ?? null,
+    } as any);
+    if (error) {
+      console.error("Failed to log impersonation start", error);
+      return false;
+    }
+    selectionBeforeImpersonation.current = selectedStudentId;
+    impersonatingRef.current = true;
+    setImpersonatedStudent(student);
+    setSelectedStudentId(student.id);
+    setViewingAsStudent(true);
+    return true;
+  };
+
+  const stopImpersonation = async () => {
+    const viewed = impersonatedStudent;
+    impersonatingRef.current = false;
+    setViewingAsStudent(false);
+    setImpersonatedStudent(null);
+    const previous = selectionBeforeImpersonation.current;
+    selectionBeforeImpersonation.current = null;
+    setSelectedStudentId(
+      previous && students.some(s => s.id === previous) ? previous : students[0]?.id ?? null,
+    );
+    if (viewed && session?.user) {
+      const { error } = await supabase.from("impersonation_logs" as any).insert({
+        actor_id: session.user.id,
+        student_id: viewed.id,
+        action: "end",
+      } as any);
+      if (error) console.error("Failed to log impersonation end", error);
+    }
+  };
+
   // Persist selected student
   useEffect(() => {
     if (selectedStudentId && typeof window !== "undefined") {
@@ -253,6 +312,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       students, selectedStudentId, setSelectedStudentId,
       refreshStudents, updateProfile,
       viewingAsStudent, setViewingAsStudent,
+      impersonatedStudent, startImpersonation, stopImpersonation,
     }}>
       {children}
     </AuthContext.Provider>
