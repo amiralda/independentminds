@@ -1,10 +1,6 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
-import { Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAutoRefresh } from "@/hooks/useAutoRefresh";
-import { useAuth, type StudentRecord } from "@/contexts/AuthContext";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 
 interface StudentRow {
@@ -17,12 +13,12 @@ interface StudentRow {
   created_at: string;
 }
 
+// Admins list students only. "View as" is family-only (parent / Manager /
+// co-guardian) and is denied to admins server-side by can_impersonate_student().
 export default function AdminStudents() {
   const [students, setStudents] = useState<StudentRow[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
   const tick = useAutoRefresh();
-  const navigate = useNavigate();
-  const { startImpersonation } = useAuth();
 
   useEffect(() => {
     // students has no updated_at column -- selecting it made PostgREST return
@@ -42,20 +38,6 @@ export default function AdminStudents() {
       });
   }, [tick]);
 
-  const viewAs = async (s: StudentRow) => {
-    const record: StudentRecord = {
-      id: s.id, student_id: s.student_id, display_name: s.display_name,
-      grade_level: s.grade_level, parent_id: s.parent_id,
-    };
-    // Logged to impersonation_logs first; no log, no student view.
-    const ok = await startImpersonation(record, "admin support");
-    if (!ok) {
-      toast.error("Could not record the view-as log — access not opened.");
-      return;
-    }
-    navigate("/");
-  };
-
   return (
     <div className="space-y-4 sm:space-y-6">
       <h1 className="text-2xl font-display font-bold text-white">All Students</h1>
@@ -73,7 +55,6 @@ export default function AdminStudents() {
               <TableHead className="text-white/60">Student ID</TableHead>
               <TableHead className="text-white/60">Login</TableHead>
               <TableHead className="text-white/60">Created</TableHead>
-              <TableHead className="text-white/60"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -84,20 +65,11 @@ export default function AdminStudents() {
                 <TableCell className="text-white/50 text-xs font-mono">{s.student_id ?? "—"}</TableCell>
                 <TableCell className="text-white/50 text-xs">{s.user_id ? "Yes" : "—"}</TableCell>
                 <TableCell className="text-white/50 text-xs">{new Date(s.created_at).toLocaleDateString()}</TableCell>
-                <TableCell>
-                  <button
-                    type="button"
-                    onClick={() => viewAs(s)}
-                    className="inline-flex items-center gap-1 rounded-md bg-white/10 px-2 py-1 text-xs font-medium text-white hover:bg-white/20"
-                  >
-                    <Eye size={12} /> View as
-                  </button>
-                </TableCell>
               </TableRow>
             ))}
             {!loadError && students.length === 0 && (
               <TableRow className="border-white/10">
-                <TableCell colSpan={6} className="text-center text-white/40 py-8">No students found</TableCell>
+                <TableCell colSpan={5} className="text-center text-white/40 py-8">No students found</TableCell>
               </TableRow>
             )}
           </TableBody>

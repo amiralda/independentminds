@@ -78,6 +78,14 @@ serve(async (req) => {
         .single();
       if (mrErr || !mergeReq) throw new Error("Merge request not found");
       if (mergeReq.status !== "pending") throw new Error("Already processed");
+      // An admin approving their own request would move another family's
+      // students under their account (and with it, parent-level view-as).
+      if (mergeReq.requester_id === user.id) {
+        return new Response(JSON.stringify({ error: "You cannot approve your own merge request" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
 
       // Find source user by email
       const { data: { users }, error: usersErr } = await adminClient.auth.admin.listUsers();

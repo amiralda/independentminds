@@ -1,5 +1,29 @@
 # Activity Log
 
+## 2026-09-24 — Remove admin "view as student" (UI + backend)
+- Summary: Admins can no longer view as any student. View-as stays family-only (parent, Manager of that parent, co-guardian). An account that is admin AND parent keeps view-as for its own children only, through the parent branch.
+  - `can_impersonate_student()` no longer has the `has_role(admin)` branch. It gates both the `impersonation_logs` INSERT (the log-first view-as) and `create-student-account`. So admins can no longer enter a student view, and they can no longer create a login for another family's student, which was a second way in.
+  - Dropped 5 admin SELECT policies that were added only to feed admin view-as and that no admin page reads: `daily_plan`, `subject_tracks`, `ai_conversations`, `achievements`, `learning_tools`. Kept `check_ins`, `activity_logs`, `reward_points` and `reward_redemptions`, which AdminEngagement, AdminOverview and AdminRewards use.
+  - `AdminStudents.tsx`: removed the "View as" column and button (read-only list).
+  - `account-merge`: an admin can no longer approve their own merge request. Otherwise they could move another family's students under their own account and get parent-level view-as. The function is **not deployed** in production (404), so this path was never live. The fix is in source only; nothing was deployed.
+  - Also checked: `ai-tutor` already denies admin-only accounts (403) and scopes to `parent_id = caller`. No other edge function or RPC gives admin a student view.
+- Files touched: `supabase/migrations/20260924150000_remove_admin_view_as.sql` (applied live), `src/pages/admin/AdminStudents.tsx`, `supabase/functions/account-merge/index.ts`, `CLAUDE.md`, `docs/ACTIVITY_LOG.md`.
+- Validation:
+  - Live HTTP against production, same script run before and after the migration:
+    - Admin (test-admin): `rpc can_impersonate_student` true→**false** for both a test student and a real student from another family. `impersonation_logs` start 201→**403** (42501) for both. `create-student-account` → **403** "Forbidden: you cannot manage this student". `subject_tracks` for all students: 4 rows → **0**.
+    - Parent (test-parent): own child true / 201 before and after. Another family's student 403 before and after.
+  - DB under RLS as `authenticated`, in rolled-back transactions with temporary links:
+    - Manager: managed family true, log stamped `manager`; other family false.
+    - Co-guardian: linked family true, log stamped `co_guardian`; other family false.
+    - Dany (admin+parent): own child true; 2 other families false.
+    - test-admin still sees the 3 students in the admin list.
+  - Test data cleaned: 10 e2e `impersonation_logs` rows deleted (0 left). 0 manager_parents / co_guardians / invites left.
+  - `npx tsc --noEmit` PASS. `npm run build` PASS. `vitest` 96/96 PASS. eslint on the touched files PASS. `npm run lint` shows 4 errors, all in pre-existing uncommitted edits to `checkin-reminder`, `daily-report`, `morning-reminder` and `weekly-badge`. Those files are not in this commit.
+- Risks + rollback: restore the admin `OR` branch in `can_impersonate_student()` and recreate the 5 policies from `20260924120000_student_accounts.sql` section 7. Revert the commit for the UI and `account-merge`.
+- Blockers/human actions needed:
+  - The test guardian password in `.env.test` is stale (login 400). Co-guardian/Manager were verified at the DB level, not over HTTP.
+  - `ai-tutor` checks ownership with `parent_id = caller` only. Manager and co-guardian view-as therefore can't use Mr A for the family's students. This was already the case and is not changed here.
+
 ## 2026-09-24 — Email DNS confirmed (Resend, independentmindsedu.org)
 - Summary: The user confirmed that the Resend domain `independentmindsedu.org` is verified and that a real test send succeeded earlier today in a separate session (that session's details are not in this log). Recorded as CONFIRMED, and the Stripe live-mode gate item "Email DNS corrected" is now checked in CLAUDE.md. This supersedes the older entry below where `RESEND_API_KEY` was found unset (`hasKey: false`) at the time.
 - Files touched: `CLAUDE.md`, `docs/ACTIVITY_LOG.md`.
