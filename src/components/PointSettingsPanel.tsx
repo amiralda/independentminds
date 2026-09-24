@@ -1,8 +1,10 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useI18n } from "@/lib/i18n";
-import { usePointSettings, useSavePointSetting, ACTION_KEYS } from "@/hooks/usePointSettings";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
 import { Coins, Save } from "lucide-react";
 import { toast } from "sonner";
 
@@ -10,95 +12,86 @@ interface Props {
   studentId: string;
 }
 
+const DEFAULT_POINTS_PER_TASK = 10;
+
+// One family-wide number: parent_settings.points_per_task (default 10), read
+// by the award_task_points trigger. RLS keeps parent_settings to its owner,
+// so only the student's own parent can see and change it.
 export function PointSettingsPanel({ studentId }: Props) {
   const { t } = useI18n();
-  const { data: settings = [] } = usePointSettings(studentId);
-  const saveSetting = useSavePointSetting();
-  const [localValues, setLocalValues] = useState<Record<string, { points: number; enabled: boolean }>>({});
+  const { user, students } = useAuth();
+  const queryClient = useQueryClient();
+  const parentId = students.find((s) => s.id === studentId)?.parent_id ?? null;
+  const isOwnParent = !!user && parentId === user.id;
+  const [value, setValue] = useState(String(DEFAULT_POINTS_PER_TASK));
 
-  // Initialize local values from settings + defaults
-  useEffect(() => {
-    const values: Record<string, { points: number; enabled: boolean }> = {};
-    for (const action of ACTION_KEYS) {
-      const existing = settings.find(s => s.action_key === action.key);
-      values[action.key] = {
-        points: existing?.points ?? action.default,
-        enabled: existing?.enabled ?? true,
-      };
+  const { data: current = DEFAULT_POINTS_PER_TASK } = useQuery({
+    queryKey: ["points_per_task", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("parent_settings")
+        .select("points_per_task")
+        .eq("id", user!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return (data as unknown as { points_per_task: number } | null)?.points_per_task ?? DEFAULT_POINTS_PER_TASK;
+    },
+    enabled: isOwnParent,
+  });
+
+  useEffect(() => setValue(String(current)), [current]);
+
+  const save = useMutation({
+    mutationFn: async (points: number) => {
+      const { error } = await supabase
+        .from("parent_settings")
+        .upsert({ id: user!.id, points_per_task: points, updated_at: new Date().toISOString() } as never, { onConflict: "id" });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success(t("action.saved"));
+      queryClient.invalidateQueries({ queryKey: ["points_per_task"] });
+    },
+    onError: () => toast.error(t("blocks.saveFailed")),
+  });
+
+  const handleSave = () => {
+    const n = Number(value);
+    if (!Number.isInteger(n) || n < 0 || n > 1000) {
+      toast.error(t("points.invalid"));
+      return;
     }
-    setLocalValues(values);
-  }, [settings]);
-
-  const handleSave = (actionKey: string) => {
-    const val = localValues[actionKey];
-    if (!val) return;
-    saveSetting.mutate(
-      { student_id: studentId, action_key: actionKey, points: val.points, enabled: val.enabled },
-      { onSuccess: () => toast.success(t("action.saved")) }
-    );
+    save.mutate(n);
   };
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2 mb-2">
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
         <Coins size={16} className="text-secondary" />
-        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-          {t("points.perAction")}
-        </p>
+        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t("points.perTask")}</p>
       </div>
-
-      <div className="space-y-2">
-        {ACTION_KEYS.map(action => {
-          const val = localValues[action.key];
-          if (!val) return null;
-          return (
-            <div
-              key={action.key}
-              className="flex items-center gap-3 bg-muted/50 rounded-lg px-3 py-2.5"
-            >
-              <Switch
-                checked={val.enabled}
-                onCheckedChange={(checked) =>
-                  setLocalValues(prev => ({
-                    ...prev,
-                    [action.key]: { ...prev[action.key], enabled: checked },
-                  }))
-                }
-                aria-label={`Toggle ${action.label}`}
-              />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">
-                  {t(`points.${action.key}`) !== `points.${action.key}` ? t(`points.${action.key}`) : action.label}
-                </p>
-              </div>
-              <Input
-                type="number"
-                min={0}
-                max={500}
-                className="w-20 h-8 text-center text-sm"
-                value={val.points}
-                onChange={(e) =>
-                  setLocalValues(prev => ({
-                    ...prev,
-                    [action.key]: { ...prev[action.key], points: parseInt(e.target.value) || 0 },
-                  }))
-                }
-              />
-              <button
-                onClick={() => handleSave(action.key)}
-                className="text-muted-foreground hover:text-primary p-1 transition-colors"
-                title="Save"
-              >
-                <Save size={14} />
-              </button>
-            </div>
-          );
-        })}
-      </div>
-
-      <p className="text-[10px] text-muted-foreground text-center mt-2">
-        {t("points.customize")}
-      </p>
+      {isOwnParent ? (
+        <>
+          <div className="flex items-center gap-2 bg-muted/50 rounded-lg px-3 py-2.5">
+            <Input
+              type="number"
+              min={0}
+              max={1000}
+              inputMode="numeric"
+              aria-label={t("points.perTask")}
+              className="w-24 h-9 text-center"
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+            />
+            <Button size="sm" onClick={handleSave} disabled={save.isPending} className="font-display">
+              <Save size={14} className="mr-1" /> {t("action.save")}
+            </Button>
+          </div>
+          <p className="text-[11px] text-muted-foreground">{t("points.perTaskHelp")}</p>
+        </>
+      ) : (
+        <p className="text-[11px] text-muted-foreground">{t("points.perTaskParentOnly")}</p>
+      )}
     </div>
   );
 }

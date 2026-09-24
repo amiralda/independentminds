@@ -55,12 +55,13 @@ export function usePointsHistory(studentId: string | null) {
       if (!studentId) return [];
       const { data, error } = await supabase
         .from("reward_points")
-        .select("*")
+        .select("id, student_id, points, reason, source, reference_id, awarded_at")
         .eq("student_id", studentId)
-        .order("created_at", { ascending: false })
+        .order("awarded_at", { ascending: false })
         .limit(50);
       if (error) throw error;
-      return (data || []) as any as PointTransaction[];
+      // reward_points' timestamp column is awarded_at.
+      return (data || []).map((r: any) => ({ ...r, source: r.source || "", created_at: r.awarded_at })) as PointTransaction[];
     },
     enabled: !!studentId,
   });

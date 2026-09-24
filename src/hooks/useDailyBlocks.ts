@@ -1,20 +1,8 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { PLAN_COLUMNS, toPlanBlocks, type DailyPlanDbRow, type PlanBlock } from "@/lib/dailyPlan";
 
-export interface Block {
-  id: string;
-  block_order: number;
-  start_time: string;
-  end_time: string;
-  subject: string;
-  status: string;
-  self_rating: number | null;
-  notes: string | null;
-  time4learning_score: number | null;
-  actual_start: string | null;
-  actual_end: string | null;
-  map_id: string | null;
-}
+export type Block = PlanBlock;
 
 export function useDailyBlocks(studentId: string | null, date?: string) {
   const planDate = date || new Date().toISOString().split("T")[0];
@@ -23,14 +11,15 @@ export function useDailyBlocks(studentId: string | null, date?: string) {
     queryKey: ["daily_blocks", studentId, planDate],
     queryFn: async (): Promise<Block[]> => {
       if (!studentId) return [];
+      // Real columns only -- the old plan_date/block_order query was a 400
+      // on every load, so no blocks (and no Done button) ever rendered.
       const { data, error } = await supabase
         .from("daily_plan")
-        .select("*")
+        .select(PLAN_COLUMNS)
         .eq("student_id", studentId)
-        .eq("plan_date", planDate)
-        .order("block_order");
+        .eq("planned_date", planDate);
       if (error) throw error;
-      return (data as Block[]) || [];
+      return toPlanBlocks((data as DailyPlanDbRow[]) || []);
     },
     enabled: !!studentId,
   });

@@ -9,28 +9,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { CheckCircle2, Play, Clock, AlertCircle, FileText } from "lucide-react";
 import { toast } from "sonner";
-import { useCheckAndAwardBadges } from "@/hooks/useAchievements";
 import { StudentRecords } from "@/components/StudentRecords";
-import { useAwardPoints, POINT_VALUES } from "@/hooks/useRewards";
-import { checkAndAwardStreak } from "@/hooks/useStreakBonus";
-import { checkAndAwardCategoryBonus } from "@/hooks/useCategoryBonus";
-import { incrementChallengeProgress } from "@/hooks/useChallenges";
-import { usePointSettings, getPointValue } from "@/hooks/usePointSettings";
-
-interface Block {
-  id: string;
-  block_order: number;
-  start_time: string;
-  end_time: string;
-  subject: string;
-  status: string;
-  self_rating: number | null;
-  notes: string | null;
-  time4learning_score: number | null;
-  actual_start: string | null;
-  actual_end: string | null;
-  map_id: string | null;
-}
+import type { Block } from "@/hooks/useDailyBlocks";
+import { formatTimeRange } from "@/lib/dailyPlan";
 
 interface Props {
   blocks: Block[];
@@ -50,12 +31,9 @@ const statusIcon = (status: string) => {
 export function TodayBlocks({ blocks, onRefresh, studentId }: Props) {
   const { t } = useI18n();
   const queryClient = useQueryClient();
-  const checkBadges = useCheckAndAwardBadges(studentId || "");
-  const awardPoints = useAwardPoints();
-  const { data: pointSettings = [] } = usePointSettings(studentId);
   const [completingBlock, setCompletingBlock] = useState<Block | null>(null);
   const [showRecords, setShowRecords] = useState(false);
-  const [rating, setRating] = useState(3);
+  const [saving, setSaving] = useState(false);
   const [score, setScore] = useState("");
   const [notes, setNotes] = useState("");
 
@@ -107,10 +85,16 @@ export function TodayBlocks({ blocks, onRefresh, studentId }: Props) {
 
   const handleStart = async (block: Block) => {
     const now = new Date().toISOString();
-    await supabase.from("daily_plan").update({
-      status: "In Progress",
+    // DB statuses are planned/started/done (CHECK constraint).
+    const { error } = await supabase.from("daily_plan").update({
+      status: "started",
       actual_start: now,
     }).eq("id", block.id);
+    if (error) {
+      console.error("Start block failed", error);
+      toast.error(t("blocks.saveFailed"));
+      return;
+    }
 
     if (studentId) {
       const trackId = await findTrackForSubject(block.subject, studentId);
@@ -132,21 +116,27 @@ export function TodayBlocks({ blocks, onRefresh, studentId }: Props) {
 
   const handleMarkDone = (block: Block) => {
     setCompletingBlock(block);
-    setRating(3);
     setScore("");
     setNotes("");
   };
 
   const handleSubmitDone = async () => {
-    if (!completingBlock) return;
+    if (!completingBlock || saving) return;
     const now = new Date().toISOString();
-    await supabase.from("daily_plan").update({
-      status: "Done",
+    setSaving(true);
+    // Only status + timestamp exist on daily_plan; score/notes go to
+    // activity_logs below. Points are awarded server-side by the
+    // award_task_points trigger (once per task), badges by award_point_badges.
+    const { error } = await supabase.from("daily_plan").update({
+      status: "done",
       actual_end: now,
-      self_rating: rating,
-      time4learning_score: score ? parseInt(score) : null,
-      notes: notes || null,
     }).eq("id", completingBlock.id);
+    setSaving(false);
+    if (error) {
+      console.error("Mark done failed", error);
+      toast.error(t("blocks.saveFailed"));
+      return;
+    }
 
     // Also log to activity_logs
     if (studentId) {
@@ -187,52 +177,10 @@ export function TodayBlocks({ blocks, onRefresh, studentId }: Props) {
     setCompletingBlock(null);
     onRefresh();
     queryClient.invalidateQueries({ queryKey: ["activity_logs_all"] });
-    checkBadges.mutate();
-
-    // Award points for completing a block
-    const sid = studentId;
-    if (sid) {
-      const blockPts = getPointValue(pointSettings, "block_complete");
-      if (blockPts > 0) {
-        awardPoints.mutate({
-          student_id: sid,
-          points: blockPts,
-          reason: `Completed: ${completingBlock.subject}`,
-          source: "block_complete",
-          reference_id: completingBlock.id,
-        });
-      }
-      if (rating === 5) {
-        const ratingPts = getPointValue(pointSettings, "high_rating");
-        if (ratingPts > 0) {
-          awardPoints.mutate({
-            student_id: sid,
-            points: ratingPts,
-            reason: "Perfect self-rating ⭐",
-            source: "high_rating",
-          });
-        }
-      }
-      const doneAfter = blocks.filter(b => b.status === "Done").length + 1;
-      if (doneAfter === blocks.length && blocks.length > 0) {
-        const perfectPts = getPointValue(pointSettings, "perfect_day");
-        if (perfectPts > 0) {
-          awardPoints.mutate({
-            student_id: sid,
-            points: perfectPts,
-            reason: "Perfect Day — all blocks done! 🌟",
-            source: "perfect_day",
-          });
-        }
-      }
-
-      // Check streak bonuses (async, fire-and-forget)
-      checkAndAwardStreak(sid).catch(() => {});
-      // Check category completion bonus
-      checkAndAwardCategoryBonus(sid, completingBlock.subject, pointSettings).catch(() => {});
-      // Increment challenge progress
-      incrementChallengeProgress(sid, completingBlock.subject).catch(() => {});
-    }
+    queryClient.invalidateQueries({ queryKey: ["points_balance"] });
+    queryClient.invalidateQueries({ queryKey: ["points_history"] });
+    queryClient.invalidateQueries({ queryKey: ["achievements"] });
+    queryClient.invalidateQueries({ queryKey: ["student_rewards"] });
   };
 
   const doneCount = blocks.filter(b => b.status === "Done").length;
@@ -281,7 +229,7 @@ export function TodayBlocks({ blocks, onRefresh, studentId }: Props) {
                 <h3 className="font-display font-semibold text-lg truncate">{block.subject}</h3>
               </div>
               <p className="text-sm text-muted-foreground mt-0.5">
-                {block.start_time.slice(0, 5)} – {block.end_time.slice(0, 5)} | Block {block.block_order}
+                {formatTimeRange(block) ? `${formatTimeRange(block)} | ` : ""}Block {block.block_order}
               </p>
               {block.notes && (
                 <p className="text-xs mt-1 bg-background/60 rounded px-2 py-1 text-foreground/80">
@@ -302,12 +250,6 @@ export function TodayBlocks({ blocks, onRefresh, studentId }: Props) {
               )}
             </div>
           </div>
-          {block.status === "Done" && block.self_rating && (
-            <div className="mt-2 flex gap-2 text-sm text-muted-foreground">
-              <span>{"⭐".repeat(block.self_rating)}</span>
-              {block.time4learning_score != null && <span>Score: {block.time4learning_score}%</span>}
-            </div>
-          )}
         </div>
       ))}
 
@@ -325,24 +267,6 @@ export function TodayBlocks({ blocks, onRefresh, studentId }: Props) {
             <DialogTitle className="font-display">{completingBlock?.subject} ✅</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium">{t("rating")}</label>
-              <div className="flex gap-2 mt-2">
-                {[1, 2, 3, 4, 5].map(r => (
-                  <button
-                    key={r}
-                    onClick={() => setRating(r)}
-                    className={`w-10 h-10 rounded-lg font-display text-lg transition-all ${
-                      r <= rating
-                        ? "bg-warning text-warning-foreground shadow-sm scale-110"
-                        : "bg-muted text-muted-foreground"
-                    }`}
-                  >
-                    {r}
-                  </button>
-                ))}
-              </div>
-            </div>
             <div>
               <label className="text-sm font-medium">{t("score")}</label>
               <Input
@@ -365,7 +289,7 @@ export function TodayBlocks({ blocks, onRefresh, studentId }: Props) {
               />
             </div>
             <div className="flex gap-2">
-              <Button onClick={handleSubmitDone} className="flex-1 font-display">{t("save")}</Button>
+              <Button onClick={handleSubmitDone} disabled={saving} className="flex-1 font-display">{t("save")}</Button>
               <Button variant="outline" onClick={() => setCompletingBlock(null)}>{t("cancel")}</Button>
             </div>
           </div>

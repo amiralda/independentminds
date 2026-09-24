@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAutoRefresh } from "@/hooks/useAutoRefresh";
+import { useI18n } from "@/lib/i18n";
+import { badgeDef, badgeLabelKey } from "@/lib/badges";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 
 interface StudentRow {
@@ -13,12 +15,20 @@ interface StudentRow {
   created_at: string;
 }
 
+interface RewardsRow {
+  student_id: string;
+  total_points: number;
+  badges: string[];
+}
+
 // Admins list students only. "View as" is family-only (parent / Manager /
 // co-guardian) and is denied to admins server-side by can_impersonate_student().
 export default function AdminStudents() {
   const [students, setStudents] = useState<StudentRow[]>([]);
+  const [rewards, setRewards] = useState<Record<string, RewardsRow>>({});
   const [loadError, setLoadError] = useState<string | null>(null);
   const tick = useAutoRefresh();
+  const { t } = useI18n();
 
   useEffect(() => {
     // students has no updated_at column -- selecting it made PostgREST return
@@ -36,6 +46,17 @@ export default function AdminStudents() {
         setLoadError(null);
         setStudents((data as unknown as StudentRow[]) || []);
       });
+    // Totals + badge keys only, via an admin-only RPC (admins have no direct
+    // read access to achievements).
+    supabase.rpc("get_student_rewards_summary" as never).then(({ data, error }) => {
+      if (error) {
+        console.error("AdminStudents rewards load failed", error);
+        return;
+      }
+      const byStudent: Record<string, RewardsRow> = {};
+      for (const r of (data as unknown as RewardsRow[]) || []) byStudent[r.student_id] = r;
+      setRewards(byStudent);
+    });
   }, [tick]);
 
   return (
@@ -54,6 +75,8 @@ export default function AdminStudents() {
               <TableHead className="text-white/60">Grade</TableHead>
               <TableHead className="text-white/60">Student ID</TableHead>
               <TableHead className="text-white/60">Login</TableHead>
+              <TableHead className="text-white/60">Points</TableHead>
+              <TableHead className="text-white/60">Badges</TableHead>
               <TableHead className="text-white/60">Created</TableHead>
             </TableRow>
           </TableHeader>
@@ -64,12 +87,18 @@ export default function AdminStudents() {
                 <TableCell className="text-white/70">{s.grade_level ?? "—"}</TableCell>
                 <TableCell className="text-white/50 text-xs font-mono">{s.student_id ?? "—"}</TableCell>
                 <TableCell className="text-white/50 text-xs">{s.user_id ? "Yes" : "—"}</TableCell>
+                <TableCell className="text-white font-medium">{rewards[s.id]?.total_points ?? 0}</TableCell>
+                <TableCell className="text-white/80 text-xs">
+                  {rewards[s.id]?.badges.length
+                    ? rewards[s.id].badges.map((b) => `${badgeDef(b)?.emoji ?? "🏅"} ${t(badgeLabelKey(b))}`).join("  ")
+                    : "—"}
+                </TableCell>
                 <TableCell className="text-white/50 text-xs">{new Date(s.created_at).toLocaleDateString()}</TableCell>
               </TableRow>
             ))}
             {!loadError && students.length === 0 && (
               <TableRow className="border-white/10">
-                <TableCell colSpan={5} className="text-center text-white/40 py-8">No students found</TableCell>
+                <TableCell colSpan={7} className="text-center text-white/40 py-8">No students found</TableCell>
               </TableRow>
             )}
           </TableBody>

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAllActivityLogs, useSubjectTracks, useTrackMutations, type ActivityLog } from "@/hooks/useSubjectTracks";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { toUiStatus } from "@/lib/dailyPlan";
 import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -35,10 +36,11 @@ export function ActivityFeed({ studentId }: { studentId: string }) {
         .select("id, subject, status, actual_start, actual_end")
         .eq("student_id", studentId)
         .eq("planned_date", today)
-        .in("status", ["Done", "In Progress"])
+        .in("status", ["done", "started"])
         .order("created_at", { ascending: true });
       if (error) throw error;
-      return (data as CompletedBlock[]) || [];
+      // DB statuses are lowercase; the feed renders the UI labels.
+      return ((data as CompletedBlock[]) || []).map(b => ({ ...b, status: toUiStatus(b.status) }));
     },
     enabled: !!studentId,
   });

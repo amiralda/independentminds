@@ -34,13 +34,12 @@ import { MfaSettings } from "@/components/MfaSettings";
 import { DeleteAccountButton } from "@/components/DeleteAccountButton";
 import { AccountMergeRequest } from "@/components/AccountMergeRequest";
 import { SubscriptionGate } from "@/components/SubscriptionGate";
+import { PLAN_COLUMNS, composeTitle, formatTimeRange, toPlanBlocks, type DailyPlanDbRow, type PlanBlock } from "@/lib/dailyPlan";
 
 const SUBJECTS = ["English", "ESL", "Math", "Science", "Social Studies", "Public Speaking", "Media Education"];
 
-interface DailyPlanRow {
-  id: string; plan_date: string; block_order: number; start_time: string; end_time: string;
-  subject: string; status: string; self_rating: number | null; time4learning_score: number | null; notes: string | null;
-}
+// daily_plan rows mapped to the UI shape (see lib/dailyPlan.ts).
+type DailyPlanRow = PlanBlock;
 
 interface CheckInRow {
   id: string; timestamp: string; mood: string; focus: string; blocks_done: number; need_help: boolean; comment: string | null;
@@ -328,10 +327,10 @@ function TodayProgressTab({ studentId }: { studentId: string }) {
     queryKey: ["dad_today", studentId, today],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("daily_plan").select("*").eq("student_id", studentId)
-        .eq("plan_date", today).order("block_order");
+        .from("daily_plan").select(PLAN_COLUMNS).eq("student_id", studentId)
+        .eq("planned_date", today);
       if (error) throw error;
-      return data as DailyPlanRow[];
+      return toPlanBlocks((data as DailyPlanDbRow[]) || []);
     },
   });
 
@@ -368,12 +367,9 @@ function TodayProgressTab({ studentId }: { studentId: string }) {
               <SubjectIcon subject={b.subject} size={20} />
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-sm truncate">{b.subject}</p>
-                <p className="text-xs text-muted-foreground">{b.start_time.slice(0, 5)} – {b.end_time.slice(0, 5)}</p>
+                <p className="text-xs text-muted-foreground">{formatTimeRange(b)}</p>
               </div>
               <div className="flex items-center gap-2">
-                {b.time4learning_score != null && (
-                  <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">{b.time4learning_score}%</span>
-                )}
                 <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                   b.status === "Done" ? "bg-success/20 text-success" :
                   b.status === "In Progress" ? "bg-warning/20 text-warning" :
@@ -408,13 +404,14 @@ function ScheduleBuilderTab({ studentId }: { studentId: string }) {
       const vals = line.split(",").map(v => v.trim());
       const row: Record<string, string> = {};
       headers.forEach((h, i) => { row[h] = vals[i] || ""; });
+      if (!row.plan_date || !row.subject || !row.start_time || !row.end_time) return null;
+      // New blocks always start as planned; points are paid on the done transition.
       return {
-        student_id: studentId, plan_date: row.plan_date,
-        block_order: parseInt(row.block_order) || 1, start_time: row.start_time,
-        end_time: row.end_time, subject: row.subject,
-        status: row.status || "Planned", notes: row.notes || null,
+        student_id: studentId, planned_date: row.plan_date, subject: row.subject,
+        title: composeTitle(row.subject, row.start_time, row.end_time, row.notes),
+        status: "planned",
       };
-    }).filter(r => r.plan_date && r.subject && r.start_time && r.end_time);
+    }).filter((r): r is NonNullable<typeof r> => r !== null);
     if (rows.length === 0) { toast.error("No valid rows found in CSV"); return; }
     const { error } = await supabase.from("daily_plan").insert(rows);
     if (error) { toast.error("Upload failed: " + error.message); return; }
@@ -430,11 +427,10 @@ function ScheduleBuilderTab({ studentId }: { studentId: string }) {
     queryKey: ["dad_schedule", studentId, startDate],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("daily_plan").select("*").eq("student_id", studentId)
-        .gte("plan_date", startDate).lte("plan_date", endDate)
-        .order("plan_date").order("block_order");
+        .from("daily_plan").select(PLAN_COLUMNS).eq("student_id", studentId)
+        .gte("planned_date", startDate).lte("planned_date", endDate);
       if (error) throw error;
-      return data as DailyPlanRow[];
+      return toPlanBlocks((data as DailyPlanDbRow[]) || []);
     },
   });
 
@@ -448,15 +444,15 @@ function ScheduleBuilderTab({ studentId }: { studentId: string }) {
     mutationFn: async () => {
       if (editingId) {
         const { error } = await supabase.from("daily_plan").update({
-          plan_date: form.plan_date, start_time: form.start_time, end_time: form.end_time,
-          subject: form.subject, block_order: form.block_order, notes: form.notes || null,
+          planned_date: form.plan_date, subject: form.subject,
+          title: composeTitle(form.subject, form.start_time, form.end_time, form.notes),
         }).eq("id", editingId);
         if (error) throw error;
       } else {
         const { error } = await supabase.from("daily_plan").insert({
-          student_id: studentId, plan_date: form.plan_date, start_time: form.start_time,
-          end_time: form.end_time, subject: form.subject, block_order: form.block_order,
-          notes: form.notes || null, status: "Planned",
+          student_id: studentId, planned_date: form.plan_date, subject: form.subject,
+          title: composeTitle(form.subject, form.start_time, form.end_time, form.notes),
+          status: "planned",
         });
         if (error) throw error;
       }
@@ -477,7 +473,7 @@ function ScheduleBuilderTab({ studentId }: { studentId: string }) {
   const closeDialog = () => { setDialogOpen(false); setEditingId(null); setForm({ ...EMPTY_FORM }); };
   const openEdit = (p: DailyPlanRow) => {
     setEditingId(p.id);
-    setForm({ plan_date: p.plan_date, start_time: p.start_time.slice(0, 5), end_time: p.end_time.slice(0, 5), subject: p.subject, block_order: p.block_order, notes: p.notes || "" });
+    setForm({ plan_date: p.plan_date, start_time: p.start_time || EMPTY_FORM.start_time, end_time: p.end_time || EMPTY_FORM.end_time, subject: p.subject, block_order: p.block_order, notes: p.notes || "" });
     setDialogOpen(true);
   };
 
@@ -525,10 +521,6 @@ function ScheduleBuilderTab({ studentId }: { studentId: string }) {
               </Select>
             </div>
             <div>
-              <label className="text-sm font-medium">{t("schedule.blockOrder")}</label>
-              <Input type="number" min={1} max={10} value={form.block_order} onChange={e => setForm(f => ({ ...f, block_order: parseInt(e.target.value) || 1 }))} />
-            </div>
-            <div>
               <label className="text-sm font-medium">{t("notes")}</label>
               <Textarea placeholder="Lesson path or notes..." value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={3} />
             </div>
@@ -554,7 +546,7 @@ function ScheduleBuilderTab({ studentId }: { studentId: string }) {
                 <div key={p.id} className="flex items-center gap-3 text-sm bg-muted/50 rounded-lg px-3 py-2">
                   <SubjectIcon subject={p.subject} size={16} />
                   <span className="font-medium flex-1">{p.subject}</span>
-                  <span className="text-muted-foreground text-xs">{p.start_time.slice(0, 5)} – {p.end_time.slice(0, 5)}</span>
+                  <span className="text-muted-foreground text-xs">{formatTimeRange(p)}</span>
                   <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                     p.status === "Done" ? "bg-success/20 text-success" :
                     p.status === "In Progress" ? "bg-warning/20 text-warning" :

@@ -1,5 +1,51 @@
 # Activity Log
 
+## 2026-09-24 — [IN PROGRESS] Rewards system (points + badges) — spec + approved plan
+Saved before implementation so it survives a /clear. It will be replaced by the final entry when done.
+
+**Spec (user, verbatim, HT):**
+> Sistèm Rewards (pwen + badj) — konstwi nèf, pa yon bug ki dwe korije. Kontèks: bouton "Make tach la fèt" te kraze paske li rele yon RPC award_points ki pa egziste. Nou vle bati sistèm Rewards konplè a kounye a.
+> PWEN
+> - Konplete yon tach (daily_plan status → done) bay X pwen (default template: 10 pwen pa tach)
+> - Paran ka ajiste kantite pwen pa tach POU PWÒP fanmi li nan yon paramèt (yon chif senp, pa yon sistèm konplèks) — si paran pa chanje anyen, 10 pwen default la aplike
+> - Sa a ranplase/fikse RPC award_points ki pa egziste jodi a
+> BADJ — 2 kalite, tou de fiks (template global, pa pèsonalizab pou kounye a)
+> 1. Badj pa kantite pwen total (otomatik, kalkile chak fwa pwen ajoute): 50 pwen = "Kòmanse", 150 = "Bronze", 400 = "Silver", 1000 = "Gold"
+> 2. Badj pa aksyon espesifik (kòmanse ak 1 sèlman): "Fidèl" — 7 jou check-in konsekitif
+> AFICHAJ
+> - Montre kantite pwen total ak lis badj yo genyen sou paj Student nan Admin Dashboard (AdminStudents.tsx)
+> - Montre menm enfòmasyon an (pwen + badj) sou pwòp dashboard elèv la (li sèlman, jan RLS deja etabli pou wòl student)
+> REGLE:
+> - Montre m plan schema/RLS konplè anvan w aplike anyen (nouvo tab/kolòn pou badj si nesesè, trigger pou kalkile badj otomatikman)
+> - San danje, revèsib, additive sèlman
+> - Verifye bouton "Done" la (blòk tach) MACHE KONPLÈTMAN apre fix la — konfime toude nivo bug la korije (estati "Done" vs "done", AK RPC award_points)
+> - Tès bout-an-bout reyèl: konplete yon tach, konfime pwen ajoute, konfime badj bay lè kondisyon ranpli, konfime paran ka ajiste valè pwen pa tach
+> - Validation lint/tsc/build, commit, push, deploy, konfime Vercel READY
+
+**Diagnosis:** the Done button is broken on 4 levels, confirmed in prod edge logs:
+1. `useDailyBlocks` queries `plan_date`/`block_order`, which don't exist, so it always returns 400 and no blocks render.
+2. The code writes `"Done"`/`"In Progress"`, but the CHECK allows only `planned|started|done`.
+3. The update writes nonexistent `self_rating`/`time4learning_score`/`notes` and never checks the error.
+4. The `award_points` RPC is missing (7 callers).
+
+Other mismatches found: `usePointsHistory` orders by `created_at` (the column is `awarded_at`); `useAchievements` expects `name`/`type`/`criteria_met_at` (the DB has `badge_type`/`milestone`/`earned_at`); the `point_settings` table doesn't exist. `daily_plan`, `reward_points`, `achievements` and `check_ins` all had 0 rows.
+
+**Approved plan (user said yes 2026-09-24):**
+- `reward_points` + `source text`, `reference_id uuid`; unique `(student_id, source, reference_id)` where `reference_id` is not null.
+- `parent_settings` + `points_per_task int NOT NULL DEFAULT 10 CHECK 0..1000`. The existing policy `auth.uid()=id` means the parent only; no row means 10.
+- Trigger AFTER UPDATE OF status ON `daily_plan`: when status becomes `'done'` from something else, insert `COALESCE(points_per_task,10)` with `source='task_done'`, `ref=`task id, `ON CONFLICT DO NOTHING`. SECURITY DEFINER.
+- `achievements`: unique `(student_id, badge_type)`.
+- Trigger AFTER INSERT ON `reward_points`: from lifetime earned (sum of points > 0), award `points_50`/`points_150`/`points_400`/`points_1000` (milestone = threshold).
+- Trigger AFTER INSERT ON `check_ins`: 7 consecutive calendar days ending today (America/New_York) awards `checkin_streak_7` (Fidèl). Badges are permanent.
+- `award_points(_student_id,_points,_reason,_source,_reference_id)`: SECURITY DEFINER, family only (`can_impersonate_student`), students and admins 42501, points between -1000 and 1000. Tasks don't use it.
+- `get_student_rewards_summary()`: admin only; returns `student_id`, `total_points`, `badges[]`.
+- Frontend:
+  - `useDailyBlocks` uses the real columns and maps status to UI values.
+  - `TodayBlocks` and `syncManager` write `started`/`done` plus timestamps only, check errors, and no longer award task points on the client.
+  - `useAchievements` and `usePointsHistory` are aligned to the real columns.
+  - New student "Points & Badges" card, AdminStudents points/badges columns, and a parent "points per task" setting that replaces the broken `PointSettingsPanel`. i18n in 10 languages.
+- Decisions: (1) disable the legacy client bonuses (check-in, streak, perfect day, 5/5, challenge, category) for now, so only tasks give points. (2) Do NOT touch `rewards_catalog`/`RewardsPanel` (same column-mismatch class); note it for later.
+
 ## 2026-09-24 — Remove admin "view as student" (UI + backend)
 - Summary: Admins can no longer view as any student. View-as stays family-only (parent, Manager of that parent, co-guardian). An account that is admin AND parent keeps view-as for its own children only, through the parent branch.
   - `can_impersonate_student()` no longer has the `has_role(admin)` branch. It gates both the `impersonation_logs` INSERT (the log-first view-as) and `create-student-account`. So admins can no longer enter a student view, and they can no longer create a login for another family's student, which was a second way in.

@@ -10,6 +10,7 @@ import { TodayBlocks } from "@/components/TodayBlocks";
 import { CheckInForm } from "@/components/CheckInForm";
 import { BadgesPanel } from "@/components/BadgesPanel";
 import { TrophyRoom } from "@/components/TrophyRoom";
+import { RewardsSummaryCard } from "@/components/RewardsSummaryCard";
 import { DadPanel } from "@/components/DadPanel";
 import { StudentStatsBar } from "@/components/StudentStatsBar";
 import { CategoryCards } from "@/components/CategoryCards";
@@ -254,6 +255,11 @@ const Index = () => {
                 todayDone={blocks.filter(b => b.status === "Done").length}
                 todayTotal={blocks.length}
               />
+            )}
+            {studentId && (
+              <div className="mt-4">
+                <RewardsSummaryCard studentId={studentId} />
+              </div>
             )}
 
             {tab === "today" && (
