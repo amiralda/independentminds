@@ -1,7 +1,37 @@
 # Activity Log
 
-## 2026-09-24 — [IN PROGRESS] Rewards system (points + badges) — spec + approved plan
-Saved before implementation so it survives a /clear. It will be replaced by the final entry when done.
+## 2026-09-24 — Rewards system (points + badges) + Done button fixed end to end
+- Summary: built the rewards system from the spec below, following the approved plan. All points and badges are computed server-side by triggers; clients can't insert into `reward_points` or `achievements`.
+  - The Done button now works. Four breakages were fixed: the `useDailyBlocks` query (400), the "Done" vs `done` status mismatch, the ghost columns, and the missing `award_points`. The status and title mapping lives in one place, `lib/dailyPlan.ts`.
+  - Also fixed on the same flow: the parent "Add block" / edit / CSV and today views (they used the same nonexistent columns, so parents could not create tasks), the check-in form mapping (`need_help`/`comment` → `help_needed`/`note`, etc.; without it "Fidèl" was unreachable), the ActivityFeed filter, and StudentStatsBar (`plan_date` 400).
+  - Security extra: client check-ins are stamped `now()` server-side. Before, a student could backdate `checked_in_at` and fake the 7-day streak.
+  - Legacy client bonuses (check-in, streak, perfect day, 5/5, challenge, category) are disabled: no caller is left and the hooks are kept for later. `useCheckAndAwardBadges`, which wrote the wrong achievements columns, was removed.
+- Files touched:
+  - `supabase/migrations/20260924170000_rewards_points_badges.sql` (applied live)
+  - New: `src/lib/dailyPlan.ts`, `src/lib/badges.ts`, `src/hooks/useStudentRewards.ts`, `src/components/RewardsSummaryCard.tsx`
+  - Edited: `src/hooks/{useDailyBlocks,useAchievements,useSubmitCheckIn,useRewards}.ts`, `src/lib/syncManager.ts`, `src/components/{TodayBlocks,DadPanel,PointSettingsPanel,ActivityFeed,StudentStatsBar}.tsx`, `src/pages/Index.tsx`, `src/pages/admin/AdminStudents.tsx`, `src/lib/i18n.tsx` (14 new keys × 10 languages)
+- Validation:
+  - `npx tsc --noEmit` PASS. `npm run build` PASS. vitest 96/96 PASS. eslint on all touched files PASS. Strict `tsconfig.app.json` errors went from 466 to 453, none new.
+  - **Live API E2E: 36/36 PASS.** Real test parent, a temporary student login created through `create-student-account`, and test-admin, all on production:
+    - Loading blocks returns 200 (the old query still returns 400). Writing `"Done"` or a ghost column is rejected. Start → `started` gives no points; Done → +10 (default). Re-marking done does not pay twice.
+    - Student: `award_points` → 403; direct INSERT into `reward_points`/`achievements` → 403; cannot change the parent's setting.
+    - Parent: sets 25 (5000 rejected) → +25 per task. Total 60 awards Kòmanse. Parent `award_points` +100 → 160 awards Bronze. `source=task_done` is refused.
+    - A backdated check-in is re-stamped to today. 7 consecutive days awards Fidèl.
+    - Admin summary shows 160 pts + 3 badges. Parent calling the summary → 403. Admin `award_points` → 403. Admin direct achievements read → 0 rows.
+  - **Real browser (Playwright, production www):**
+    - Student Mark Done: 160→185 (+25). The PATCH body was `{"status":"done",...}`. The card shows Starter/Bronze/Loyal and "Next badge: Silver 185/400".
+    - Parent: Schedule "Add block" (POST uses the real columns) and "points per task" 25→10 saved. Then the student Start→Done on that UI-created block: 185→195 (+10), with no rewards-related REST errors.
+    - Admin /admin/students shows 195 + 3 badges and no "View as" button.
+    - The browser run found a race in my first PointSettingsPanel (the input showed default 10 while loading, then the late load overwrote the typed value). It is fixed in `e00bf71` and re-verified.
+  - All test data cleaned: 0 `daily_plan`/`reward_points`/`achievements`/`check_ins` rows for Test Student. The test parent's `parent_settings` row (created by the test) is deleted. The temporary student auth user, role, profile and invite are deleted. `Test Student.user_id` is back to null.
+- Risks + rollback: the migration footer lists the DROP order (functions/triggers/indexes/3 columns; no existing data was modified). Revert commits `65ea427` and `e00bf71` for the client.
+- Blockers/human actions needed / noted for later (not touched, per decision 2):
+  - The rewards shop (`rewards_catalog`/`reward_redemptions`/`RewardsPanel`/`RewardsManagement`) has the same column-mismatch class (400s).
+  - `schedule_templates` returns 400 (ScheduleTemplates also writes legacy `daily_plan` columns).
+  - `challenges`, `currency_settings`, `point_settings` and `admin_notifications` return 404.
+  - Login inputs and the parent hamburger menu have no accessible labels.
+  - "Days Left" uses a hard-coded 2026-07-03 date.
+  - Noticed during the test: Christian's student login was created at 15:46 by the parent account `augustindany@hotmail.com` (the user's own action, not test data; left untouched).
 
 **Spec (user, verbatim, HT):**
 > Sistèm Rewards (pwen + badj) — konstwi nèf, pa yon bug ki dwe korije. Kontèks: bouton "Make tach la fèt" te kraze paske li rele yon RPC award_points ki pa egziste. Nou vle bati sistèm Rewards konplè a kounye a.
