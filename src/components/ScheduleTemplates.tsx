@@ -9,33 +9,86 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Save, Copy, Layout } from "lucide-react";
 import { toast } from "sonner";
+import { useStudentFamilyId } from "@/hooks/useRewards";
+import { composeTitle, PLAN_COLUMNS, type DailyPlanDbRow } from "@/lib/dailyPlan";
 
 interface Props {
   studentId: string;
+}
+
+// One block of a saved week. Times/notes ride in `title` (see lib/dailyPlan).
+interface TemplateBlock {
+  day_of_week: number; // 1 = Monday … 7 = Sunday
+  subject: string;
+  title: string | null;
+}
+
+interface TemplateRow {
+  id: string;
+  name: string;
+  blocks: unknown;
+}
+
+// Local calendar date as YYYY-MM-DD (toISOString would shift it by the UTC offset).
+const ymd = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+const mondayOf = (d: Date) => {
+  const monday = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const dow = monday.getDay();
+  monday.setDate(monday.getDate() - (dow === 0 ? 6 : dow - 1));
+  return monday;
+};
+
+const addDays = (d: Date, n: number) => {
+  const r = new Date(d);
+  r.setDate(r.getDate() + n);
+  return r;
+};
+
+// Also accepts the legacy block shape (start_time/end_time/notes) in case an
+// old template ever shows up.
+function toTemplateBlocks(raw: unknown): TemplateBlock[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.flatMap((b) => {
+    if (!b || typeof b !== "object") return [];
+    const o = b as Record<string, unknown>;
+    const day = Number(o.day_of_week);
+    const subject = typeof o.subject === "string" ? o.subject : "";
+    if (!subject || !(day >= 1 && day <= 7)) return [];
+    const title = typeof o.title === "string"
+      ? o.title
+      : typeof o.start_time === "string" && typeof o.end_time === "string"
+        ? composeTitle(subject, o.start_time, o.end_time, typeof o.notes === "string" ? o.notes : null)
+        : null;
+    return [{ day_of_week: day, subject, title }];
+  });
 }
 
 export function ScheduleTemplates({ studentId }: Props) {
   const { t } = useI18n();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { data: familyId } = useStudentFamilyId(studentId || null);
   const [saveOpen, setSaveOpen] = useState(false);
   const [applyOpen, setApplyOpen] = useState(false);
   const [templateName, setTemplateName] = useState("");
   const [selectedTemplate, setSelectedTemplate] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Templates belong to the family (schedule_templates.parent_id).
   const { data: templates = [] } = useQuery({
-    queryKey: ["schedule_templates", user?.id],
+    queryKey: ["schedule_templates", familyId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("schedule_templates")
-        .select("*")
-        .order("is_builtin", { ascending: false })
+        .select("id, name, blocks")
+        .eq("parent_id", familyId!)
         .order("name");
       if (error) throw error;
-      return data;
+      return (data || []) as TemplateRow[];
     },
-    enabled: !!user,
+    enabled: !!user && !!familyId,
   });
 
   const invalidateSchedule = () => {
@@ -44,54 +97,42 @@ export function ScheduleTemplates({ studentId }: Props) {
     queryClient.invalidateQueries({ queryKey: ["daily_blocks"] });
   };
 
+  const fetchWeek = async (monday: Date) => {
+    const { data } = await supabase
+      .from("daily_plan")
+      .select(PLAN_COLUMNS)
+      .eq("student_id", studentId)
+      .gte("planned_date", ymd(monday))
+      .lte("planned_date", ymd(addDays(monday, 4)))
+      .order("planned_date")
+      .order("created_at");
+    return (data || []) as DailyPlanDbRow[];
+  };
+
   const handleSaveTemplate = async () => {
-    if (!templateName.trim() || !user) return;
+    if (!templateName.trim() || !user || !familyId) return;
     setLoading(true);
 
-    // Get current week's blocks
-    const today = new Date();
-    const dayOfWeek = today.getDay();
-    const monday = new Date(today);
-    monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
-    const friday = new Date(monday);
-    friday.setDate(monday.getDate() + 4);
-
-    const { data: blocks } = await supabase
-      .from("daily_plan")
-      .select("*")
-      .eq("student_id", studentId)
-      .gte("plan_date", monday.toISOString().split("T")[0])
-      .lte("plan_date", friday.toISOString().split("T")[0])
-      .order("plan_date")
-      .order("block_order");
-
-    if (!blocks || blocks.length === 0) {
+    const rows = await fetchWeek(mondayOf(new Date()));
+    if (rows.length === 0) {
       toast.error(t("schedule.noBlocks"));
       setLoading(false);
       return;
     }
 
-    const templateBlocks = blocks.map(b => {
-      const blockDate = new Date(b.plan_date + "T00:00:00");
-      const dow = blockDate.getDay() === 0 ? 7 : blockDate.getDay();
-      return {
-        day_of_week: dow,
-        start_time: b.start_time,
-        end_time: b.end_time,
-        subject: b.subject,
-        notes: b.notes,
-      };
+    const templateBlocks: TemplateBlock[] = rows.map((r) => {
+      const dow = new Date(`${r.planned_date}T00:00:00`).getDay();
+      return { day_of_week: dow === 0 ? 7 : dow, subject: r.subject, title: r.title };
     });
 
     const { error } = await supabase.from("schedule_templates").insert({
-      parent_id: user.id,
-      student_id: studentId,
+      parent_id: familyId,
       name: templateName.trim(),
       blocks: templateBlocks,
-    } as any);
+    } as never);
 
     if (error) {
-      toast.error("Failed to save template");
+      toast.error(t("schedule.templateSaveFailed"));
     } else {
       toast.success(t("schedule.templateSaved"));
       queryClient.invalidateQueries({ queryKey: ["schedule_templates"] });
@@ -105,32 +146,26 @@ export function ScheduleTemplates({ studentId }: Props) {
     if (!selectedTemplate || !user) return;
     setLoading(true);
 
-    const template = templates.find(t => t.id === selectedTemplate);
-    if (!template) { setLoading(false); return; }
+    const template = templates.find((tpl) => tpl.id === selectedTemplate);
+    const blocks = template ? toTemplateBlocks(template.blocks) : [];
+    if (blocks.length === 0) {
+      toast.error(t("schedule.noBlocks"));
+      setLoading(false);
+      return;
+    }
 
-    const today = new Date();
-    const dayOfWeek = today.getDay();
-    const monday = new Date(today);
-    monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+    const monday = mondayOf(new Date());
+    const rows = blocks.map((b) => ({
+      student_id: studentId,
+      subject: b.subject,
+      title: b.title,
+      planned_date: ymd(addDays(monday, b.day_of_week - 1)),
+      status: "planned",
+    }));
 
-    const blocks = (template.blocks as any[]).map((b: unknown) => {
-      const blockDate = new Date(monday);
-      blockDate.setDate(monday.getDate() + (b.day_of_week - 1));
-      return {
-        student_id: studentId,
-        plan_date: blockDate.toISOString().split("T")[0],
-        start_time: b.start_time,
-        end_time: b.end_time,
-        subject: b.subject,
-        block_order: 1,
-        status: "Planned",
-        notes: b.notes || null,
-      };
-    });
-
-    const { error } = await supabase.from("daily_plan").insert(blocks);
+    const { error } = await supabase.from("daily_plan").insert(rows as never);
     if (error) {
-      toast.error("Failed to apply template");
+      toast.error(t("schedule.templateApplyFailed"));
     } else {
       toast.success(t("schedule.templateApplied"));
       invalidateSchedule();
@@ -142,47 +177,25 @@ export function ScheduleTemplates({ studentId }: Props) {
 
   const handleCopyLastWeek = async () => {
     setLoading(true);
-    const today = new Date();
-    const dayOfWeek = today.getDay();
-    const thisMonday = new Date(today);
-    thisMonday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
-    const lastMonday = new Date(thisMonday);
-    lastMonday.setDate(thisMonday.getDate() - 7);
-    const lastFriday = new Date(lastMonday);
-    lastFriday.setDate(lastMonday.getDate() + 4);
+    const lastWeek = await fetchWeek(addDays(mondayOf(new Date()), -7));
 
-    const { data: lastWeekBlocks } = await supabase
-      .from("daily_plan")
-      .select("*")
-      .eq("student_id", studentId)
-      .gte("plan_date", lastMonday.toISOString().split("T")[0])
-      .lte("plan_date", lastFriday.toISOString().split("T")[0]);
-
-    if (!lastWeekBlocks || lastWeekBlocks.length === 0) {
+    if (lastWeek.length === 0) {
       toast.error(t("schedule.noLastWeek"));
       setLoading(false);
       return;
     }
 
-    const newBlocks = lastWeekBlocks.map(b => {
-      const oldDate = new Date(b.plan_date + "T00:00:00");
-      const newDate = new Date(oldDate);
-      newDate.setDate(oldDate.getDate() + 7);
-      return {
-        student_id: studentId,
-        plan_date: newDate.toISOString().split("T")[0],
-        start_time: b.start_time,
-        end_time: b.end_time,
-        subject: b.subject,
-        block_order: b.block_order,
-        status: "Planned",
-        notes: b.notes,
-      };
-    });
+    const rows = lastWeek.map((r) => ({
+      student_id: studentId,
+      subject: r.subject,
+      title: r.title,
+      planned_date: ymd(addDays(new Date(`${r.planned_date}T00:00:00`), 7)),
+      status: "planned",
+    }));
 
-    const { error } = await supabase.from("daily_plan").insert(newBlocks);
+    const { error } = await supabase.from("daily_plan").insert(rows as never);
     if (error) {
-      toast.error("Failed to copy week");
+      toast.error(t("schedule.copyWeekFailed"));
     } else {
       toast.success(t("schedule.lastWeekCopied"));
       invalidateSchedule();
@@ -240,9 +253,9 @@ export function ScheduleTemplates({ studentId }: Props) {
                 <SelectValue placeholder={t("schedule.chooseTemplate")} />
               </SelectTrigger>
               <SelectContent>
-                {templates.map(t => (
-                  <SelectItem key={t.id} value={t.id}>
-                    {t.name} {t.is_builtin ? "⭐" : ""}
+                {templates.map((tpl) => (
+                  <SelectItem key={tpl.id} value={tpl.id}>
+                    {tpl.name}
                   </SelectItem>
                 ))}
               </SelectContent>

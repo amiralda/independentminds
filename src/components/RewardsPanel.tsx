@@ -7,6 +7,7 @@ import {
   useRewardsCatalog,
   useRedemptions,
   useRedeemReward,
+  redeemErrorKey,
   POINT_VALUES,
 } from "@/hooks/useRewards";
 import { Button } from "@/components/ui/button";
@@ -47,8 +48,11 @@ export function RewardsPanel() {
       return;
     }
     redeemMutation.mutate(
-      { student_id: studentId, reward_id: reward.id, points_spent: reward.point_cost, reward_name: reward.name },
-      { onSuccess: () => toast.success(`${reward.name} ${t("rewards.redeemed_toast")}`) }
+      { student_id: studentId, reward_id: reward.id },
+      {
+        onSuccess: () => toast.success(`${reward.name} ${t("rewards.redeemed_toast")}`),
+        onError: (err) => toast.error(t(redeemErrorKey(err.message))),
+      }
     );
   };
 
@@ -228,15 +232,17 @@ export function RewardsPanel() {
               {redemptions.map((r) => (
                 <div key={r.id} className="flex items-center justify-between bg-muted/50 rounded-lg px-3 py-2">
                   <div>
-                    <p className="text-sm font-medium">{r.points_spent} pts</p>
+                    <p className="text-sm font-medium">
+                      {r.reward_title ? `${r.reward_title} · ` : ""}{r.points_spent} pts
+                    </p>
                     <p className="text-[10px] text-muted-foreground">
                       {new Date(r.created_at).toLocaleDateString()}
                     </p>
                   </div>
                   <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                    r.status === "fulfilled" ? "bg-success/20 text-success" : "bg-warning/20 text-warning"
+                    r.status === "redeemed" ? "bg-success/20 text-success" : "bg-warning/20 text-warning"
                   }`}>
-                    {r.status === "fulfilled" ? "✅" : "⏳"} {r.status}
+                    {r.status === "redeemed" ? `✅ ${t("rewards.statusFulfilled")}` : `⏳ ${t("rewards.statusPending")}`}
                   </span>
                 </div>
               ))}

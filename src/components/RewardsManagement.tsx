@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useI18n } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
-import { useAllRewardsCatalog, useRedemptions, usePointsBalance, useAwardPoints } from "@/hooks/useRewards";
+import { useAllRewardsCatalog, useRedemptions, usePointsBalance, useAwardPoints, useStudentFamilyId, type CatalogReward } from "@/hooks/useRewards";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +24,7 @@ export function RewardsManagement({ studentId }: Props) {
   const { data: catalog = [] } = useAllRewardsCatalog(studentId);
   const { data: redemptions = [] } = useRedemptions(studentId);
   const { data: balance = 0 } = usePointsBalance(studentId);
+  const { data: familyId } = useStudentFamilyId(studentId);
   const awardPoints = useAwardPoints();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -41,7 +42,7 @@ export function RewardsManagement({ studentId }: Props) {
     setDialogOpen(true);
   };
 
-  const openEdit = (r: unknown) => {
+  const openEdit = (r: CatalogReward) => {
     setEditingId(r.id);
     setForm({ name: r.name, description: r.description || "", point_cost: r.point_cost, icon: r.icon, enabled: r.enabled });
     setDialogOpen(true);
@@ -51,16 +52,19 @@ export function RewardsManagement({ studentId }: Props) {
     if (!form.name.trim()) { toast.error("Name required"); return; }
     if (editingId) {
       const { error } = await supabase.from("rewards_catalog").update({
-        name: form.name, description: form.description || null,
-        point_cost: form.point_cost, icon: form.icon, enabled: form.enabled,
-      } as any).eq("id", editingId);
+        title: form.name.trim(), description: form.description || null,
+        point_cost: form.point_cost, icon: form.icon, is_active: form.enabled,
+      } as never).eq("id", editingId);
       if (error) { toast.error("Failed to update"); return; }
       toast.success(t("rewards.rewardUpdated"));
     } else {
+      if (!familyId) { toast.error("Failed to create"); return; }
+      // The catalog belongs to the student's family (students.parent_id), so a
+      // Manager or co-guardian adds to the same list the parent sees.
       const { error } = await supabase.from("rewards_catalog").insert({
-        student_id: studentId, name: form.name, description: form.description || null,
-        point_cost: form.point_cost, icon: form.icon, enabled: form.enabled,
-      } as any);
+        parent_id: familyId, title: form.name.trim(), description: form.description || null,
+        point_cost: form.point_cost, icon: form.icon, is_active: form.enabled,
+      } as never);
       if (error) { toast.error("Failed to create"); return; }
       toast.success(t("rewards.rewardAdded"));
     }
@@ -79,8 +83,8 @@ export function RewardsManagement({ studentId }: Props) {
 
   const fulfillRedemption = async (id: string) => {
     const { error } = await supabase.from("reward_redemptions").update({
-      status: "fulfilled", fulfilled_at: new Date().toISOString(),
-    } as any).eq("id", id);
+      status: "redeemed", approved_at: new Date().toISOString(),
+    } as never).eq("id", id);
     if (error) { toast.error("Failed"); return; }
     toast.success(t("rewards.rewardFulfilled"));
     qc.invalidateQueries({ queryKey: ["redemptions"] });
@@ -128,7 +132,7 @@ export function RewardsManagement({ studentId }: Props) {
           {pendingRedemptions.map((r) => (
             <div key={r.id} className="flex items-center justify-between bg-warning/10 border border-warning/20 rounded-lg px-3 py-2">
               <div>
-                <p className="text-sm font-medium">{r.points_spent} pts</p>
+                <p className="text-sm font-medium">{r.reward_title ? `${r.reward_title} · ` : ""}{r.points_spent} pts</p>
                 <p className="text-[10px] text-muted-foreground">{new Date(r.created_at).toLocaleDateString()}</p>
               </div>
               <Button size="sm" variant="outline" className="text-xs" onClick={() => fulfillRedemption(r.id)}>
