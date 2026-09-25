@@ -41,6 +41,9 @@ export function StudentProfileCard({ studentId }: Props) {
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const isParent = profile?.role === "parent";
+  // Role is typed "student" | "parent" but resolvePrimaryRole() also yields
+  // "manager"; the server re-checks can_impersonate_student() either way.
+  const canManageLogin = isParent || (profile?.role as string | undefined) === "manager";
   // A student account may change only its own photo (enforced by a DB trigger too).
   const canChangePhoto = isParent || profile?.role === "student";
 
@@ -298,7 +301,7 @@ export function StudentProfileCard({ studentId }: Props) {
       </Dialog>
 
       {/* Co-Guardians Section */}
-      {isParent && (
+      {canManageLogin && (
         <StudentLoginInvite
           studentId={studentId}
           hasLogin={!!student?.user_id}

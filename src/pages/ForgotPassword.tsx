@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
 import logo from "@/assets/logo.svg";
 import { Mail, ArrowLeft } from "lucide-react";
-import { buildAppUrl } from "@/lib/siteUrl";
+import { readFunctionError, rateLimitMessage } from "@/components/StudentLoginInvite";
 
 export default function ForgotPassword() {
   const { t } = useI18n();
@@ -19,14 +19,21 @@ export default function ForgotPassword() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: buildAppUrl("/reset-password"),
+    // Goes through request-password-reset (15-min limit per account, shared
+    // with the parent/Manager reset link) instead of calling Auth directly.
+    const { data, error } = await supabase.functions.invoke("request-password-reset", {
+      body: { email: email.trim() },
     });
+    const failure = await readFunctionError(data, error);
     setLoading(false);
-    if (error) {
-      toast.error(error.message);
-    } else {
+    if (!failure) {
       setSent(true);
+    } else if (failure.code === "rate_limited") {
+      toast.error(rateLimitMessage(t, failure.retry_after_seconds));
+    } else if (failure.code === "invalid_email") {
+      toast.error(t("auth.resetInvalidEmail"));
+    } else {
+      toast.error(t("auth.resetFailed"));
     }
   };
 
