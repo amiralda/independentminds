@@ -14,7 +14,7 @@ select cron.schedule(
   $$
   select net.http_post(
     url := 'https://gyvjcwuwfwrwwwnuwlex.supabase.co/functions/v1/morning-reminder',
-    headers := '{"Content-Type": "application/json", "x-cron-secret": "d418d2e81d6f0c184c0e4126dcb95f04bf50b22e36957aa3"}'::jsonb,
+    headers := '{"Content-Type": "application/json", "x-cron-secret": "<REDACTED: rotated 2026-09-25, value lives in Vault 'cron_secret'>"}'::jsonb,
     body := '{}'::jsonb
   ) as request_id;
   $$
@@ -26,7 +26,7 @@ select cron.schedule(
   $$
   select net.http_post(
     url := 'https://gyvjcwuwfwrwwwnuwlex.supabase.co/functions/v1/checkin-reminder',
-    headers := '{"Content-Type": "application/json", "x-cron-secret": "d418d2e81d6f0c184c0e4126dcb95f04bf50b22e36957aa3"}'::jsonb,
+    headers := '{"Content-Type": "application/json", "x-cron-secret": "<REDACTED: rotated 2026-09-25, value lives in Vault 'cron_secret'>"}'::jsonb,
     body := '{}'::jsonb
   ) as request_id;
   $$
@@ -38,7 +38,7 @@ select cron.schedule(
   $$
   select net.http_post(
     url := 'https://gyvjcwuwfwrwwwnuwlex.supabase.co/functions/v1/daily-report',
-    headers := '{"Content-Type": "application/json", "x-cron-secret": "d418d2e81d6f0c184c0e4126dcb95f04bf50b22e36957aa3"}'::jsonb,
+    headers := '{"Content-Type": "application/json", "x-cron-secret": "<REDACTED: rotated 2026-09-25, value lives in Vault 'cron_secret'>"}'::jsonb,
     body := '{}'::jsonb
   ) as request_id;
   $$
@@ -50,7 +50,7 @@ select cron.schedule(
   $$
   select net.http_post(
     url := 'https://gyvjcwuwfwrwwwnuwlex.supabase.co/functions/v1/weekly-badge',
-    headers := '{"Content-Type": "application/json", "x-cron-secret": "d418d2e81d6f0c184c0e4126dcb95f04bf50b22e36957aa3"}'::jsonb,
+    headers := '{"Content-Type": "application/json", "x-cron-secret": "<REDACTED: rotated 2026-09-25, value lives in Vault 'cron_secret'>"}'::jsonb,
     body := '{}'::jsonb
   ) as request_id;
   $$
