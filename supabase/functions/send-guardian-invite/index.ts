@@ -5,197 +5,137 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const escapeHtml = (s: string) =>
-  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+const SITE_URL = "https://www.independentmindsedu.org";
 
+const json = (body: unknown, status: number) =>
+  new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
+// Creates (or reuses) a co-guardian invite for the caller's family and returns
+// a link for the parent to copy -- no automatic email (Auth email is rate
+// limited). Only the primary parent (owns at least one student) may invite.
+// The invite is family-level: once accepted, the co-guardian has the same
+// access as the parent (get_managed_parent_ids).
+//  - Email already has an account that has signed in: link = /accept-invite.
+//  - No account yet (or never signed in): a set-password link that lands on
+//    /accept-invite afterwards.
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-    // Authenticate caller
-    const authHeader = req.headers.get("authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) return json({ error: "Unauthorized: missing token" }, 401);
 
-    const anonClient = createClient(supabaseUrl, anonKey, {
+    const callerClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
       auth: { persistSession: false },
     });
-    const { data: { user }, error: authError } = await anonClient.auth.getUser();
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    const { data: { user: caller }, error: authError } = await callerClient.auth.getUser();
+    if (authError || !caller) return json({ error: "Unauthorized: invalid session" }, 401);
+
+    const { email } = await req.json().catch(() => ({}));
+    if (!email || typeof email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      return json({ error: "A valid email is required", code: "invalid_email" }, 400);
+    }
+    const normalizedEmail = email.trim().toLowerCase();
+    if (normalizedEmail === (caller.email || "").toLowerCase()) {
+      return json({ error: "You cannot invite yourself", code: "self_invite" }, 400);
     }
 
-    const { student_id, invitee_email, permissions } = await req.json();
-    if (!student_id || !invitee_email) {
-      return new Response(JSON.stringify({ error: "Missing student_id or invitee_email" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const email = invitee_email.trim().toLowerCase();
-
-    // Service role client for privileged operations
     const admin = createClient(supabaseUrl, serviceKey, {
-      auth: { persistSession: false },
+      auth: { autoRefreshToken: false, persistSession: false },
     });
 
-    // Verify caller is the primary parent of this student
-    const { data: student, error: studentErr } = await admin
-      .from("students")
-      .select("parent_id, display_name")
-      .eq("student_id", student_id)
-      .single();
-
-    if (studentErr || !student || student.parent_id !== user.id) {
-      return new Response(JSON.stringify({ error: "You are not the primary parent of this student" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    // Primary parent only: must own at least one student.
+    const { count: ownStudents } = await admin
+      .from("students").select("id", { count: "exact", head: true }).eq("parent_id", caller.id);
+    if (!ownStudents) {
+      return json({ error: "Only the primary parent can invite co-guardians", code: "not_primary_parent" }, 403);
     }
 
-    // Check for existing pending invite
-    const { data: existing } = await admin
+    const { data: existingUserId } = await admin.rpc("find_auth_user_id_by_email", { p_email: normalizedEmail });
+    let hasSignedIn = false;
+    if (existingUserId) {
+      const { data: already } = await admin
+        .from("co_guardians").select("id").eq("parent_id", caller.id).eq("guardian_id", existingUserId).maybeSingle();
+      if (already) return json({ error: "This person is already a co-guardian", code: "already_guardian" }, 409);
+      const { data: roleRows } = await admin.from("user_roles").select("role").eq("user_id", existingUserId);
+      const roles = (roleRows ?? []).map((r: { role: string }) => r.role);
+      if (roles.includes("student") && !roles.includes("parent")) {
+        return json({ error: "A student account cannot be a co-guardian", code: "student_account" }, 400);
+      }
+      const { data: existingUser } = await admin.auth.admin.getUserById(existingUserId);
+      hasSignedIn = !!existingUser?.user?.last_sign_in_at;
+    }
+
+    // Reuse the pending invite for this email if it is still valid.
+    const nowIso = new Date().toISOString();
+    const { data: pending } = await admin
       .from("guardian_invites")
-      .select("id")
-      .eq("student_id", student_id)
-      .eq("invitee_email", email)
+      .select("id, token, expires_at")
+      .eq("parent_id", caller.id)
+      .eq("email", normalizedEmail) // stored lowercased; ilike would treat "_" as a wildcard
       .eq("status", "pending")
       .maybeSingle();
-
-    if (existing) {
-      return new Response(JSON.stringify({ error: "An invite is already pending for this email" }), {
-        status: 409,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    let invite = pending;
+    if (invite && invite.expires_at && invite.expires_at < nowIso) {
+      await admin.from("guardian_invites").update({ status: "expired" }).eq("id", invite.id);
+      invite = null;
+    }
+    if (!invite) {
+      const { data: created, error: insertErr } = await admin
+        .from("guardian_invites")
+        .insert({ parent_id: caller.id, email: normalizedEmail })
+        .select("id, token, expires_at")
+        .single();
+      if (insertErr || !created) {
+        console.error("send-guardian-invite: insert failed", insertErr);
+        return json({ error: "Could not create the invite" }, 500);
+      }
+      invite = created;
     }
 
-    // Build permissions object from request (with safe defaults)
-    const perms = {
-      can_view_progress: true, // always true
-      can_receive_sos: permissions?.can_receive_sos === true,
-      can_approve_rewards: permissions?.can_approve_rewards === true,
-      can_edit_lessons: permissions?.can_edit_lessons === true,
-      is_full_access: permissions?.is_full_access === true,
-    };
+    const acceptPath = `/accept-invite?token=${invite.token}`;
+    let link = `${SITE_URL}${acceptPath}`;
+    let needsPassword = false;
 
-    // If full access, enable all
-    if (perms.is_full_access) {
-      perms.can_receive_sos = true;
-      perms.can_approve_rewards = true;
-      perms.can_edit_lessons = true;
+    if (!hasSignedIn) {
+      // New account (or one that never set a password): set a password first,
+      // then continue to the accept page.
+      needsPassword = true;
+      const redirectTo = `${SITE_URL}/reset-password?next=${encodeURIComponent(acceptPath)}`;
+      const { data: linkData, error: linkErr } = existingUserId
+        ? await admin.auth.admin.generateLink({ type: "recovery", email: normalizedEmail, options: { redirectTo } })
+        : await admin.auth.admin.generateLink({
+          type: "invite",
+          email: normalizedEmail,
+          options: {
+            // Server-set (never client metadata): the co-guardian is an adult
+            // invited by the parent; handle_new_user gives the 'parent' role.
+            data: { adult_confirmed: true, display_name: normalizedEmail.split("@")[0] },
+            redirectTo,
+          },
+        });
+      if (linkErr || !linkData?.properties?.action_link) {
+        console.error("send-guardian-invite: generateLink failed", linkErr);
+        return json({ error: "Could not create the invite link" }, 500);
+      }
+      link = linkData.properties.action_link;
     }
 
-    // Generate token and compute SHA-256 hash
-    const tokenBytes = crypto.getRandomValues(new Uint8Array(32));
-    const rawToken = Array.from(tokenBytes).map(b => b.toString(16).padStart(2, "0")).join("");
-    const hashBuffer = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(rawToken));
-    const tokenHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, "0")).join("");
-
-    // Insert invite with hashed token (raw token never stored)
-    const { data: invite, error: insertErr } = await admin
-      .from("guardian_invites")
-      .insert({
-        student_id,
-        invited_by: user.id,
-        invitee_email: email,
-        permissions: perms,
-        token_hash: tokenHash,
-      } as unknown)
-      .select("id")
-      .single();
-
-    if (insertErr) {
-      throw insertErr;
-    }
-
-    // Build invite link
-    const siteUrl = "https://www.independentmindsedu.org";
-    const inviteLink = `${siteUrl}/accept-invite?token=${rawToken}`;
-
-    const parentName = user.user_metadata?.display_name || "A parent";
-    const studentName = escapeHtml(student.display_name);
-
-    const emailHtml = `
-<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background-color:#f4f4f5;font-family:Arial,sans-serif;">
-  <div style="max-width:560px;margin:40px auto;background:#ffffff;border-radius:12px;padding:40px;border:1px solid #e4e4e7;">
-    <div style="text-align:center;margin-bottom:24px;">
-      <h1 style="color:#1F3B73;font-size:22px;margin:0;">Independent Minds EDU</h1>
-    </div>
-    <h2 style="color:#1a1a1a;font-size:18px;">You've been invited as a Co-Guardian</h2>
-    <p style="color:#555;font-size:15px;line-height:1.6;">
-      <strong>${escapeHtml(parentName)}</strong> has invited you to co-manage
-      <strong>${studentName}</strong>'s academic journey on Independent Minds EDU.
-    </p>
-    <p style="color:#555;font-size:15px;line-height:1.6;">
-      Click the button below to accept the invitation and get access to ${studentName}'s profile.
-      This link expires in 7 days.
-    </p>
-    <div style="text-align:center;margin:32px 0;">
-      <a href="${inviteLink}" style="background-color:#1F3B73;color:#ffffff;padding:12px 32px;border-radius:8px;text-decoration:none;font-size:15px;font-weight:600;display:inline-block;">
-        Accept Invitation
-      </a>
-    </div>
-    <p style="color:#999;font-size:12px;text-align:center;">
-      If you didn't expect this invitation, you can safely ignore this email.
-    </p>
-    <hr style="border:none;border-top:1px solid #e4e4e7;margin:24px 0;">
-    <p style="color:#999;font-size:12px;text-align:center;">
-      Independent Minds EDU v2.0 — Built with Love by KòdLabo
-    </p>
-  </div>
-</body>
-</html>`;
-
-    // Send invite email — set role to parent so the new user gets the right role
-    const { error: emailErr } = await admin.auth.admin.inviteUserByEmail(email, {
-      data: {
-        invite_type: "co_guardian",
-        student_id,
-        invite_token: rawToken,
-        display_name: email.split("@")[0],
-        role: "parent",
-      },
-      redirectTo: inviteLink,
-    });
-
-    const emailSent = !emailErr;
-
-    return new Response(JSON.stringify({
+    return json({
       success: true,
       invite_id: invite.id,
-      invite_link: inviteLink,
-      email_sent: emailSent,
-      message: emailSent
-        ? `Invitation sent to ${email}`
-        : `Invite created. Share this link with ${email}: ${inviteLink}`,
-    }), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-
+      email: normalizedEmail,
+      expires_at: invite.expires_at,
+      needs_password: needsPassword,
+      invite_link: link,
+    }, 200);
   } catch (err) {
     console.error("send-guardian-invite error:", err);
-    return new Response(JSON.stringify({ error: err.message || "Internal error" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return json({ error: "Internal error" }, 500);
   }
 });

@@ -5,177 +5,90 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const json = (body: unknown, status: number) =>
+  new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
+// Accepts a co-guardian invite for the signed-in user. Only the invited email
+// may accept. Creates the family-level co_guardians row (full access: same as
+// the parent, via get_managed_parent_ids) -- the only way such a row is made.
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-    // Authenticate caller
-    const authHeader = req.headers.get("authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) return json({ error: "Unauthorized: missing token" }, 401);
 
-    const anonClient = createClient(supabaseUrl, anonKey, {
+    const callerClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
       auth: { persistSession: false },
     });
-    const { data: { user }, error: authError } = await anonClient.auth.getUser();
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const { data: { user }, error: authError } = await callerClient.auth.getUser();
+    if (authError || !user) return json({ error: "Unauthorized: invalid session" }, 401);
 
-    const { token } = await req.json();
-    if (!token) {
-      return new Response(JSON.stringify({ error: "Missing token" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const { token } = await req.json().catch(() => ({}));
+    if (!token || typeof token !== "string") return json({ error: "Missing token", code: "invalid_token" }, 400);
 
     const admin = createClient(supabaseUrl, serviceKey, {
-      auth: { persistSession: false },
+      auth: { autoRefreshToken: false, persistSession: false },
     });
 
-    // Hash incoming token to match stored hash
-    const hashBuffer = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(token));
-    const tokenHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, "0")).join("");
-
-    // Look up invite by hash only (plaintext tokens no longer stored)
-    const { data: invite, error: lookupErr } = await admin
+    const { data: invite } = await admin
       .from("guardian_invites")
-      .select("*")
-      .eq("status", "pending")
-      .eq("token_hash", tokenHash)
-      .single();
-
-    if (lookupErr || !invite) {
-      return new Response(JSON.stringify({ error: "Invalid or expired invite" }), {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      .select("id, parent_id, email, status, expires_at")
+      .eq("token", token)
+      .maybeSingle();
+    if (!invite) return json({ error: "Invalid invite link", code: "invalid_token" }, 404);
+    if (invite.status === "accepted") return json({ error: "This invite was already used", code: "used" }, 409);
+    if (invite.status === "revoked") return json({ error: "This invite was cancelled", code: "revoked" }, 410);
+    if (invite.status === "expired" || (invite.expires_at && new Date(invite.expires_at) < new Date())) {
+      if (invite.status === "pending") await admin.from("guardian_invites").update({ status: "expired" }).eq("id", invite.id);
+      return json({ error: "This invite has expired", code: "expired" }, 410);
     }
 
-    // Check expiry
-    if (new Date(invite.expires_at) < new Date()) {
-      await admin
-        .from("guardian_invites")
-        .update({ status: "expired" } as unknown)
-        .eq("id", invite.id);
+    if ((user.email || "").toLowerCase() !== invite.email.toLowerCase()) {
+      return json({ error: "This invite was sent to a different email", code: "email_mismatch" }, 403);
+    }
+    if (user.id === invite.parent_id) return json({ error: "You cannot accept your own invite", code: "own_invite" }, 400);
 
-      return new Response(JSON.stringify({ error: "This invite link has expired" }), {
-        status: 410,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    const { data: roleRows } = await admin.from("user_roles").select("role").eq("user_id", user.id);
+    const roles = (roleRows ?? []).map((r: { role: string }) => r.role);
+    if (roles.includes("student") && !roles.includes("parent")) {
+      return json({ error: "A student account cannot be a co-guardian", code: "student_account" }, 403);
     }
 
-    // Prevent the primary parent from accepting their own invite
-    if (invite.invited_by === user.id) {
-      return new Response(JSON.stringify({ error: "You cannot accept your own invite" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Extract permissions from invite
-    const perms = invite.permissions || {};
-    const canViewProgress = perms.can_view_progress !== false;
-    const canReceiveSos = perms.can_receive_sos === true;
-    const canApproveRewards = perms.can_approve_rewards === true;
-    const canEditLessons = perms.can_edit_lessons === true;
-    const isFullAccess = perms.is_full_access === true;
-
-    // Fetch ALL students belonging to the primary guardian
-    const { data: allStudents, error: studentsErr } = await admin
-      .from("students")
-      .select("student_id, display_name")
-      .eq("parent_id", invite.invited_by);
-
-    if (studentsErr || !allStudents || allStudents.length === 0) {
-      return new Response(JSON.stringify({ error: "No students found for the primary guardian" }), {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Create co-guardian records for ALL students of the primary parent
-    const insertRows = allStudents.map((s) => ({
-      student_id: s.student_id,
+    const { error: cgErr } = await admin.from("co_guardians").upsert({
+      parent_id: invite.parent_id,
       guardian_id: user.id,
-      invited_by: invite.invited_by,
-      can_view_progress: isFullAccess || canViewProgress,
-      can_receive_sos: isFullAccess || canReceiveSos,
-      can_approve_rewards: isFullAccess || canApproveRewards,
-      can_edit_lessons: isFullAccess || canEditLessons,
-      is_full_access: isFullAccess,
-    }));
-
-    const { error: insertErr } = await admin
-      .from("co_guardians")
-      .upsert(insertRows, { onConflict: "student_id,guardian_id", ignoreDuplicates: true });
-
-    if (insertErr) {
-      console.error("co_guardians insert error:", insertErr);
-      throw insertErr;
+      can_view_progress: true,
+      can_receive_sos: true,
+      can_approve_rewards: true,
+      can_edit_lessons: true,
+      is_full_access: true,
+    }, { onConflict: "parent_id,guardian_id", ignoreDuplicates: true });
+    if (cgErr) {
+      console.error("accept-guardian-invite: co_guardians insert failed", cgErr);
+      return json({ error: "Could not accept the invite" }, 500);
     }
 
-    // CRITICAL: Set co-guardian's profile role to "parent" (not student)
-    await admin
-      .from("profiles")
-      .update({ role: "parent", student_id: null })
-      .eq("id", user.id);
+    // The dashboard is the parent dashboard: make sure the role is there.
+    if (!roles.includes("parent")) {
+      await admin.from("user_roles").upsert({ user_id: user.id, role: "parent" }, { onConflict: "user_id,role", ignoreDuplicates: true });
+    }
 
-    // Also update auth user metadata
-    await admin.auth.admin.updateUserById(user.id, {
-      user_metadata: {
-        ...user.user_metadata,
-        role: "parent",
-      },
-    });
-
-    // Mark invite as accepted
-    await admin
-      .from("guardian_invites")
-      .update({ status: "accepted", accepted_at: new Date().toISOString() } as unknown)
+    await admin.from("guardian_invites")
+      .update({ status: "accepted", accepted_at: new Date().toISOString(), accepted_by: user.id })
       .eq("id", invite.id);
 
-    const studentNames = allStudents.map((s) => s.display_name).join(", ");
+    const { count } = await admin
+      .from("students").select("id", { count: "exact", head: true }).eq("parent_id", invite.parent_id);
 
-    // Send inbox notification to primary parent
-    await admin.from("inbox_messages").insert({
-      parent_id: invite.invited_by,
-      student_id: allStudents[0].student_id,
-      message_type: "lesson_completed",
-      title: "Co-guardian invite accepted",
-      body: `${user.email} has accepted the co-guardian invite and now has access to: ${studentNames}.`,
-    });
-
-    return new Response(JSON.stringify({
-      success: true,
-      student_ids: allStudents.map((s) => s.student_id),
-      student_names: studentNames,
-      students_count: allStudents.length,
-    }), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-
+    return json({ success: true, parent_id: invite.parent_id, students_count: count ?? 0 }, 200);
   } catch (err) {
     console.error("accept-guardian-invite error:", err);
-    return new Response(JSON.stringify({ error: err.message || "Internal error" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return json({ error: "Internal error" }, 500);
   }
 });

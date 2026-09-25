@@ -201,18 +201,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const fetchStudents = async () => {
     if (!session?.user) return;
 
-    // Parent: students where user is primary parent. Student account: its
-    // own linked row only (students.user_id).
-    const ownershipColumn = profile?.role === "student" ? "user_id" : "parent_id";
-    const { data: ownStudents } = await supabase
+    // Student account: its own linked row only (students.user_id).
+    // Parent: their own children plus the children of every family they are a
+    // co-guardian of (co_guardians.guardian_id; RLS already allows the read
+    // through get_managed_parent_ids).
+    let query = supabase
       .from("students")
-      .select("id, student_id, display_name, grade_level, parent_id")
+      .select("id, student_id, display_name, grade_level, parent_id");
+    if (profile?.role === "student") {
       // cast: the generated types.ts predates students.user_id
-      .eq(ownershipColumn as "parent_id", session.user.id)
-      .order("display_name");
+      query = query.eq("user_id" as "parent_id", session.user.id);
+    } else {
+      const { data: coGuarded } = await supabase
+        .from("co_guardians")
+        .select("parent_id")
+        .eq("guardian_id", session.user.id);
+      const familyIds = [session.user.id, ...(coGuarded || []).map((r) => r.parent_id as string)];
+      query = query.in("parent_id", familyIds);
+    }
+    const { data: ownStudents } = await query.order("display_name");
 
-    // Co-guardian student access was never implemented backend-side
-    // (get_co_guardian_students RPC does not exist) — only own students for now.
     // via unknown: the generated types.ts predates students.grade_level
     // (the column exists in the database).
     const allStudents = (ownStudents || []) as unknown as StudentRecord[];

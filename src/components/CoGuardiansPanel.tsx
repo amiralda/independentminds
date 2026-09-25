@@ -1,315 +1,225 @@
 import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { Copy, Loader2, Mail, Shield, Trash2, UserPlus, X } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
-import { toast } from "sonner";
-import { UserPlus, Shield, Trash2, Mail, Copy, Check, ChevronDown, ChevronUp } from "lucide-react";
-import { buildAppUrl } from "@/lib/siteUrl";
+import { InviteLinkBox, readFunctionError } from "@/components/StudentLoginInvite";
 
 interface Props {
-  studentId: string;
+  // Kept for the DadPanel call site; co-guardians are per family, not per student.
+  studentId?: string;
 }
 
-export function CoGuardiansPanel({ studentId }: Props) {
-  const { t, lang } = useI18n();
-  const { user } = useAuth();
+interface PendingInvite {
+  id: string;
+  email: string;
+  expires_at: string | null;
+}
+
+interface CoGuardian {
+  id: string;
+  guardian_id: string;
+  email: string | null;
+  display_name: string | null;
+  invited_at: string | null;
+}
+
+const ERROR_CODES = ["invalid_email", "self_invite", "already_guardian", "student_account", "not_primary_parent"];
+
+/** Creates (or re-issues) the invite link for an email; null + toast on failure. */
+async function requestInviteLink(email: string, t: (key: string) => string) {
+  const { data, error } = await supabase.functions.invoke("send-guardian-invite", { body: { email } });
+  const failure = await readFunctionError(data, error);
+  if (failure) {
+    toast.error(t(failure.code && ERROR_CODES.includes(failure.code) ? `coGuardian.err.${failure.code}` : "coGuardian.err.generic"));
+    return null;
+  }
+  return data as { invite_link: string; needs_password: boolean };
+}
+
+export function CoGuardiansPanel(_props: Props) {
+  const { t } = useI18n();
+  const { user, students } = useAuth();
   const queryClient = useQueryClient();
   const [email, setEmail] = useState("");
-  const [sending, setSending] = useState(false);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [showPermissions, setShowPermissions] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [created, setCreated] = useState<{ link: string; needsPassword: boolean } | null>(null);
 
-  // Permissions to set before sending invite
-  const [invitePerms, setInvitePerms] = useState({
-    can_receive_sos: false,
-    can_approve_rewards: false,
-    can_edit_lessons: false,
-    is_full_access: false,
-  });
-
-  const copyInviteLink = async (token: string, id: string) => {
-    const link = buildAppUrl(`/accept-invite?token=${token}`);
-    await navigator.clipboard.writeText(link);
-    setCopiedId(id);
-    toast.success(t("guardians.link_copied") || "Invite link copied!");
-    setTimeout(() => setCopiedId(null), 2000);
-  };
-
-  const { data: guardians = [] } = useQuery({
-    queryKey: ["co_guardians", studentId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("co_guardians")
-        .select("*")
-        .eq("student_id", studentId);
-      if (error) throw error;
-      return data || [];
-    },
-  });
+  // Only the primary parent (owns at least one student) manages co-guardians.
+  const isOwner = !!user && students.some((s) => s.parent_id === user.id);
 
   const { data: invites = [] } = useQuery({
-    queryKey: ["guardian_invites", studentId],
+    queryKey: ["guardian_invites", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("guardian_invites")
-        .select("*")
-        .eq("student_id", studentId)
-        .in("status", ["pending"]);
+        .select("id, email, expires_at")
+        .eq("parent_id", user!.id)
+        .eq("status", "pending")
+        .order("created_at", { ascending: false });
       if (error) throw error;
-      return data || [];
+      return (data || []) as PendingInvite[];
     },
+    enabled: isOwner,
   });
 
-  const toggleInvitePerm = (key: string, value: boolean) => {
-    if (key === "is_full_access") {
-      if (value) {
-        setInvitePerms({
-          can_receive_sos: true,
-          can_approve_rewards: true,
-          can_edit_lessons: true,
-          is_full_access: true,
-        });
-      } else {
-        setInvitePerms(prev => ({ ...prev, is_full_access: false }));
-      }
-    } else {
-      setInvitePerms(prev => ({ ...prev, [key]: value }));
-    }
-  };
-
-  const sendInvite = async () => {
-    if (!email.trim() || !user) return;
-    setSending(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("send-guardian-invite", {
-        body: {
-          student_id: studentId,
-          invitee_email: email.trim().toLowerCase(),
-          permissions: {
-            can_view_progress: true,
-            ...invitePerms,
-          },
-        },
-      });
+  const { data: guardians = [] } = useQuery({
+    queryKey: ["co_guardians", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_my_co_guardians" as never);
       if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      toast.success(data?.email_sent ? t("guardians.invite_sent") : data?.message || t("guardians.invite_sent"));
+      return (data || []) as unknown as CoGuardian[];
+    },
+    enabled: isOwner,
+  });
+
+  const refresh = () => {
+    queryClient.invalidateQueries({ queryKey: ["guardian_invites"] });
+    queryClient.invalidateQueries({ queryKey: ["co_guardians"] });
+    queryClient.invalidateQueries({ queryKey: ["student_co_guardians_display"] });
+  };
+
+  const createInvite = async () => {
+    if (!email.trim()) return;
+    setCreating(true);
+    const res = await requestInviteLink(email.trim(), t);
+    setCreating(false);
+    if (res) {
+      setCreated({ link: res.invite_link, needsPassword: res.needs_password });
       setEmail("");
-      setShowPermissions(false);
-      setInvitePerms({ can_receive_sos: false, can_approve_rewards: false, can_edit_lessons: false, is_full_access: false });
-      queryClient.invalidateQueries({ queryKey: ["guardian_invites", studentId] });
-    } catch (err: unknown) {
-      toast.error(err.message);
-    } finally {
-      setSending(false);
+      refresh();
     }
   };
 
-  const updatePermission = async (guardianId: string, field: string, value: boolean) => {
-    const updates: unknown = { [field]: value };
-    if (field === "is_full_access" && value) {
-      updates.can_view_progress = true;
-      updates.can_receive_sos = true;
-      updates.can_approve_rewards = true;
-      updates.can_edit_lessons = true;
-    }
-    const { error } = await supabase
-      .from("co_guardians")
-      .update(updates)
-      .eq("id", guardianId);
-    if (error) {
-      toast.error(error.message);
-    } else {
-      queryClient.invalidateQueries({ queryKey: ["co_guardians", studentId] });
+  // Re-issues a fresh link for a pending invite (same invite, new sign-in link).
+  const copyInvite = async (inviteEmail: string) => {
+    const res = await requestInviteLink(inviteEmail, t);
+    if (!res) return;
+    try {
+      await navigator.clipboard.writeText(res.invite_link);
+      toast.success(t("guardians.link_copied"));
+    } catch {
+      setCreated({ link: res.invite_link, needsPassword: res.needs_password });
     }
   };
 
-  const revokeGuardian = async (guardianId: string) => {
-    const { error } = await supabase
-      .from("co_guardians")
-      .delete()
-      .eq("id", guardianId);
-    if (error) {
-      toast.error(error.message);
-    } else {
-      toast.success(t("guardians.revoke"));
-      queryClient.invalidateQueries({ queryKey: ["co_guardians", studentId] });
+  const cancelInvite = async (id: string) => {
+    const { error } = await supabase.from("guardian_invites").update({ status: "revoked" } as never).eq("id", id);
+    if (error) toast.error(t("coGuardian.err.generic"));
+    else {
+      toast.success(t("coGuardian.cancelled"));
+      refresh();
     }
   };
 
-  const revokeInvite = async (inviteId: string) => {
-    const { error } = await supabase
-      .from("guardian_invites")
-      .update({ status: "revoked" } as any)
-      .eq("id", inviteId);
-    if (error) toast.error(error.message);
-    else queryClient.invalidateQueries({ queryKey: ["guardian_invites", studentId] });
+  const removeGuardian = async (id: string) => {
+    if (!window.confirm(t("coGuardian.removeConfirm"))) return;
+    const { error } = await supabase.from("co_guardians").delete().eq("id", id);
+    if (error) toast.error(t("coGuardian.err.generic"));
+    else {
+      toast.success(t("coGuardian.removed"));
+      refresh();
+    }
   };
-
-  const permissionsList = [
-    { key: "can_view_progress", label: t("guardians.view_progress"), locked: true },
-    { key: "can_receive_sos", label: t("guardians.receive_sos") },
-    { key: "can_approve_rewards", label: t("guardians.approve_rewards") },
-    { key: "can_edit_lessons", label: t("guardians.edit_lessons") },
-    { key: "is_full_access", label: t("guardians.full_access") },
-  ];
-
-  const invitePermsList = [
-    { key: "can_receive_sos", label: t("guardians.receiveSOS") },
-    { key: "can_approve_rewards", label: t("guardians.approveRewards_label") },
-    { key: "can_edit_lessons", label: t("guardians.editLessons") },
-    { key: "is_full_access", label: t("guardians.fullAccessLabel") },
-  ];
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="space-y-1">
         <h3 className="font-display font-semibold text-lg flex items-center gap-2">
           <Shield size={20} className="text-primary" />
-          {t("guardians.title")}
+          {t("coGuardian.title")}
         </h3>
+        <p className="text-sm text-muted-foreground">{t("coGuardian.desc")}</p>
       </div>
 
-      {/* Invite form */}
-      <div className="space-y-3">
-        <div className="flex gap-2">
-          <Input
-            placeholder={t("guardians.invite_placeholder")}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            type="email"
-            className="flex-1"
-          />
-          <Button
-            onClick={() => setShowPermissions(!showPermissions)}
-            variant="outline"
-            size="sm"
-            className="flex-shrink-0"
-            disabled={!email.trim()}
-          >
-            {showPermissions ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-            <span className="ml-1 hidden sm:inline">
-              {t("guardians.permissions_label")}
-            </span>
-          </Button>
-        </div>
-
-        {/* Permission selection before sending */}
-        {showPermissions && email.trim() && (
-          <div className="border rounded-xl p-4 space-y-3 bg-muted/30 animate-fade-in">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              {t("guardians.permissionsQuestion")}
-            </p>
-            <div className="flex items-center justify-between py-1">
-              <span className="text-sm text-muted-foreground">
-                {t("guardians.viewProgress")}
-              </span>
-              <Switch checked={true} disabled />
+      {!isOwner ? (
+        <p className="rounded-xl border bg-muted/40 p-4 text-sm text-muted-foreground">{t("coGuardian.onlyOwner")}</p>
+      ) : (
+        <>
+          <div className="space-y-3">
+            <div className="flex gap-2">
+              <Input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder={t("coGuardian.emailPlaceholder")}
+                aria-label={t("coGuardian.emailPlaceholder")}
+                className="flex-1"
+              />
+              <Button onClick={createInvite} disabled={creating || !email.trim()} className="font-display" data-testid="co-guardian-generate">
+                {creating ? <Loader2 size={14} className="mr-2 animate-spin" /> : <UserPlus size={14} className="mr-2" />}
+                {t("coGuardian.generate")}
+              </Button>
             </div>
-            {invitePermsList.map(({ key, label }) => (
-              <div key={key} className="flex items-center justify-between py-1">
-                <span className="text-sm">{label}</span>
-                <Switch
-                  checked={invitePerms[key as keyof typeof invitePerms]}
-                  disabled={key !== "is_full_access" && invitePerms.is_full_access}
-                  onCheckedChange={(val) => toggleInvitePerm(key, val)}
-                />
-              </div>
-            ))}
-          </div>
-        )}
-
-        <Button onClick={sendInvite} disabled={sending || !email.trim()} size="sm" className="w-full sm:w-auto">
-          <UserPlus size={16} className="mr-1" />
-          {t("guardians.sendInviteAsParent")}
-        </Button>
-      </div>
-
-      {/* Pending invites */}
-      {invites.length > 0 && (
-        <div className="space-y-2">
-          {invites.map((inv: unknown) => (
-            <div key={inv.id} className="flex items-center justify-between bg-muted/50 rounded-lg px-4 py-3">
-              <div className="flex items-center gap-2 min-w-0 flex-1">
-                <Mail size={16} className="text-muted-foreground flex-shrink-0" />
-                <span className="text-sm truncate">{inv.invitee_email}</span>
-                <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-600 font-medium flex-shrink-0">
-                  {t("guardians.pending")}
-                </span>
-              </div>
-              <div className="flex items-center gap-1 flex-shrink-0">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => copyInviteLink(inv.token, inv.id)}
-                  title="Copy invite link"
-                >
-                  {copiedId === inv.id ? <Check size={14} className="text-primary" /> : <Copy size={14} />}
-                </Button>
-                <Button variant="ghost" size="sm" onClick={() => revokeInvite(inv.id)}>
-                  <Trash2 size={14} />
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Active guardians */}
-      {guardians.length === 0 && invites.length === 0 && (
-        <p className="text-center text-muted-foreground py-6 text-sm">
-          {t("guardians.no_guardians")}
-        </p>
-      )}
-
-      {guardians.map((g: unknown) => (
-        <div key={g.id} className="border rounded-xl p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <Shield size={16} className="text-primary" />
-              </div>
-              <div>
-                <p className="text-sm font-medium">
-                  {t("guardians.coGuardianParent")}
+            {created && (
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground">
+                  {t("coGuardian.linkReady")} {created.needsPassword && t("coGuardian.linkNewAccount")}
                 </p>
-                <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 font-medium">
-                  {t("guardians.active")}
-                </span>
+                <InviteLinkBox link={created.link} />
               </div>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-destructive hover:text-destructive"
-              onClick={() => revokeGuardian(g.id)}
-            >
-              <Trash2 size={14} className="mr-1" />
-              {t("guardians.revoke")}
-            </Button>
+            )}
           </div>
+
+          {invites.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t("coGuardian.pending")}</p>
+              {invites.map((inv) => (
+                <div key={inv.id} className="flex items-center justify-between gap-2 bg-muted/50 rounded-lg px-4 py-3">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Mail size={16} className="text-muted-foreground flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-sm truncate">{inv.email}</p>
+                      {inv.expires_at && (
+                        <p className="text-[10px] text-muted-foreground">
+                          {t("coGuardian.expires").replace("{{date}}", new Date(inv.expires_at).toLocaleDateString())}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <Button variant="outline" size="sm" onClick={() => copyInvite(inv.email)} aria-label={t("coGuardian.copyLink")}>
+                      <Copy size={14} />
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => cancelInvite(inv.id)} aria-label={t("coGuardian.cancelInvite")}>
+                      <X size={14} />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
 
           <div className="space-y-2">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              {t("guardians.permissions")}
-            </p>
-            {permissionsList.map(({ key, label, locked }) => (
-              <div key={key} className="flex items-center justify-between py-1">
-                <span className="text-sm">{label}</span>
-                <Switch
-                  checked={g[key] ?? false}
-                  disabled={locked || (key !== "is_full_access" && g.is_full_access)}
-                  onCheckedChange={(val) => updatePermission(g.id, key, val)}
-                />
+            {guardians.length === 0 && invites.length === 0 && (
+              <p className="text-center text-muted-foreground py-6 text-sm">{t("coGuardian.none")}</p>
+            )}
+            {guardians.map((g) => (
+              <div key={g.id} className="flex items-center justify-between gap-2 border rounded-xl p-4" data-testid="co-guardian-row">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Shield size={16} className="text-primary" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium truncate">{g.display_name || g.email}</p>
+                    <p className="text-[11px] text-muted-foreground truncate">
+                      {g.email} · {t("coGuardian.sameAccess")}
+                    </p>
+                  </div>
+                </div>
+                <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => removeGuardian(g.id)}>
+                  <Trash2 size={14} className="mr-1" />
+                  {t("coGuardian.remove")}
+                </Button>
               </div>
             ))}
           </div>
-        </div>
-      ))}
+        </>
+      )}
     </div>
   );
 }

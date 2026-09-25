@@ -41,12 +41,32 @@ Deno.serve(async (req) => {
       auth: { autoRefreshToken: false, persistSession: false },
     });
 
-    // Subscription gate — mirrors useSubscription.ts's isActive logic exactly
-    // (trialing/active, or past_due within a 7-day grace period).
+    const { studentId, startDate, endDate, status } = await req.json();
+    if (!studentId || typeof studentId !== "string") {
+      return new Response(JSON.stringify({ error: "Missing studentId" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Ownership check: the caller must manage this student's family (parent,
+    // Manager or co-guardian -- get_managed_parent_ids).
+    const [{ data: ownedStudent }, { data: managedIds }] = await Promise.all([
+      serviceClient.from("students").select("id, parent_id").eq("id", studentId).maybeSingle(),
+      serviceClient.rpc("get_managed_parent_ids", { _uid: userId }),
+    ]);
+    if (!ownedStudent || !((managedIds as string[] | null) ?? []).includes(ownedStudent.parent_id)) {
+      return new Response(JSON.stringify({ error: "Forbidden: student access denied" }), {
+        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Subscription gate on the family's subscription -- mirrors
+    // useSubscription.ts's isActive logic (trialing/active, or past_due within
+    // a 7-day grace period).
     const { data: subRow } = await serviceClient
       .from("subscriptions")
       .select("status, current_period_end")
-      .eq("user_id", userId)
+      .eq("user_id", ownedStudent.parent_id)
       .maybeSingle();
 
     const subStatus = subRow?.status;
@@ -60,26 +80,6 @@ Deno.serve(async (req) => {
         message_ht: "Ou bezwen yon abònman aktif pou wè rapò pwogrè yo.",
       }), {
         status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const { studentId, startDate, endDate, status } = await req.json();
-    if (!studentId || typeof studentId !== "string") {
-      return new Response(JSON.stringify({ error: "Missing studentId" }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Ownership check: the caller must be this student's parent.
-    const { data: ownedStudent } = await serviceClient
-      .from("students")
-      .select("id")
-      .eq("id", studentId)
-      .eq("parent_id", userId)
-      .maybeSingle();
-    if (!ownedStudent) {
-      return new Response(JSON.stringify({ error: "Forbidden: student access denied" }), {
-        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 

@@ -104,7 +104,36 @@ serve(async (req) => {
       }
       studentSelf = data;
     }
-    const subscriptionUserId = studentSelf ? studentSelf.parent_id : userId;
+
+    const { messages, subjectMode, studentId: reqStudentId } = await req.json();
+
+    if (!reqStudentId || typeof reqStudentId !== "string") {
+      return new Response(JSON.stringify({ error: "Missing studentId" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Ownership check (students.id is the real join key): a student may only
+    // use their own row; a parent, Manager or co-guardian only a student of a
+    // family they manage (get_managed_parent_ids).
+    let ownedStudent: { id: string; parent_id: string } | null = null;
+    if (studentSelf) {
+      ownedStudent = reqStudentId === studentSelf.id ? studentSelf : null;
+    } else {
+      const [{ data: row }, { data: managedIds }] = await Promise.all([
+        serviceClient.from("students").select("id, parent_id").eq("id", reqStudentId).maybeSingle(),
+        serviceClient.rpc("get_managed_parent_ids", { _uid: userId }),
+      ]);
+      ownedStudent = row && ((managedIds as string[] | null) ?? []).includes(row.parent_id) ? row : null;
+    }
+    if (!ownedStudent) {
+      return new Response(JSON.stringify({ error: "Forbidden: student access denied" }), {
+        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    // The family's subscription covers everyone who works with this student
+    // (the parent, a student account, a co-guardian).
+    const subscriptionUserId = ownedStudent.parent_id;
 
     // Subscription gate — mirrors useSubscription.ts's isActive logic exactly
     // (trialing/active, or past_due within a 7-day grace period).
@@ -162,33 +191,6 @@ serve(async (req) => {
     }
 
     const remaining = rateData ? Math.max(0, 30 - rateData.count) : 30;
-    const { messages, subjectMode, studentId: reqStudentId } = await req.json();
-
-    if (!reqStudentId || typeof reqStudentId !== "string") {
-      return new Response(JSON.stringify({ error: "Missing studentId" }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Ownership check (students.id is the real join key): a student may only
-    // use their own row; a parent only their own children.
-    let ownedStudent: { id: string } | null = null;
-    if (studentSelf) {
-      ownedStudent = reqStudentId === studentSelf.id ? { id: studentSelf.id } : null;
-    } else {
-      const { data } = await serviceClient
-        .from("students")
-        .select("id")
-        .eq("id", reqStudentId)
-        .eq("parent_id", userId)
-        .maybeSingle();
-      ownedStudent = data;
-    }
-    if (!ownedStudent) {
-      return new Response(JSON.stringify({ error: "Forbidden: student access denied" }), {
-        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
     const effectiveStudentId = reqStudentId;
     const subject = subjectMode || "general";
 

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
 import logo from "@/assets/logo.svg";
@@ -15,23 +15,33 @@ export default function ResetPassword() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [isRecovery, setIsRecovery] = useState(false);
+  const [searchParams] = useSearchParams();
+  // Where to go after the password is set (e.g. /accept-invite?token=...).
+  // Same-origin paths only: "/x" yes, "//evil.com" or "https://..." no.
+  const rawNext = searchParams.get("next");
+  const next = rawNext && rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : null;
 
   useEffect(() => {
-    // Check both hash (implicit flow) and query params (PKCE flow)
+    // Recovery links and account invites (student logins, co-guardians) both
+    // land here to set a password. Check both hash (implicit flow) and query
+    // params (PKCE flow).
     const hash = window.location.hash;
     const params = new URLSearchParams(window.location.search);
-    if (hash.includes("type=recovery") || params.get("type") === "recovery") {
+    const linkType = params.get("type");
+    if (/type=(recovery|invite)/.test(hash) || linkType === "recovery" || linkType === "invite") {
       setIsRecovery(true);
     }
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") {
-        setIsRecovery(true);
-      }
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY") setIsRecovery(true);
+      // An invite link signs the user in (SIGNED_IN, not PASSWORD_RECOVERY)
+      // and supabase-js may already have cleared the hash; the `next` param
+      // only comes from our own invite links.
+      if (session && next) setIsRecovery(true);
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [next]);
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,7 +60,7 @@ export default function ResetPassword() {
       toast.error(error.message);
     } else {
       toast.success(t("auth.passwordUpdated"));
-      navigate("/");
+      navigate(next || "/");
     }
   };
 
