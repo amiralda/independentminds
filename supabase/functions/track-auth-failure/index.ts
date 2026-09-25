@@ -5,6 +5,10 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const WINDOW_MS = 10 * 60 * 1000;
+const MAX_PER_IP = 20;
+const MAX_TOTAL = 300;
+
 function maskIpAddress(raw: string | null): string | null {
   if (!raw) return null;
 
@@ -61,6 +65,23 @@ Deno.serve(async (req) => {
       req.headers.get('cf-connecting-ip') ||
       req.headers.get('x-real-ip')
     );
+
+    // Public endpoint: cap writes so it can't be used to flood the table.
+    // Per masked IP (spoofable via x-forwarded-for) plus a global ceiling.
+    // Over the cap we still answer 202 and just drop the row.
+    const since = new Date(Date.now() - WINDOW_MS).toISOString();
+    const [{ count: ipCount }, { count: totalCount }] = await Promise.all([
+      ipHint
+        ? db.from('auth_failures').select('id', { count: 'exact', head: true }).eq('ip_hint', ipHint).gte('created_at', since)
+        : Promise.resolve({ count: 0 }),
+      db.from('auth_failures').select('id', { count: 'exact', head: true }).gte('created_at', since),
+    ]);
+    if ((ipCount ?? 0) >= MAX_PER_IP || (totalCount ?? 0) >= MAX_TOTAL) {
+      return new Response(JSON.stringify({ ok: true }), {
+        status: 202,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     await db.from('auth_failures').insert({
       email_attempted: emailAttempted,
