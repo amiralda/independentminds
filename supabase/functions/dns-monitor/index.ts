@@ -16,7 +16,10 @@ const WWW_DOMAIN = Deno.env.get("MONITOR_CANONICAL_DOMAIN") || "www.independentm
 // functions can't import from src/): root = A records, www = CNAME.
 const VERCEL_ROOT_A = ["216.198.79.1", "64.29.17.1"];
 const VERCEL_WWW_CNAME = "7d9278614535e49d.vercel-dns-017.com";
-const VERCEL_WWW_A = ["216.198.79.65", "64.29.17.65"];
+// Resolvers return different Vercel anycast IPs depending on location (Google
+// DoH from this region returns .65 for the root), so accept Vercel's ranges.
+const VERCEL_IP_PREFIXES = ["216.198.79.", "64.29.17.", "76.76.21."];
+const isVercelIp = (ip: string) => VERCEL_IP_PREFIXES.some((p) => ip.startsWith(p));
 
 type Check = {
   overall: "ok" | "nxdomain" | "a_mismatch" | "txt_missing" | "unreachable" | "degraded";
@@ -60,8 +63,8 @@ async function runCheck(domain: string): Promise<Check> {
     const isWww = domain.startsWith("www.");
     const expected = isWww ? `CNAME ${VERCEL_WWW_CNAME}` : `A ${VERCEL_ROOT_A.join(" / ")}`;
     const aOk = isWww
-      ? (cname ? cname === VERCEL_WWW_CNAME : aRecords.length > 0 && aRecords.every((ip) => VERCEL_WWW_A.includes(ip)))
-      : aRecords.length > 0 && aRecords.every((ip) => VERCEL_ROOT_A.includes(ip));
+      ? (cname ? cname === VERCEL_WWW_CNAME : aRecords.length > 0 && aRecords.every(isVercelIp))
+      : aRecords.length > 0 && aRecords.every(isVercelIp);
     if (!aOk) {
       return { domain, overall: "a_mismatch", aRecords, txtRecords, nsStatus: ns.Status, rootStatus: rootA.Status,
         details: `${domain} does not point to Vercel (expected ${expected}). Got: ${[cname, ...aRecords].filter(Boolean).join(", ") || "(none)"}` };
@@ -98,7 +101,8 @@ Deno.serve(async (req) => {
 
   const cronSecret = Deno.env.get("CRON_SECRET");
   const auth = req.headers.get("authorization") || "";
-  if (cronSecret && auth !== `Bearer ${cronSecret}`) {
+  // Fail closed: no configured secret means nobody gets in.
+  if (!cronSecret || auth !== `Bearer ${cronSecret}`) {
     return new Response(JSON.stringify({ error: "unauthorized" }), {
       status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
@@ -149,7 +153,10 @@ Deno.serve(async (req) => {
 
     results.push({ domain: check.domain, changed, check });
 
-    if (!changed) {
+    // First run for a domain that is already OK: record the baseline, no alert
+    // (otherwise every fresh deploy sends a pointless "recovered" email).
+    const baselineOk = !prev && check.overall === "ok";
+    if (!changed || baselineOk) {
       alerts.push({ domain: check.domain, email: null, whatsapp: null });
       continue;
     }

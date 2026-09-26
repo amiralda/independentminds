@@ -8,6 +8,12 @@ describe("isRootOk", () => {
   it("accepts the current Vercel root A records", () => {
     expect(isRootOk([A("64.29.17.1"), A("216.198.79.1")])).toBe(true);
   });
+  it("accepts other Vercel anycast IPs a different resolver may return", () => {
+    expect(isRootOk([A("216.198.79.65"), A("64.29.17.65")])).toBe(true);
+  });
+  it("rejects a non-Vercel IP", () => {
+    expect(isRootOk([A("1.2.3.4")])).toBe(false);
+  });
   it("rejects the old Lovable IP, alone or mixed in", () => {
     expect(isRootOk([A("185.158.133.1")])).toBe(false);
     expect(isRootOk([A("216.198.79.1"), A("185.158.133.1")])).toBe(false);
