@@ -22,7 +22,7 @@ import {
   Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 // Same template file the send job uses: the preview is exactly the sent email.
-import { renderNewsletterEmail } from "../../../supabase/functions/_shared/newsletter-email";
+import { renderNewsletterEmail, unsubscribePageUrl } from "../../../supabase/functions/_shared/newsletter-email";
 
 const table = () => supabase.from("email_newsletter_drafts" as never);
 
@@ -251,7 +251,9 @@ export default function AdminNewsletterDetail() {
 function EmailPreviewButton({ title, markdown, lang, dirty }: { title: string; markdown: string; lang: Lang; dirty: boolean }) {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
-  const email = open ? renderNewsletterEmail({ title, markdown, language: lang }) : null;
+  // Real recipients get their own single-use token; the preview shows the same
+  // link with a placeholder token (it opens the page as "invalid link").
+  const email = open ? renderNewsletterEmail({ title, markdown, language: lang, unsubscribeUrl: unsubscribePageUrl("preview", lang) }) : null;
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>

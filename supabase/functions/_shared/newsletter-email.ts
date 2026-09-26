@@ -13,6 +13,21 @@
 // keep noreply@ — see the sender rule in CLAUDE.md.
 export const NEWSLETTER_FROM = "Independent Minds EDU <hello@independentmindsedu.org>";
 export const SITE_URL = "https://www.independentmindsedu.org";
+const FUNCTIONS_URL = "https://gyvjcwuwfwrwwwnuwlex.supabase.co/functions/v1";
+
+/** Footer "Unsubscribe" link: confirmation page on www, in the recipient's language. */
+export const unsubscribePageUrl = (token: string, language: string) =>
+  `${SITE_URL}/unsubscribe?token=${encodeURIComponent(token)}&lang=${encodeURIComponent(language.toLowerCase())}`;
+
+/** RFC 8058 one-click target (List-Unsubscribe header): mail apps POST here directly. */
+export const unsubscribeOneClickUrl = (token: string) =>
+  `${FUNCTIONS_URL}/unsubscribe?token=${encodeURIComponent(token)}`;
+
+/** Headers that make Gmail/Outlook/Apple Mail show their own "Unsubscribe" button. */
+export const listUnsubscribeHeaders = (token: string) => ({
+  "List-Unsubscribe": `<${unsubscribeOneClickUrl(token)}>`,
+  "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+});
 
 const BRAND = {
   navy: "#1A365D",
@@ -84,7 +99,7 @@ export interface NewsletterEmailInput {
   title: string;
   markdown: string;
   language: string; // "EN" / "ht" / … — recipient's language
-  unsubscribeUrl?: string; // per-recipient link, added by the send job
+  unsubscribeUrl?: string; // per-recipient link (unsubscribePageUrl); always set by the send job
 }
 
 /** The full email: subject + complete HTML document. */

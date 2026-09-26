@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { markdownToEmailHtml, renderNewsletterEmail, NEWSLETTER_FROM } from "../../supabase/functions/_shared/newsletter-email";
+import {
+  listUnsubscribeHeaders, markdownToEmailHtml, renderNewsletterEmail, unsubscribeOneClickUrl, unsubscribePageUrl, NEWSLETTER_FROM,
+} from "../../supabase/functions/_shared/newsletter-email";
 
 const md = `Intro paragraph.
 Second line.
@@ -51,5 +53,22 @@ describe("newsletter email template", () => {
     const ar = renderNewsletterEmail({ title: "مرحبا", markdown: "نص", language: "AR" });
     expect(ar.html).toContain('dir="rtl"');
     expect(renderNewsletterEmail({ title: "x", markdown: "y", language: "xx" }).html).toContain('lang="en"');
+  });
+});
+
+describe("newsletter unsubscribe links", () => {
+  const token = "AbC-123_xyzAbC-123_xyzAbC-123_xyzAbC-123_x";
+  it("builds the footer link to the confirmation page, in the recipient's language", () => {
+    expect(unsubscribePageUrl(token, "HT")).toBe(`https://www.independentmindsedu.org/unsubscribe?token=${token}&lang=ht`);
+    const html = renderNewsletterEmail({ title: "T", markdown: "x", language: "HT", unsubscribeUrl: unsubscribePageUrl(token, "HT") }).html;
+    expect(html).toContain(`href="https://www.independentmindsedu.org/unsubscribe?token=${token}&amp;lang=ht"`);
+    expect(html).toMatch(/<a [^>]*unsubscribe\?token=[^>]*>Dezabòne<\/a>/);
+  });
+  it("builds RFC 8058 one-click headers pointing at the unsubscribe function", () => {
+    expect(unsubscribeOneClickUrl(token)).toBe(`https://gyvjcwuwfwrwwwnuwlex.supabase.co/functions/v1/unsubscribe?token=${token}`);
+    expect(listUnsubscribeHeaders(token)).toEqual({
+      "List-Unsubscribe": `<https://gyvjcwuwfwrwwwnuwlex.supabase.co/functions/v1/unsubscribe?token=${token}>`,
+      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+    });
   });
 });

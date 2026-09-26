@@ -9,12 +9,15 @@
 //             to (newsletter_sends), so a re-run resumes safely. When nobody
 //             is left, the campaign rows are marked 'sent'.
 // Side effects (send): Resend emails, newsletter_sends + messages_log rows,
-// email_newsletter_drafts.status = 'sent'.
+// email_newsletter_drafts.status = 'sent'. test + send: one unsubscribe token
+// per person per campaign (email_unsubscribe_tokens); addresses in
+// suppressed_emails are never sent to (excluded by newsletter_recipients and
+// re-checked right before sending). No token -> no email (fail closed).
 // Template: ../_shared/newsletter-email.ts — the same file the admin
 // "Preview as email" renders, so what was previewed is what is sent.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
-import { NEWSLETTER_FROM, renderNewsletterEmail } from "../_shared/newsletter-email.ts";
+import { NEWSLETTER_FROM, listUnsubscribeHeaders, renderNewsletterEmail, unsubscribePageUrl } from "../_shared/newsletter-email.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -31,7 +34,10 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 // Resend's default limit is 2 requests/second.
 const GAP_MS = 600;
 
-async function sendEmail(apiKey: string, to: string, email: { from: string; subject: string; html: string }, idempotencyKey?: string) {
+async function sendEmail(
+  apiKey: string, to: string, email: { from: string; subject: string; html: string },
+  headers: Record<string, string>, idempotencyKey?: string,
+) {
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
@@ -39,7 +45,7 @@ async function sendEmail(apiKey: string, to: string, email: { from: string; subj
       "Content-Type": "application/json",
       ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}),
     },
-    body: JSON.stringify({ from: email.from, to: [to], subject: email.subject, html: email.html }),
+    body: JSON.stringify({ from: email.from, to: [to], subject: email.subject, html: email.html, headers }),
   });
   const body = await res.json().catch(() => ({}));
   return res.ok ? { ok: true as const, id: String(body.id ?? "") } : { ok: false as const, error: `${res.status} ${JSON.stringify(body).slice(0, 300)}` };
@@ -130,11 +136,32 @@ Deno.serve(async (req) => {
 
     if (!resendKey) return json({ error: "RESEND_API_KEY not configured" }, 500);
 
-    const results: Array<{ email: string; version: string; status: "sent" | "failed"; error?: string }> = [];
+    // Defense in depth: re-check the suppression list right before sending.
+    const { data: suppressedRows, error: sErr } = await db.from("suppressed_emails").select("email").in("email", plan.map((p) => p.email));
+    if (sErr) throw sErr;
+    const suppressed = new Set((suppressedRows ?? []).map((r: { email: string }) => r.email));
+
+    const results: Array<{ email: string; version: string; status: "sent" | "failed" | "suppressed"; error?: string }> = [];
     for (const [i, p] of plan.entries()) {
+      if (suppressed.has(p.email)) {
+        results.push({ email: mask(p.email), version: p.version.language, status: "suppressed" });
+        continue;
+      }
       if (i > 0) await sleep(GAP_MS);
-      const email = renderNewsletterEmail({ title: p.version.title, markdown: p.version.content, language: p.version.language });
-      const r = await sendEmail(resendKey, p.email, email, mode === "send" ? `newsletter/${campaign}/${p.user_id}` : undefined);
+      // One single-use token per person per campaign; never send without it.
+      const { data: token, error: tErr } = await db.rpc("newsletter_unsubscribe_token", { p_user_id: p.user_id, p_campaign: campaign });
+      const r = tErr || !token
+        ? { ok: false as const, error: `no unsubscribe token: ${tErr?.message ?? "empty"}` }
+        : await sendEmail(
+          resendKey,
+          p.email,
+          renderNewsletterEmail({
+            title: p.version.title, markdown: p.version.content, language: p.version.language,
+            unsubscribeUrl: unsubscribePageUrl(String(token), p.version.language),
+          }),
+          listUnsubscribeHeaders(String(token)),
+          mode === "send" ? `newsletter/${campaign}/${p.user_id}` : undefined,
+        );
       results.push({ email: mask(p.email), version: p.version.language, status: r.ok ? "sent" : "failed", ...(r.ok ? {} : { error: r.error }) });
 
       if (mode === "send") {
@@ -150,6 +177,7 @@ Deno.serve(async (req) => {
     }
 
     const failed = results.filter((r) => r.status === "failed").length;
+    const skippedSuppressed = results.filter((r) => r.status === "suppressed").length;
     let markedSent = false;
     if (mode === "send" && failed === 0) {
       // Everyone on the list has now received it: close the campaign.
@@ -158,10 +186,11 @@ Deno.serve(async (req) => {
       markedSent = !error;
     }
 
-    console.log(`[send-newsletter-campaign] ${mode} ${campaign} by ${user.id}: sent=${results.length - failed} failed=${failed} skipped=${skipped}`);
+    const sent = results.length - failed - skippedSuppressed;
+    console.log(`[send-newsletter-campaign] ${mode} ${campaign} by ${user.id}: sent=${sent} failed=${failed} skipped=${skipped} suppressed=${skippedSuppressed}`);
     return json({
-      mode, campaign, recipients: plan.length, sent: results.length - failed, failed,
-      skipped_already_sent: skipped, by_language: byLanguage, marked_sent: markedSent, results,
+      mode, campaign, from: NEWSLETTER_FROM, recipients: plan.length, sent, failed,
+      skipped_already_sent: skipped, skipped_suppressed: skippedSuppressed, by_language: byLanguage, marked_sent: markedSent, results,
     });
   } catch (e) {
     console.error("[send-newsletter-campaign] error:", e);
