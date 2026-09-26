@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { I18nProvider } from "@/lib/i18n";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { LanguageProfileSync } from "@/components/LanguageProfileSync";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { FeedbackWidget } from "@/components/FeedbackWidget";
@@ -90,6 +91,7 @@ const App = () => (
             <Sonner />
             <OfflineIndicator />
             <GlobalErrorTracker />
+            <LanguageProfileSync />
             <FeedbackWidget />
             <BrowserRouter>
               <Suspense fallback={<RouteFallback />}>

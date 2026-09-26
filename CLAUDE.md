@@ -92,7 +92,7 @@ Details: docs/AUDIT_REPORT.md
 - Guardrails: generation is automatic, publishing is not — only articles an admin approved and scheduled are ever sent; a Saturday with nothing approved sends nothing.
 - Notes from the codebase (2026-09-26):
   - `email_newsletter_drafts` exists (campaign, language, title, content Markdown, status `pending_approval|approved|sent|archived`, unique campaign+language, admin-only RLS) with campaign `welcome-2026-10` in 10 languages. The new flow needs at least a `draft` status (or map it to `pending_approval`), a `scheduled_for` date, and per-article grouping of the 10 language versions (the `campaign` column already does this).
-  - **Language blocker:** the UI language is only in localStorage (`im_lang`); `profiles.language_pref` is "en"/"EN" for every account → must be synced to the profile (and case-normalized) before language-based sending works.
+  - Language: **resolved 2026-09-26** — `profiles.language_pref` now holds the user's UI language as a lowercase ISO code (saved on every change, restored at login; DB trigger + CHECK). Drafts use uppercase codes → match with `lower(language) = language_pref`, EN fallback.
   - Generation needs a server-side LLM call (an OpenAI key already exists for ai-tutor) plus a fact base so articles only describe features that exist (same rule as the first issue).
   - Sending: cron in the existing pattern (Resend, official sender, messages_log, secret from Vault); the Saturday send time is still to decide; needs an unsubscribe/opt-out per recipient (no unsubscribe tables exist yet); de-duplicate people who are both parent and co-guardian; recipients = parent/Manager roles + co-guardians.
   - Public archive = a new public route reading only `sent` articles (RLS or a public view limited to sent rows) in the visitor's language.
@@ -115,8 +115,8 @@ Never skip this step. Never put long logs in
 CLAUDE.md — details go in ACTIVITY_LOG.md only.
 
 ## Recent
+2026-09-26 — Language pref synced to profile — Done: every UI language change saved to profiles.language_pref (lowercase ISO, trigger keeps preferred_language equal, CHECK on 10 codes), restored at login; 6 profiles normalized to en. Live E2E 8/8 PASS. FF5 language blocker removed. See docs/ACTIVITY_LOG.md.
 2026-09-26 — FF5/FF6 redesigned (docs) — Done: FF5 replaced by an article library + admin News page + Saturday auto-publish of approved/scheduled articles + 90-day draft expiry with auto-replacement + public News archive (FF6); not started. See CLAUDE.md "Future Features".
 2026-09-26 — Newsletter #1 drafted — Done: email_newsletter_drafts table (admin-only RLS) + campaign welcome-2026-10 in 10 languages, status pending_approval, NOT sent. Blocker before sending: profiles.language_pref is "en" for everyone (UI language only in localStorage). See docs/ACTIVITY_LOG.md.
 2026-09-26 — Future Features FF3-FF5 documented — Done: FF3 self-monitoring proposed-fix journal, FF4 multilingual manual (Help link, auto-update; PDFs not in repo yet), FF5 weekly "what's new" email (docs only, not started). See CLAUDE.md "Future Features".
 2026-09-26 — track-error critical pages — Done: exact match (Set + trailing-slash normalize) instead of startsWith with "/" (which matched every page); non-critical errors no longer alert, /login and /admin/system still do. Live E2E PASS, cleaned. See docs/ACTIVITY_LOG.md.
-2026-09-26 — Monitoring live — Done: hourly-monitor (5 admin alert rules only; legacy Telegram/compliance part removed), beta-track (+ schema fix), dns-monitor (+ tables, silent baseline, 30-day retention) deployed; crons hourly / 15 min from Vault. DNS checks now accept Vercel IP ranges (resolvers return different anycast IPs). Live E2E PASS, cleaned. See docs/ACTIVITY_LOG.md.

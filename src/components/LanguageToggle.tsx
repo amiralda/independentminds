@@ -1,5 +1,4 @@
 import { useI18n, type Lang } from "@/lib/i18n";
-import { useAuth } from "@/contexts/AuthContext";
 
 interface Props {
   variant?: "light" | "dark";
@@ -7,12 +6,10 @@ interface Props {
 
 export function LanguageToggle({ variant = "light" }: Props) {
   const { lang, setLang, languages } = useI18n();
-  const { updateProfile } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const l = e.target.value as Lang;
-    setLang(l);
-    updateProfile({ language_pref: l }).catch(() => {});
+    setLang(l); // saved to the profile by LanguageProfileSync
   };
 
   const current = languages.find(l => l.code === lang);

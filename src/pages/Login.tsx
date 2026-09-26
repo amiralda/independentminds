@@ -101,6 +101,7 @@ export default function Login() {
           display_name: fullName.trim(),
           adult_confirmed: true,
           adult_confirmed_at: new Date().toISOString(),
+          language: lang.toLowerCase(),
         },
         emailRedirectTo: buildAppUrl("/"),
       },

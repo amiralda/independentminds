@@ -151,7 +151,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setProfile({
             displayName: fallbackName,
             role,
-            languagePref: "EN",
+            languagePref: "", // unknown: profile not readable
             onboardingComplete: false,
           });
           setLoading(false);
@@ -177,7 +177,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setProfile({
           displayName: fallbackName,
           role,
-          languagePref: "EN",
+          languagePref: "", // unknown: profile not found
           onboardingComplete: false,
         });
         setLoading(false);
