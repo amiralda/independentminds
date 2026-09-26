@@ -1,5 +1,9 @@
 # Activity Log
 
+## 2026-09-26 — Future Features documented (no code)
+- Summary: added a "Future Features" section to CLAUDE.md at the user's request: FF1 marketing/showcase site on www (Homeschool Platform, Tutoring, Cours Privé) with the platform moved to an app. subdomain; FF2 affiliate/dropshipping store extending rewards_catalog (image, affiliate link, USD reference price → points; student requests via redeem_reward, parent/Manager approves and buys manually; IME earns commission only). Each entry lists the codebase impacts found (hardcoded www URLs in ~24 edge functions, Auth/OAuth/Stripe redirect settings; redeem_reward debits at request time with no reject/refund today).
+- Files touched: `CLAUDE.md`, `docs/ACTIVITY_LOG.md` (docs only). Not started — to be planned separately.
+
 ## 2026-09-26 — Weekly Progress Report: check-ins, badges, points back (column + value mismatches)
 - Summary: `weekly-report-data` queried columns that don't exist and silently turned every failed query into an empty list (`res.data || []`), so check-ins, badges and points were empty for everyone; the UI also compared values in the wrong format, so completion was always 0%.
   | Section | Code asked for | Real schema | Kind |
