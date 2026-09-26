@@ -94,6 +94,7 @@ Details: docs/AUDIT_REPORT.md
   - `email_newsletter_drafts` exists (campaign, language, title, content Markdown, status `pending_approval|approved|sent|archived`, unique campaign+language, admin-only RLS) with campaign `welcome-2026-10` in 10 languages. The new flow needs at least a `draft` status (or map it to `pending_approval`), a `scheduled_for` date, and per-article grouping of the 10 language versions (the `campaign` column already does this).
   - Language: **resolved 2026-09-26** — `profiles.language_pref` now holds the user's UI language as a lowercase ISO code (saved on every change, restored at login; DB trigger + CHECK). Drafts use uppercase codes → match with `lower(language) = language_pref`, EN fallback.
   - Generation needs a server-side LLM call (an OpenAI key already exists for ai-tutor) plus a fact base so articles only describe features that exist (same rule as the first issue).
+  - Email template: **must** use `supabase/functions/_shared/newsletter-email.ts` (`renderNewsletterEmail`, also used by the admin "Preview as email"), passing the per-recipient `unsubscribeUrl`.
   - Sending: cron in the existing pattern (Resend, official sender, messages_log, secret from Vault); the Saturday send time is still to decide; needs an unsubscribe/opt-out per recipient (no unsubscribe tables exist yet); de-duplicate people who are both parent and co-guardian; recipients = parent/Manager roles + co-guardians.
   - Public archive = a new public route reading only `sent` articles (RLS or a public view limited to sent rows) in the visitor's language.
 
@@ -115,8 +116,8 @@ Never skip this step. Never put long logs in
 CLAUDE.md — details go in ACTIVITY_LOG.md only.
 
 ## Recent
+2026-09-26 — Newsletter email preview — Done: "Preview as email" on the admin article page renders the selected language with the shared template supabase/functions/_shared/newsletter-email.ts (the FF5 send job must use the same file). E2E 24/24 PASS, no writes/sends. Open: welcome-2026-10 found approved by admin ae29fe11 — confirm with Dany. See docs/ACTIVITY_LOG.md.
 2026-09-26 — Admin News / Articles page — Done: /admin/newsletter lists one line per campaign (title in admin language + language dropdown), detail page edits title/content per language, sets scheduled_for and approves the whole article; column-limited UPDATE + trigger (server-stamped approval, only service role can mark sent). Live E2E 22/22 PASS, cleaned. See docs/ACTIVITY_LOG.md.
 2026-09-26 — HT "Manager" → "Manadyè" — Done: last 6 Kreyòl strings (manager-access on /billing) now say "Manadyè"; 0 "Manager"/"Manadjè" left in HT UI. Live E2E PASS. See docs/ACTIVITY_LOG.md.
 2026-09-26 — Newsletter HT rewritten + "Manadyè" — Done: HT draft of welcome-2026-10 rewritten in natural Kreyòl (approved by Dany, still pending_approval, NOT sent); UI HT "Manadjè" → "Manadyè" (2 keys). See docs/ACTIVITY_LOG.md.
 2026-09-26 — Language pref synced to profile — Done: every UI language change saved to profiles.language_pref (lowercase ISO, trigger keeps preferred_language equal, CHECK on 10 codes), restored at login; 6 profiles normalized to en. Live E2E 8/8 PASS. FF5 language blocker removed. See docs/ACTIVITY_LOG.md.
-2026-09-26 — FF5/FF6 redesigned (docs) — Done: FF5 replaced by an article library + admin News page + Saturday auto-publish of approved/scheduled articles + 90-day draft expiry with auto-replacement + public News archive (FF6); not started. See CLAUDE.md "Future Features".
