@@ -1,5 +1,13 @@
 # Activity Log
 
+## 2026-09-26 — HT UI: "Manager" → "Manadyè" everywhere (manager-access screens)
+- Summary: after the "Manadjè" → "Manadyè" fix, 6 Kreyòl strings still used the English word "Manager" (manager-access request on /billing: title, description, reason label, pending, declined, already-granted). All 6 now say "Manadyè", so the whole HT UI and the HT newsletter use one term.
+- Files touched: `src/lib/i18n.tsx` (6 HT values, lines 81-90), `CLAUDE.md`, `docs/ACTIVITY_LOG.md`
+- Validation: lint PASS; tsc PASS; vitest 110/110 PASS; build PASS. Source scan: 953 HT strings, 0 "Manager", 0 "Manadjè", 8 "Manadyè"; no hardcoded `lang === "HT"` text mentions it. Live E2E (local build pointed at prod, test parent, UI switched to HT): /billing shows "Mande Aksè Manadyè", "Aksè Manadyè pèmèt…", "Rezon ki fè w ap mande aksè Manadyè"; no "Manager"/"Manadjè" on the page. Test account restored to en (6/6 profiles en/en).
+- Note: a first E2E attempt reloaded the page immediately after switching language and came back in EN — the profile save had not finished, so the still-'en' profile was restored. Test-timing only (waiting ~2 s fixes it); a real user would only hit this by reloading within the same second.
+- Risks + rollback: revert the commit (labels only).
+- Blockers/human actions needed: none.
+
 ## 2026-09-26 — Newsletter HT rewritten (natural Kreyòl) + "Manadyè" spelling
 - Summary: the HT version of `welcome-2026-10` was too literal. Rewritten in natural Haitian Creole (IPN spelling, no calques, proverb "men anpil, chay pa lou"), same meaning: 4 sections, 7 features, Mr A/reports in the subscription plans. Text approved by Dany, then "Manadjè" → "Manadyè". Row updated; status still `pending_approval`, NOT sent. UI i18n aligned: `role.manager` HT "Manadjè" → "Manadyè", `manager.dashboardTitle` HT "Tablo Bò Manadjè" → "Tablo Bò Manadyè".
 - Files touched: `src/lib/i18n.tsx`, `CLAUDE.md`, `docs/ACTIVITY_LOG.md`; DB row `email_newsletter_drafts` (welcome-2026-10, HT).

@@ -115,8 +115,8 @@ Never skip this step. Never put long logs in
 CLAUDE.md — details go in ACTIVITY_LOG.md only.
 
 ## Recent
-2026-09-26 — Newsletter HT rewritten + "Manadyè" — Done: HT draft of welcome-2026-10 rewritten in natural Kreyòl (approved by Dany, still pending_approval, NOT sent); UI HT "Manadjè" → "Manadyè" (2 keys). Open: 6 HT strings still say "Manager". See docs/ACTIVITY_LOG.md.
+2026-09-26 — HT "Manager" → "Manadyè" — Done: last 6 Kreyòl strings (manager-access on /billing) now say "Manadyè"; 0 "Manager"/"Manadjè" left in HT UI. Live E2E PASS. See docs/ACTIVITY_LOG.md.
+2026-09-26 — Newsletter HT rewritten + "Manadyè" — Done: HT draft of welcome-2026-10 rewritten in natural Kreyòl (approved by Dany, still pending_approval, NOT sent); UI HT "Manadjè" → "Manadyè" (2 keys). See docs/ACTIVITY_LOG.md.
 2026-09-26 — Language pref synced to profile — Done: every UI language change saved to profiles.language_pref (lowercase ISO, trigger keeps preferred_language equal, CHECK on 10 codes), restored at login; 6 profiles normalized to en. Live E2E 8/8 PASS. FF5 language blocker removed. See docs/ACTIVITY_LOG.md.
 2026-09-26 — FF5/FF6 redesigned (docs) — Done: FF5 replaced by an article library + admin News page + Saturday auto-publish of approved/scheduled articles + 90-day draft expiry with auto-replacement + public News archive (FF6); not started. See CLAUDE.md "Future Features".
 2026-09-26 — Newsletter #1 drafted — Done: email_newsletter_drafts table (admin-only RLS) + campaign welcome-2026-10 in 10 languages, status pending_approval, NOT sent. Blocker before sending: profiles.language_pref is "en" for everyone (UI language only in localStorage). See docs/ACTIVITY_LOG.md.
-2026-09-26 — Future Features FF3-FF5 documented — Done: FF3 self-monitoring proposed-fix journal, FF4 multilingual manual (Help link, auto-update; PDFs not in repo yet), FF5 weekly "what's new" email (docs only, not started). See CLAUDE.md "Future Features".
