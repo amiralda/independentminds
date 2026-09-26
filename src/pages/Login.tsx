@@ -13,6 +13,7 @@ import { LanguageToggle } from "@/components/LanguageToggle";
 import { SEO } from "@/components/SEO";
 import { buildAppUrl } from "@/lib/siteUrl";
 import { buildOAuthRedirectUrl } from "@/lib/oauth";
+import { isPasswordLongEnough } from "@/lib/password";
 
 const TRACK_AUTH_FAILURE_URL = import.meta.env.VITE_SUPABASE_URL
   ? `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/track-auth-failure`
@@ -77,6 +78,10 @@ export default function Login() {
     setPasswordError("");
     if (!fullName.trim()) {
       toast.error(lang === "HT" ? "Tanpri antre non konplè ou" : "Please enter your full name");
+      return;
+    }
+    if (!isPasswordLongEnough(password)) {
+      setPasswordError(t("auth.passwordTooShort"));
       return;
     }
     if (password !== confirmPassword) {

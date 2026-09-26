@@ -7,6 +7,7 @@ import { useI18n } from "@/lib/i18n";
 import logo from "@/assets/logo.svg";
 import { KeyRound, ArrowLeft } from "lucide-react";
 import { PasswordInput } from "@/components/PasswordInput";
+import { isPasswordLongEnough } from "@/lib/password";
 
 export default function ResetPassword() {
   const { t } = useI18n();
@@ -49,7 +50,7 @@ export default function ResetPassword() {
       toast.error(t("auth.passwordMismatch"));
       return;
     }
-    if (password.length < 6) {
+    if (!isPasswordLongEnough(password)) {
       toast.error(t("auth.passwordTooShort"));
       return;
     }

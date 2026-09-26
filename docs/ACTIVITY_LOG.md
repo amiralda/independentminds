@@ -1,5 +1,12 @@
 # Activity Log
 
+## 2026-09-26 — Client-side minimum password length 8
+- Summary: the Supabase dashboard minimum-length setting is not enforced by the server yet (live test: a 7-char password is accepted by PUT /auth/v1/user; checked twice today), and Leaked-password protection needs the Pro plan (project is on Free — confirmed by the user; the advisor still reports it disabled). Added a client-side second layer: shared `MIN_PASSWORD_LENGTH = 8` (`src/lib/password.ts`) used by ResetPassword (was 6) and the signup form (had no length check at all); `auth.passwordTooShort` now says 8 in all 10 languages.
+- Files touched: `src/lib/password.ts` (new), `src/lib/password.test.ts` (new), `src/pages/ResetPassword.tsx`, `src/pages/Login.tsx`, `src/lib/i18n.tsx`.
+- Validation: lint PASS (clean), `npx tsc --noEmit` PASS, build PASS, vitest 98/98 (+2). Real-browser E2E (local UI against prod Supabase): signup with a 7-char password → "Modpas dwe gen omwen 8 karaktè", no /auth/v1/signup request sent; /reset-password with a 7-char password → "Password must be at least 8 characters", no PUT /auth/v1/user sent. Server check: 7 chars still accepted (test account password restored each time, login 200).
+- Risks + rollback: revert the commit. Client checks can be bypassed by calling the Auth API directly — the server setting is still needed.
+- Blockers/human actions needed: (1) In the dashboard, confirm the minimum password length shows 8 **and was saved**; if it shows 8 but the server still accepts 7 chars, report it to Supabase support. (2) Leaked-password protection: requires upgrading to Pro.
+
 ## 2026-09-26 — Commit 08-30 diagnostic doc; ignore supabase/.temp
 - Summary: committed `docs/DIAGNOSTIC_2026-08-30.md` (historical Supabase failure-rate diagnostic) at the user's request. Before committing to the public repo it was scanned for secrets/PII: one retired cron bearer token was quoted in clear (line 63) — redacted; verified it is used nowhere (0 in cron.job, 0 in SQL functions, 0 in code) and never was in git history. No emails/keys/IDs otherwise. Added `supabase/.temp/` (Supabase CLI local state) to `.gitignore`.
 - Files touched: `docs/DIAGNOSTIC_2026-08-30.md` (new, 1 line redacted), `.gitignore`, `CLAUDE.md`, `docs/ACTIVITY_LOG.md`.
