@@ -6,9 +6,9 @@ import { Input } from "@/components/ui/input";
 import { RefreshCw, CheckCircle2, XCircle, AlertTriangle, Loader2 } from "lucide-react";
 import { DnsHistoryPanel } from "@/components/admin/DnsHistoryPanel";
 import { DnsSetupWizard } from "@/components/admin/DnsSetupWizard";
+import { isRootOk, isWwwOk, VERCEL_ROOT_A, VERCEL_WWW_CNAME } from "@/lib/dnsExpected";
 
 const DEFAULT_DOMAIN = "independentmindsedu.org";
-const EXPECTED_A = "185.158.133.1";
 
 type DohAnswer = { name: string; type: number; TTL: number; data: string };
 type DohResponse = {
@@ -95,8 +95,12 @@ export default function AdminDnsStatus() {
   }, [domain, run]);
 
   const rootA = results.find((r) => r.label === "Root A");
+  const wwwA = results.find((r) => r.label === "www A");
   const ns = results.find((r) => r.label === "NS");
-  const overallOk = rootA?.status === 0 && rootA.answers.some((a) => a.data === EXPECTED_A);
+  // Vercel: root A records + www CNAME (see lib/dnsExpected).
+  const rootOk = rootA?.status === 0 && isRootOk(rootA.answers);
+  const wwwOk = wwwA?.status === 0 && isWwwOk(wwwA.answers);
+  const overallOk = rootOk && wwwOk;
   const nxdomain = ns?.status === 3 || rootA?.status === 3;
 
   return (
@@ -161,8 +165,8 @@ export default function AdminDnsStatus() {
               <span className="font-mono">{domain}</span>
             </div>
             <div>
-              <span className="text-muted-foreground">Expected A record:</span>{" "}
-              <span className="font-mono">{EXPECTED_A}</span>
+              <span className="text-muted-foreground">Expected (Vercel):</span>{" "}
+              <span className="font-mono">A @ {VERCEL_ROOT_A.join(" / ")} · CNAME www {VERCEL_WWW_CNAME}</span>
             </div>
             {checkedAt && (
               <div className="text-xs text-muted-foreground">
@@ -180,8 +184,8 @@ export default function AdminDnsStatus() {
           )}
           {!nxdomain && rootA && rootA.status === 0 && !overallOk && (
             <div className="rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-amber-700 dark:text-amber-400">
-              Domain resolves, but the A record does not point to {EXPECTED_A}. Update the A record
-              at your DNS provider.
+              Domain resolves, but {!rootOk ? `the root A record is not ${VERCEL_ROOT_A.join(" / ")}` : `www is not a CNAME to ${VERCEL_WWW_CNAME}`}.
+              Update it at your DNS provider.
             </div>
           )}
         </CardContent>

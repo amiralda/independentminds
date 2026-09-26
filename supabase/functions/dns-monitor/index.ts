@@ -12,7 +12,11 @@ const corsHeaders = {
 
 const APEX_DOMAIN = Deno.env.get("MONITOR_DOMAIN") || "independentmindsedu.org";
 const WWW_DOMAIN = Deno.env.get("MONITOR_CANONICAL_DOMAIN") || "www.independentmindsedu.org";
-const EXPECTED_A = "185.158.133.1";
+// Vercel (verified 2026-09-26). Same values as src/lib/dnsExpected.ts (edge
+// functions can't import from src/): root = A records, www = CNAME.
+const VERCEL_ROOT_A = ["216.198.79.1", "64.29.17.1"];
+const VERCEL_WWW_CNAME = "7d9278614535e49d.vercel-dns-017.com";
+const VERCEL_WWW_A = ["216.198.79.65", "64.29.17.65"];
 
 type Check = {
   overall: "ok" | "nxdomain" | "a_mismatch" | "txt_missing" | "unreachable" | "degraded";
@@ -30,7 +34,7 @@ async function doh(host: string, type: string) {
     { headers: { accept: "application/dns-json" } }
   );
   if (!r.ok) throw new Error(`DoH ${type} ${host} HTTP ${r.status}`);
-  return await r.json() as { Status: number; Answer?: { data: string }[] };
+  return await r.json() as { Status: number; Answer?: { type: number; data: string }[] };
 }
 
 async function runCheck(domain: string): Promise<Check> {
@@ -39,7 +43,9 @@ async function runCheck(domain: string): Promise<Check> {
       doh(domain, "A"),
       doh(domain, "NS"),
     ]);
-    const aRecords = (rootA.Answer ?? []).map((a) => a.data);
+    const answers = rootA.Answer ?? [];
+    const aRecords = answers.filter((a) => a.type === 1).map((a) => a.data);
+    const cname = answers.find((a) => a.type === 5)?.data.replace(/\.$/, "").toLowerCase();
     const txtRecords: string[] = [];
 
     if (rootA.Status === 3 || ns.Status === 3) {
@@ -51,13 +57,17 @@ async function runCheck(domain: string): Promise<Check> {
         details: `NXDOMAIN at registry — nameservers not delegated for ${domain}`,
       };
     }
-    const aOk = aRecords.includes(EXPECTED_A);
+    const isWww = domain.startsWith("www.");
+    const expected = isWww ? `CNAME ${VERCEL_WWW_CNAME}` : `A ${VERCEL_ROOT_A.join(" / ")}`;
+    const aOk = isWww
+      ? (cname ? cname === VERCEL_WWW_CNAME : aRecords.length > 0 && aRecords.every((ip) => VERCEL_WWW_A.includes(ip)))
+      : aRecords.length > 0 && aRecords.every((ip) => VERCEL_ROOT_A.includes(ip));
     if (!aOk) {
       return { domain, overall: "a_mismatch", aRecords, txtRecords, nsStatus: ns.Status, rootStatus: rootA.Status,
-        details: `A record does not point to ${EXPECTED_A}. Got: ${aRecords.join(", ") || "(none)"}` };
+        details: `${domain} does not point to Vercel (expected ${expected}). Got: ${[cname, ...aRecords].filter(Boolean).join(", ") || "(none)"}` };
     }
     return { domain, overall: "ok", aRecords, txtRecords, nsStatus: ns.Status, rootStatus: rootA.Status,
-      details: `Domain resolves and points to ${EXPECTED_A}.` };
+      details: `Domain resolves and points to Vercel (${expected}).` };
   } catch (e) {
     return {
       domain,

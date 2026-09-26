@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, Circle, Loader2, RefreshCw, Copy, AlertTriangle } from "lucide-react";
 
-const EXPECTED_A = "185.158.133.1";
+import { isRootOk, isWwwOk, aValues, VERCEL_ROOT_A, VERCEL_WWW_CNAME } from "@/lib/dnsExpected";
 
-type DohAnswer = { data: string };
+type DohAnswer = { type: number; data: string };
 type DohResponse = { Status: number; Answer?: DohAnswer[] };
 
 async function doh(host: string, type: string): Promise<DohResponse> {
@@ -108,13 +108,14 @@ export function DnsSetupWizard({ domain }: Props) {
     // Step 2: A root
     try {
       const r = await doh(domain, "A");
-      const vals = (r.Answer ?? []).map((a) => a.data);
+      const answers = r.Answer ?? [];
+      const vals = aValues(answers);
       if (r.Status === 3 || vals.length === 0) {
-        setARoot({ state: "fail", message: "No A record found for the root domain.", detail: `Add A @ → ${EXPECTED_A}` });
-      } else if (!vals.includes(EXPECTED_A)) {
-        setARoot({ state: "fail", message: "A record does not match expected value.", detail: `Got: ${vals.join(", ")} — expected ${EXPECTED_A}` });
+        setARoot({ state: "fail", message: "No A record found for the root domain.", detail: `Add A @ → ${VERCEL_ROOT_A.join(" and ")}` });
+      } else if (!isRootOk(answers)) {
+        setARoot({ state: "fail", message: "A record does not match expected value.", detail: `Got: ${vals.join(", ")} — expected ${VERCEL_ROOT_A.join(" / ")}` });
       } else {
-        setARoot({ state: "ok", message: `Points to ${EXPECTED_A}.` });
+        setARoot({ state: "ok", message: `Points to Vercel (${vals.join(", ")}).` });
       }
     } catch (e) {
       setARoot({ state: "fail", message: "Lookup failed.", detail: e instanceof Error ? e.message : String(e) });
@@ -123,13 +124,14 @@ export function DnsSetupWizard({ domain }: Props) {
     // Step 3: A www
     try {
       const r = await doh(`www.${domain}`, "A");
-      const vals = (r.Answer ?? []).map((a) => a.data);
-      if (r.Status === 3 || vals.length === 0) {
-        setAWww({ state: "fail", message: "No A record for www subdomain.", detail: `Add A www → ${EXPECTED_A}` });
-      } else if (!vals.includes(EXPECTED_A)) {
-        setAWww({ state: "fail", message: "www does not point to expected value.", detail: `Got: ${vals.join(", ")} — expected ${EXPECTED_A}` });
+      const answers = r.Answer ?? [];
+      const got = answers.map((a) => a.data.replace(/\.$/, ""));
+      if (r.Status === 3 || answers.length === 0) {
+        setAWww({ state: "fail", message: "No record for www subdomain.", detail: `Add CNAME www → ${VERCEL_WWW_CNAME}` });
+      } else if (!isWwwOk(answers)) {
+        setAWww({ state: "fail", message: "www does not point to Vercel.", detail: `Got: ${got.join(", ")} — expected CNAME ${VERCEL_WWW_CNAME}` });
       } else {
-        setAWww({ state: "ok", message: `www points to ${EXPECTED_A}.` });
+        setAWww({ state: "ok", message: `www is a CNAME to Vercel (${VERCEL_WWW_CNAME}).` });
       }
     } catch (e) {
       setAWww({ state: "fail", message: "Lookup failed.", detail: e instanceof Error ? e.message : String(e) });
@@ -165,26 +167,26 @@ export function DnsSetupWizard({ domain }: Props) {
       body: (
         <div className="space-y-2">
           <p className="text-sm text-muted-foreground">
-            At your DNS provider, create or update the root A record:
+            At your DNS provider, the root domain needs Vercel's A records (one row each):
           </p>
           <CopyRow label="Type" value="A" />
           <CopyRow label="Name" value="@" />
-          <CopyRow label="Value" value={EXPECTED_A} />
+          {VERCEL_ROOT_A.map((ip) => <CopyRow key={ip} label="Value" value={ip} />)}
         </div>
       ),
     },
     {
       n: 3,
-      title: "Add A record for www",
+      title: "Add CNAME record for www",
       result: aWww,
       body: (
         <div className="space-y-2">
           <p className="text-sm text-muted-foreground">
-            Add a second A record so <span className="font-mono">www.{domain}</span> resolves too:
+            Point <span className="font-mono">www.{domain}</span> to Vercel with a CNAME (no A record for www):
           </p>
-          <CopyRow label="Type" value="A" />
+          <CopyRow label="Type" value="CNAME" />
           <CopyRow label="Name" value="www" />
-          <CopyRow label="Value" value={EXPECTED_A} />
+          <CopyRow label="Value" value={VERCEL_WWW_CNAME} />
         </div>
       ),
     },

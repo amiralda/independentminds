@@ -1,5 +1,16 @@
 # Activity Log
 
+## 2026-09-26 — DNS Status false "Misconfigured" fixed (old Lovable IP hardcoded)
+- Summary: the admin DNS Status panel expected the old Lovable A record `185.158.133.1` (hardcoded in 3 places), so it showed "Misconfigured" although the live Vercel setup is correct. Live DNS (DoH, 2026-09-26): root A = 216.198.79.1 + 64.29.17.1; www = CNAME 7d9278614535e49d.vercel-dns-017.com → 216.198.79.65 + 64.29.17.65 (root and www use different Vercel IPs).
+  - New `src/lib/dnsExpected.ts` (single source for the UI): root OK = A records present and all Vercel root IPs; www OK = CNAME to the Vercel target (or, without CNAME, all Vercel www IPs). A stray non-Vercel A (e.g. the old IP left next to Vercel's) counts as misconfigured.
+  - `AdminDnsStatus`: overall = root OK **and** www OK (was root only, against the old IP); shows the expected Vercel values; mismatch message names the failing record.
+  - `DnsSetupWizard`: its instructions told admins to set A @ and A www to the old IP (following them would break the site) → now 2 root A rows + a www CNAME; checks use the shared logic.
+  - `supabase/functions/dns-monitor`: same fix in source (own copy of the values; per-host rules). Not deployed — unchanged in production.
+- Files touched: `src/lib/dnsExpected.ts` (new), `src/lib/dnsExpected.test.ts` (new, 6 tests), `src/pages/admin/AdminDnsStatus.tsx`, `src/components/admin/DnsSetupWizard.tsx`, `supabase/functions/dns-monitor/index.ts`.
+- Validation: lint PASS (clean), `npx tsc --noEmit` PASS, build PASS, vitest 104/104. Browser (admin, same live DNS): production with the old code → "Misconfigured"; new code → "Resolving", expected values = Vercel, old IP nowhere on the page, Guided setup "All checks passing" (3/3 Verified), wizard says CNAME for www.
+- Risks + rollback: revert the commit. If Vercel ever changes the project's DNS target/IPs, update `src/lib/dnsExpected.ts` (and dns-monitor).
+- Blockers/human actions needed: none. Note: the panel's "Check History" says the monitor runs every 15 minutes, but dns-monitor is not deployed/scheduled, so the history stays empty (separate decision).
+
 ## 2026-09-26 — admin_notifications table created (admin panel 404 fixed)
 - Summary: the admin panel (bell, sidebar alert count, notification center, beta page) and track-error / hourly-monitor / beta-track use `admin_notifications`, but the table was never created on this project (the 2026-03-22 Lovable migration was not applied) → 404. New migration (not the old file: it also adds an impersonation trigger on impersonation_logs columns that no longer exist, has no FK/indexes and grants UPDATE on every column).
   - Table: id, admin_id (FK auth.users, cascade), title (≤200), body (≤2000), notification_type, is_read (default false), metadata jsonb (default {}), created_at; indexes (admin_id, is_read, created_at desc) and (admin_id, notification_type, created_at desc).
