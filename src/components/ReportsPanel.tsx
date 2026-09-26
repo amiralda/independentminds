@@ -59,7 +59,7 @@ export function ReportsPanel({ studentId }: { studentId: string }) {
 
   const { data: allDone = [], isLoading } = useQuery({
     queryKey: ["reports_all_done", studentId],
-    queryFn: () => invokeReportData({ studentId, status: "Done" }),
+    queryFn: () => invokeReportData({ studentId, status: "done" }),
   });
 
   // Fetch last 7 days blocks for velocity
@@ -131,13 +131,13 @@ export function ReportsPanel({ studentId }: { studentId: string }) {
   }
 
   // === Velocity ===
-  const last7Done = recentBlocks.filter(b => b.status === "Done");
+  const last7Done = recentBlocks.filter(b => b.status === "done");
   const uniqueDays = new Set(recentBlocks.map(b => b.planned_date)).size;
   const avgVelocity = uniqueDays > 0 ? Math.round((last7Done.length / uniqueDays) * 10) / 10 : 0;
   const onTrack = avgVelocity >= 20;
 
   // === Weekly sprint ===
-  const weekDone = weekBlocks.filter(b => b.status === "Done");
+  const weekDone = weekBlocks.filter(b => b.status === "done");
 
   // === Daily velocity bar chart (last 7 days) ===
   const velocityByDay: Record<string, number> = {};
@@ -145,7 +145,7 @@ export function ReportsPanel({ studentId }: { studentId: string }) {
     const d = new Date(Date.now() - i * 86400000).toISOString().split("T")[0];
     velocityByDay[d] = 0;
   }
-  recentBlocks.filter(b => b.status === "Done").forEach(b => {
+  recentBlocks.filter(b => b.status === "done").forEach(b => {
     if (velocityByDay[b.planned_date] !== undefined) velocityByDay[b.planned_date]++;
   });
   const velocityData = Object.entries(velocityByDay).map(([date, count]) => ({

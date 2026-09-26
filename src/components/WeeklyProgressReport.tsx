@@ -11,6 +11,7 @@ import { Send, TrendingUp, Award, Coins, Smile, Target, ChevronLeft, ChevronRigh
 import { toast } from "sonner";
 import jsPDF from "jspdf";
 import { useI18n } from "@/lib/i18n";
+import { badgeDef, badgeLabelKey } from "@/lib/badges";
 
 const PIE_COLORS = [
   "hsl(var(--primary))",
@@ -45,9 +46,12 @@ export function WeeklyProgressReport({ studentId }: { studentId: string }) {
 
   interface WeeklyReportData {
     daily_plan: { planned_date: string; status: string; subject: string }[];
-    check_ins: { timestamp: string; mood: string; focus: string }[];
-    achievements: { name: string; type: string; criteria_met_at: string }[];
-    reward_points: { points: number }[];
+    // Real columns: status is lowercase ('planned' | 'started' | 'done');
+    // mood 'focused' | 'okay' | 'struggling', focus 1-5; badges come from the
+    // server triggers (lib/badges.ts); points include negative reward debits.
+    check_ins: { checked_in_at: string; mood: string | null; focus: number | null }[];
+    achievements: { badge_type: string; milestone: number | null; earned_at: string }[];
+    reward_points: { points: number; source: string | null; awarded_at: string }[];
   }
 
   const { data: reportData, isLoading: blocksLoading } = useQuery({
@@ -64,11 +68,17 @@ export function WeeklyProgressReport({ studentId }: { studentId: string }) {
   const blocks = useMemo(() => reportData?.daily_plan ?? [], [reportData]);
   const checkIns = useMemo(() => reportData?.check_ins ?? [], [reportData]);
   const badges = reportData?.achievements ?? [];
-  const pointsEarned = (reportData?.reward_points ?? []).reduce((sum, r) => sum + r.points, 0);
+  const badgeNames = badges.map((b) => {
+    const label = t(badgeLabelKey(b.badge_type));
+    const name = label === badgeLabelKey(b.badge_type) ? b.badge_type : label;
+    return `${badgeDef(b.badge_type)?.emoji ?? "🏅"} ${name}`;
+  });
+  // Earned this week = positive entries only (reward redemptions are debits).
+  const pointsEarned = (reportData?.reward_points ?? []).reduce((sum, r) => sum + (r.points > 0 ? r.points : 0), 0);
 
   // Derived data
   const stats = useMemo(() => {
-    const done = blocks.filter(b => b.status === "Done");
+    const done = blocks.filter(b => b.status === "done");
     const total = blocks.length;
     const rate = total > 0 ? Math.round((done.length / total) * 100) : 0;
 
@@ -83,7 +93,7 @@ export function WeeklyProgressReport({ studentId }: { studentId: string }) {
     blocks.forEach(b => {
       if (dayMap[b.planned_date]) {
         dayMap[b.planned_date].total++;
-        if (b.status === "Done") dayMap[b.planned_date].done++;
+        if (b.status === "done") dayMap[b.planned_date].done++;
       }
     });
     const dailyData = Object.entries(dayMap).map(([date, v]) => ({
@@ -112,12 +122,12 @@ export function WeeklyProgressReport({ studentId }: { studentId: string }) {
     }
 
     // Mood trend
-    const moodValues: Record<string, number> = { "😊": 5, "😌": 4, "😐": 3, "😞": 2, "😤": 1 };
-    const focusValues: Record<string, number> = { "🎯": 5, "👍": 4, "😐": 3, "😴": 2, "🤯": 1 };
+    // Same 1-5 scale as focus (check-in form: Good/Okay/Tired).
+    const moodValues: Record<string, number> = { focused: 5, okay: 3, struggling: 1 };
     const moodTrend = checkIns.map(c => ({
-      time: new Date(c.timestamp).toLocaleDateString("en-US", { weekday: "short" }),
-      mood: moodValues[c.mood] || 3,
-      focus: focusValues[c.focus] || 3,
+      time: new Date(c.checked_in_at).toLocaleDateString("en-US", { weekday: "short" }),
+      mood: (c.mood && moodValues[c.mood]) || 3,
+      focus: c.focus && c.focus >= 1 && c.focus <= 5 ? c.focus : 3,
     }));
 
     return { done: done.length, total, rate, dailyData, subjectData, streak, moodTrend };
@@ -253,7 +263,7 @@ export function WeeklyProgressReport({ studentId }: { studentId: string }) {
         <SummaryCard icon={TrendingUp} label={t("report.completion")} value={`${stats.rate}%`} sub={`${stats.done}/${stats.total}`} color="primary" />
         <SummaryCard icon={Target} label={t("report.streak")} value={`${stats.streak}d`} sub={t("report.dayStreak")} color="secondary" />
         <SummaryCard icon={Coins} label={t("report.pointsEarned")} value={`${pointsEarned}`} sub={t("report.earnedThisWeek")} color="accent" />
-        <SummaryCard icon={Award} label={t("nav.badges")} value={`${badges.length}`} sub={badges.length > 0 ? badges.map(b => b.name).join(", ") : t("report.noneThisWeek")} color="primary" />
+        <SummaryCard icon={Award} label={t("nav.badges")} value={`${badges.length}`} sub={badges.length > 0 ? badgeNames.join(", ") : t("report.noneThisWeek")} color="primary" />
       </div>
 
       {/* Daily Completion Chart */}

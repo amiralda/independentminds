@@ -85,6 +85,9 @@ Deno.serve(async (req) => {
 
     const dayStart = (d: string) => `${d}T00:00:00`;
     const dayEnd = (d: string) => `${d}T23:59:59`;
+    // daily_plan.status is stored lowercase ('planned' | 'started' | 'done');
+    // older clients send "Done".
+    const statusFilter = typeof status === "string" && status ? status.toLowerCase() : null;
 
     let dailyPlanQuery = serviceClient
       .from("daily_plan")
@@ -92,35 +95,44 @@ Deno.serve(async (req) => {
       .eq("student_id", studentId);
     if (startDate) dailyPlanQuery = dailyPlanQuery.gte("planned_date", startDate);
     if (endDate) dailyPlanQuery = dailyPlanQuery.lte("planned_date", endDate);
-    if (status) dailyPlanQuery = dailyPlanQuery.eq("status", status);
+    if (statusFilter) dailyPlanQuery = dailyPlanQuery.eq("status", statusFilter);
 
     let checkInsQuery = serviceClient
       .from("check_ins")
-      .select("timestamp, mood, focus")
+      .select("checked_in_at, mood, focus")
       .eq("student_id", studentId);
-    if (startDate) checkInsQuery = checkInsQuery.gte("timestamp", dayStart(startDate));
-    if (endDate) checkInsQuery = checkInsQuery.lte("timestamp", dayEnd(endDate));
+    if (startDate) checkInsQuery = checkInsQuery.gte("checked_in_at", dayStart(startDate));
+    if (endDate) checkInsQuery = checkInsQuery.lte("checked_in_at", dayEnd(endDate));
 
     let achievementsQuery = serviceClient
       .from("achievements")
-      .select("name, type, criteria_met_at")
+      .select("badge_type, milestone, earned_at")
       .eq("student_id", studentId);
-    if (startDate) achievementsQuery = achievementsQuery.gte("criteria_met_at", dayStart(startDate));
-    if (endDate) achievementsQuery = achievementsQuery.lte("criteria_met_at", dayEnd(endDate));
+    if (startDate) achievementsQuery = achievementsQuery.gte("earned_at", dayStart(startDate));
+    if (endDate) achievementsQuery = achievementsQuery.lte("earned_at", dayEnd(endDate));
 
     let rewardPointsQuery = serviceClient
       .from("reward_points")
-      .select("points")
+      .select("points, source, awarded_at")
       .eq("student_id", studentId);
-    if (startDate) rewardPointsQuery = rewardPointsQuery.gte("created_at", dayStart(startDate));
-    if (endDate) rewardPointsQuery = rewardPointsQuery.lte("created_at", dayEnd(endDate));
+    if (startDate) rewardPointsQuery = rewardPointsQuery.gte("awarded_at", dayStart(startDate));
+    if (endDate) rewardPointsQuery = rewardPointsQuery.lte("awarded_at", dayEnd(endDate));
 
     const [dailyPlanRes, checkInsRes, achievementsRes, rewardPointsRes] = await Promise.all([
       dailyPlanQuery.order("planned_date"),
-      checkInsQuery.order("timestamp"),
-      achievementsQuery,
-      rewardPointsQuery,
+      checkInsQuery.order("checked_in_at"),
+      achievementsQuery.order("earned_at"),
+      rewardPointsQuery.order("awarded_at"),
     ]);
+
+    // A failed query used to come back as an empty section; surface it instead.
+    const failed = [dailyPlanRes, checkInsRes, achievementsRes, rewardPointsRes].find((r) => r.error);
+    if (failed?.error) {
+      console.error("weekly-report-data query error:", failed.error);
+      return new Response(JSON.stringify({ error: "Could not load the report." }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     return new Response(JSON.stringify({
       daily_plan: dailyPlanRes.data || [],

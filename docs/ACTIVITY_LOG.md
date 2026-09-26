@@ -1,5 +1,20 @@
 # Activity Log
 
+## 2026-09-26 — Weekly Progress Report: check-ins, badges, points back (column + value mismatches)
+- Summary: `weekly-report-data` queried columns that don't exist and silently turned every failed query into an empty list (`res.data || []`), so check-ins, badges and points were empty for everyone; the UI also compared values in the wrong format, so completion was always 0%.
+  | Section | Code asked for | Real schema | Kind |
+  |---|---|---|---|
+  | Check-ins | `check_ins.timestamp`; UI mapped mood/focus from emoji | `checked_in_at`; mood 'focused'/'okay'/'struggling', focus 1-5 | rename + value format |
+  | Badges | `achievements.name, type, criteria_met_at` | `badge_type, milestone, earned_at` (badges system, `lib/badges.ts`) | structure change |
+  | Points | filter `reward_points.created_at`; UI summed all rows | `awarded_at`; redemptions are negative debits | rename + semantics |
+  | Tasks | UI `status === "Done"`, ReportsPanel filter `status: "Done"` | stored lowercase 'done' | value |
+  Proof: the 3 queries returned 42703 ("column … does not exist") as the parent; `status='Done'` → 0 rows.
+- Fix (code only, no schema change): the function selects/filters/orders on the real columns, lowercases the status filter (old "Done" clients still work) and returns 500 + log instead of empty sections when a query fails; ownership/subscription logic unchanged. WeeklyProgressReport: done = 'done', mood focused=5/okay=3/struggling=1, focus 1-5 as-is, badges shown with translated names (`badge.<badge_type>` + emoji), "points earned" = positive rows only. ReportsPanel: 'done' everywhere.
+- Files touched: `supabase/functions/weekly-report-data/index.ts` (deployed v5), `src/components/WeeklyProgressReport.tsx`, `src/components/ReportsPanel.tsx`.
+- Validation: lint PASS (clean), `npx tsc --noEmit` PASS (strict count unchanged at 395, 0 in touched files), build PASS, vitest 98/98. Real E2E: seeded this week for a temp student through the real paths as the parent (3 tasks, 2 marked done → task_done trigger +10 each; award_points +40 → automatic points_50 badge; 2 check-ins; a 15-pt redemption via redeem_reward). API: 200, 3 tasks/2 done, 2 check-ins with checked_in_at/mood/focus, points_50 badge, positive points 60 (raw 45 with the debit), legacy "Done" filter → 2, other family 403. Browser (parent, Reports tab): 67% (2/3), 60 points earned, 1 badge "🌱 Starter", daily bars Tue/Wed done Thu missed, subjects Math/Science, mood & focus trend lines; 0 4xx/5xx. Test data removed (0 left, no orphans).
+- Risks + rollback: revert the commit and redeploy weekly-report-data from the previous commit (v4 code = `9a658f8`).
+- Blockers/human actions needed: none.
+
 ## 2026-09-26 — CLOSED: server-side password rules (Supabase Free plan limit)
 - Summary: dossier closed at the user's decision. Leaked-password protection (HaveIBeenPwned) and the server-side minimum password length are not enforced on this project: live tests on 2026-09-26 showed the Auth server accepting a 7-character and a known-pwned password, and the security advisor still reports leaked-password protection disabled. The user confirmed the project is on the real Supabase Free plan and that both are plan limits, not a bug or misconfiguration.
 - Status: **Limit konfime plan Supabase Free — mande upgrade Pro pou rezoud.** No further technical action is possible without changing plan.
