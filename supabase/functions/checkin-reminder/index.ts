@@ -1,93 +1,163 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+// Cron: daily 9am Haiti time (14:00 UTC, fixed UTC-5 assumed). Emails only
+// the parents of students who have NOT checked in yet today.
+//
+// Self-contained (no _shared/ cross-file imports — the deploy bundler could
+// not resolve them for this function set; kept inline for reliability).
+import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-cron-secret",
 };
 
-Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  const cronSecret = req.headers.get("x-cron-secret");
-  if (cronSecret !== Deno.env.get("CRON_SECRET")) {
+function requireCronAuth(req: Request): Response | null {
+  const secret = req.headers.get("x-cron-secret");
+  if (!secret || secret !== Deno.env.get("CRON_SECRET")) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
+  return null;
+}
 
-  try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const telegramToken = Deno.env.get("TELEGRAM_BOT_TOKEN")!;
-    const telegramChatId = Deno.env.get("TELEGRAM_CHAT_ID")!;
+interface ActiveStudent {
+  id: string;
+  display_name: string | null;
+  parent_id: string;
+  language_pref: string | null;
+}
 
-    const supabase = createClient(supabaseUrl, supabaseKey);
+async function getActiveStudents(supabase: SupabaseClient): Promise<ActiveStudent[]> {
+  const { data: students, error } = await supabase
+    .from("students")
+    .select("id, display_name, parent_id, language_pref");
+  if (error || !students || students.length === 0) return [];
 
-    const { data: student } = await supabase
-      .from("students")
-      .select("*")
-      .eq("student_id", "CHRIS")
-      .single();
+  const parentIds = [...new Set(students.map((s) => s.parent_id).filter(Boolean))];
+  if (parentIds.length === 0) return [];
 
-    if (!student) {
-      return new Response(JSON.stringify({ error: "Student not found" }), {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+  const { data: subs } = await supabase
+    .from("subscriptions")
+    .select("user_id, status")
+    .in("user_id", parentIds)
+    .in("status", ["trialing", "active"]);
 
-    const now = new Date();
-    const haitiHour = parseInt(now.toLocaleString("en-US", { timeZone: "America/Port-au-Prince", hour: "numeric", hour12: false }));
+  const activeParentIds = new Set((subs || []).map((s) => s.user_id));
+  return students.filter((s) => s.parent_id && activeParentIds.has(s.parent_id));
+}
 
-    let timeContext = "midday";
-    if (haitiHour < 12) timeContext = "morning";
-    else if (haitiHour < 15) timeContext = "afternoon";
-    else timeContext = "end of day";
+interface ParentInfo {
+  email: string | null;
+  planKey: string;
+  notificationChannel: string | null;
+}
 
-    const today = new Date(now.toLocaleString("en-US", { timeZone: "America/Port-au-Prince" })).toISOString().split("T")[0];
+async function getParentInfo(supabase: SupabaseClient, parentId: string): Promise<ParentInfo> {
+  const [{ data: userData }, { data: sub }, { data: settings }] = await Promise.all([
+    supabase.auth.admin.getUserById(parentId),
+    supabase.from("subscriptions").select("plan_key").eq("user_id", parentId).maybeSingle(),
+    supabase.from("parent_settings").select("notification_channel").eq("id", parentId).maybeSingle(),
+  ]);
+  return {
+    email: userData?.user?.email ?? null,
+    planKey: sub?.plan_key ?? "basic",
+    notificationChannel: settings?.notification_channel ?? null,
+  };
+}
 
-    const { data: blocks } = await supabase
-      .from("daily_plan")
-      .select("status")
-      .eq("student_id", "CHRIS")
-      .eq("plan_date", today);
+// TODO(whatsapp-sms): when planKey is 'plus'/'pro' and the parent's
+// notification_channel is 'whatsapp' or 'both', also dispatch this
+// notification via WhatsApp (see supabase/functions/_shared/whatsapp.ts ->
+// sendWhatsApp()). Not implemented: WhatsApp business integration is a
+// separate, currently blocked workstream. SMS has no channel/schema support
+// at all yet (parent_settings has no phone/SMS column).
+function shouldOfferAltChannel(planKey: string | null, notificationChannel: string | null): boolean {
+  return (planKey === "plus" || planKey === "pro" || planKey === "super_pro") &&
+    (notificationChannel === "whatsapp" || notificationChannel === "both");
+}
 
-    const total = blocks?.length || 0;
-    const done = blocks?.filter(b => b.status === "Done").length || 0;
+async function sendResendEmail(to: string, subject: string, html: string): Promise<{ ok: boolean; error?: string }> {
+  const apiKey = Deno.env.get("RESEND_API_KEY");
+  if (!apiKey) return { ok: false, error: "RESEND_API_KEY not configured" };
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ from: "Independent Minds EDU <noreply@independentmindsedu.org>", to: [to], subject, html }),
+  });
+  const data = await res.json().catch(() => ({} as Record<string, unknown>));
+  if (!res.ok) return { ok: false, error: (data as { message?: string })?.message || `Resend API error ${res.status}` };
+  return { ok: true };
+}
 
-    const messageEN = `Hey Chris! 📋 Time for a quick check-in (${timeContext}). You've done ${done}/${total} blocks so far. How are you feeling? Open the app and tell us!`;
-    const messageHT = `Ey Chris! 📋 Lè pou yon ti tcheke (${timeContext}). Ou fè ${done}/${total} blòk deja. Kijan ou santi ou? Louvri app la epi di nou!`;
-    const fullMessage = `${messageEN}\n\n${messageHT}`;
+async function logMessage(supabase: SupabaseClient, parentId: string, messageType: string, status: "sent" | "failed") {
+  await supabase.from("messages_log").insert({ parent_id: parentId, channel: "email", message_type: messageType, status });
+}
 
-    const url = `https://api.telegram.org/bot${telegramToken}/sendMessage`;
-    const telegramRes = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: telegramChatId, text: fullMessage }),
-    });
+const escapeHtml = (s: string) =>
+  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
-    const telegramData = await telegramRes.json();
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  const authError = requireCronAuth(req);
+  if (authError) return authError;
 
-    await supabase.from("messages_log").insert({
-      recipient: telegramChatId,
-      channel: "Telegram",
-      type: "CheckIn",
-      content: fullMessage,
-      status: telegramRes.ok ? "Sent" : "Failed",
-      provider_message_id: telegramData.result?.message_id?.toString() || null,
-    });
+  const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
-    return new Response(JSON.stringify({ success: true, message_id: telegramData.result?.message_id }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  } catch (error) {
-    console.error('checkin-reminder error:', error);
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
-      status: 500,
+  const now = new Date();
+  const haitiMidnight = new Date(now.toLocaleString("en-US", { timeZone: "America/Port-au-Prince" }));
+  haitiMidnight.setHours(0, 0, 0, 0);
+  const dayStart = haitiMidnight.toISOString();
+  const dayEnd = new Date(haitiMidnight.getTime() + 24 * 60 * 60 * 1000).toISOString();
+  const today = now.toLocaleDateString("en-CA", { timeZone: "America/Port-au-Prince" });
+
+  const students = await getActiveStudents(supabase);
+  if (students.length === 0) {
+    return new Response(JSON.stringify({ success: true, sent: 0, failed: 0, skipped: 0, total: 0 }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
+
+  const { data: checkedIn } = await supabase
+    .from("check_ins")
+    .select("student_id")
+    .in("student_id", students.map((s) => s.id))
+    .gte("checked_in_at", dayStart)
+    .lt("checked_in_at", dayEnd);
+
+  const checkedInIds = new Set((checkedIn || []).map((c) => c.student_id));
+  const pending = students.filter((s) => !checkedInIds.has(s.id));
+
+  const parentCache = new Map<string, ParentInfo>();
+  let sent = 0, failed = 0, skipped = 0;
+
+  for (const student of pending) {
+    if (!parentCache.has(student.parent_id)) {
+      parentCache.set(student.parent_id, await getParentInfo(supabase, student.parent_id));
+    }
+    const parent = parentCache.get(student.parent_id)!;
+    if (!parent.email) { skipped++; continue; }
+
+    const name = escapeHtml(student.display_name || "your student");
+    const html = `
+      <h2>Quick check-in reminder 📋</h2>
+      <p>${name} hasn't checked in yet today (${today}). A quick mood/focus check-in helps track how the day is going.</p>
+      <hr/>
+      <h3>Ti rapèl tcheke 📋</h3>
+      <p>${name} poko tcheke jodi a (${today}). Yon ti check-in imè/konsantrasyon ede swiv jounen an.</p>
+      <p style="color:#888;font-size:12px">— Independent Minds EDU</p>
+    `;
+
+    const result = await sendResendEmail(parent.email, `Check-in reminder for ${student.display_name || "your student"}`, html);
+    await logMessage(supabase, student.parent_id, "checkin_reminder", result.ok ? "sent" : "failed");
+    if (result.ok) sent++; else failed++;
+
+    if (shouldOfferAltChannel(parent.planKey, parent.notificationChannel)) {
+      // Not implemented yet — WhatsApp/SMS dispatch would go here.
+    }
+  }
+
+  return new Response(JSON.stringify({ success: true, sent, failed, skipped, total: pending.length }), {
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
 });

@@ -1,5 +1,13 @@
 # Activity Log
 
+## 2026-09-26 — Task 1: reminder functions committed (keep, not discard)
+- Summary: the 4 cron functions (morning-reminder, checkin-reminder, daily-report, weekly-badge) had been live since 2026-08-30 (v4/v5, rewritten from the legacy single-student "CHRIS"/Telegram code to multi-family Resend email with the x-cron-secret guard) but were never committed, so the repo still held the legacy code and `npm run lint` failed on them. User chose "keep and commit". Only change: the 4 `result.ok ? sent++ : failed++;` expression statements became `if (result.ok) sent++; else failed++;` (no behavior change).
+- Verified before committing: deployed source of all 4 matches the working copy (morning-reminder line by line; the other 3 by their distinctive lines, same line counts). Live since 09-08: 19 `sent` / 0 `failed` each for morning/checkin/daily; weekly-badge sends only with weekly progress. Functions not redeployed (the only diff vs production is the no-op lint form); the repo is now the source of truth for the next deploy.
+- Files touched: `supabase/functions/{morning-reminder,checkin-reminder,daily-report,weekly-badge}/index.ts`.
+- Validation: `npm run lint` PASS (exit 0 — first fully clean lint), `npx tsc --noEmit` PASS, build PASS, vitest 96/96.
+- Risks + rollback: revert this commit (repo goes back to the legacy code, which must NOT be deployed).
+- Blockers/human actions needed: only the Auth dashboard settings (leaked-password protection, min length 8).
+
 ## 2026-09-26 — CRON_SECRET rotated; cron jobs read it from Vault
 - Summary: the user set a new CRON_SECRET in Edge Function secrets. Stored the same value in Supabase Vault (`cron_secret`) and rewrote the 4 cron.job commands (morning-reminder, checkin-reminder, daily-report, weekly-badge) to read the `x-cron-secret` header from `vault.decrypted_secrets` at run time, so no secret value lives in cron.job, migrations or git anymore. Schedules unchanged. Next rotation = update Vault + Edge secret only.
 - Files touched: `supabase/migrations/20260926090000_cron_secret_from_vault.sql` (applied live; contains no secret value). Vault secret created via SQL (not in any file).
