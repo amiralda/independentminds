@@ -70,6 +70,22 @@ Details: docs/AUDIT_REPORT.md
   - Schema additions (additive): image URL/storage path, affiliate URL, reference USD price + a points-per-dollar rate (per family or global); an image bucket with the same limits as `student-photos`.
   - Affiliate links should be shown to parents/Managers only (not student accounts — minors/COPPA); Amazon Associates requires an affiliate disclosure on the page.
 
+### FF3 — Self-monitoring with a proposed-fix journal
+- Goal: when the monitoring (hourly-monitor, track-error, dns-monitor, cron failures…) detects a problem, write an entry to a journal — table or file — with the evidence, a diagnosis and a **proposed** fix, so the next Claude Code session can review it and apply it through the normal process. An automated version of the first part of the "Phase 1-3 monitoring" idea discussed on 2026-09-26.
+- High-level shape: a `fix_proposals` journal (admin-only RLS, service-role writes) fed by the existing signals (admin_notifications types, platform_errors spikes, net._http_response failures of cron jobs, Supabase advisors); each entry = source, first/last seen, count, evidence, suspected cause, proposed change, status (open / applied / rejected / duplicate). The admin panel could list them.
+- Guardrails to keep: proposals only — never auto-apply code or DB changes; dedup by signature; redact secrets/PII from evidence; the usual approval + validation + E2E rules still apply to every fix.
+- Already in place to build on: admin_notifications (+ Realtime bell), hourly-monitor rules, track-error, dns-monitor history, crons reading secrets from Vault.
+
+### FF4 — Multilingual user manual, easy to find, kept up to date
+- Goal: make the user manual (4 PDF versions exist: EN / FR / ES / HT) easy to reach inside the platform — e.g. a "Help / Aide / Ayuda / Èd" link in the menu that opens the version matching the user's language — and keep it updated automatically when a feature ships.
+- High-level shape: store the manuals in one place (public bucket or `public/manuals/`), a menu entry using the current UI language with a fallback to EN; long term, generate the manuals from one source (e.g. Markdown per language) so a feature change updates all 4 versions, with the update step tied to the feature logging rule.
+- Notes from the codebase: the 4 PDFs are **not in the repo yet** (only `OPERATIONAL_MANUAL_v4.md`, `docs/agent/*.pdf` and the in-app `StudentHelpGuide`); the app has 10 UI languages, so decide which fallback the other 6 get.
+
+### FF5 — Weekly "what's new" email
+- Goal: once a week, email every parent, co-guardian and Manager a short summary of the features/changes added that week.
+- High-level shape: a cron function in the same pattern as the existing reminders (Resend, sender `Independent Minds EDU <noreply@independentmindsedu.org>`, messages_log, secret from Vault), sent in the recipient's language; content from a curated, parent-friendly changelog (not the developer ACTIVITY_LOG); skip weeks with nothing to announce.
+- Notes from the codebase: needs an unsubscribe/opt-out per recipient (the email_unsubscribe_tokens / suppressed_emails tables don't exist on this project); de-duplicate people who are both parent and co-guardian; recipients = parent/manager roles + co_guardians.
+
 ## Logging rule (mandatory after EVERY completed task)
 After finishing any task, before reporting done:
 1. Update the launch-plan checkbox in this file 
@@ -88,8 +104,8 @@ Never skip this step. Never put long logs in
 CLAUDE.md — details go in ACTIVITY_LOG.md only.
 
 ## Recent
+2026-09-26 — Future Features FF3-FF5 documented — Done: FF3 self-monitoring proposed-fix journal, FF4 multilingual manual (Help link, auto-update; PDFs not in repo yet), FF5 weekly "what's new" email (docs only, not started). See CLAUDE.md "Future Features".
 2026-09-26 — track-error critical pages — Done: exact match (Set + trailing-slash normalize) instead of startsWith with "/" (which matched every page); non-critical errors no longer alert, /login and /admin/system still do. Live E2E PASS, cleaned. See docs/ACTIVITY_LOG.md.
 2026-09-26 — Monitoring live — Done: hourly-monitor (5 admin alert rules only; legacy Telegram/compliance part removed), beta-track (+ schema fix), dns-monitor (+ tables, silent baseline, 30-day retention) deployed; crons hourly / 15 min from Vault. DNS checks now accept Vercel IP ranges (resolvers return different anycast IPs). Live E2E PASS, cleaned. See docs/ACTIVITY_LOG.md.
 2026-09-26 — DNS Status false alarm fixed — Done: old Lovable IP 185.158.133.1 removed from panel, setup wizard (its instructions would have broken the site) and dns-monitor source; shared lib/dnsExpected (root A 216.198.79.1/64.29.17.1, www CNAME Vercel). Panel now "Resolving"/All checks passing; 104 tests PASS. See docs/ACTIVITY_LOG.md.
 2026-09-26 — admin_notifications created — Done: table + RLS (own rows, UPDATE is_read only, server-only writes) + Realtime; admin 404 gone; alert count fixed (was always 0); bell live via one shared channel (duplicate bindings dropped events). API+security+browser E2E PASS, cleaned. See docs/ACTIVITY_LOG.md.
-2026-09-25 — Security audit + fixes (direct-to-main exception, this session only) — Done: CRITICAL test-faz1-fixture (delete-any-user, guarded by the leaked CRON_SECRET) neutralized; ai-tutor rate limit RPC created (was failing open); security headers; track-auth-failure flood cap; has_role/get_managed_parent_ids caller-only, trigger RPCs revoked, server-only student linking, dup-check cap, photo bucket limits; .env.test untracked, secret redacted. All live-tested, cleaned. CLOSED 2026-09-26: server min length + leaked-password protection = Limit konfime plan Supabase Free — mande upgrade Pro pou rezoud (client-side min 8 in place; CRON_SECRET rotated 2026-09-26). See docs/ACTIVITY_LOG.md.

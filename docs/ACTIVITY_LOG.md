@@ -1,5 +1,9 @@
 # Activity Log
 
+## 2026-09-26 — Future Features FF3-FF5 documented (no code)
+- Summary: added to CLAUDE.md "Future Features" at the user's request: FF3 self-monitoring with a proposed-fix journal (proposals only, never auto-applied), FF4 multilingual user manual reachable from a Help menu link and kept up to date (the 4 PDFs EN/FR/ES/HT are not in the repo yet), FF5 weekly "what's new" email to parents/co-guardians/Managers (needs an opt-out; no unsubscribe tables exist yet). Objectives + high-level overview only.
+- Files touched: `CLAUDE.md`, `docs/ACTIVITY_LOG.md` (docs only). Not started.
+
 ## 2026-09-26 — track-error: only the 4 critical pages alert admins
 - Summary: `CRITICAL_PAGES = ['/', '/login', '/admin', '/admin/system']` was checked with `pagePath.startsWith(p)`; since '/' is in the list and every path starts with '/', every error on any page created a platform_error admin notification (30-min dedup per admin). List verified against the app routes (`/` dashboard, `/login`, `/admin` overview, `/admin/system`) and kept; now an exact match on a Set, with the trailing slash normalized ("/admin/system/" = "/admin/system"). The client sends `window.location.pathname`, so there is no query string.
 - Files touched: `supabase/functions/track-error/index.ts` (deployed v4; deployed v3 verified identical to the repo before editing).
