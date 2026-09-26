@@ -3,12 +3,13 @@ import { NavLink, Outlet, Navigate, Link } from "react-router-dom";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import {
   LayoutDashboard, Users, TrendingUp, Gift, Activity,
-  MessageSquare, Shield, LogOut, Home, Menu, X, Eye, FlaskConical, Bell, Globe, CreditCard
+  MessageSquare, Shield, LogOut, Home, Menu, X, Eye, FlaskConical, Bell, Globe, CreditCard, Newspaper
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.svg";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { AdminNotifications, ADMIN_NOTIFICATIONS_CHANGED } from "./AdminNotifications";
+import { useI18n } from "@/lib/i18n";
 
 const navItems = [
   { to: "/admin", icon: LayoutDashboard, label: "Overview", end: true },
@@ -23,13 +24,15 @@ const navItems = [
   { to: "/admin/beta", icon: FlaskConical, label: "Beta" },
   { to: "/admin/dns", icon: Globe, label: "DNS Status" },
   { to: "/admin/billing", icon: CreditCard, label: "Billing" },
+  { to: "/admin/newsletter", icon: Newspaper, label: "News / Articles", labelKey: "adminNews.nav" },
 ];
 
 function SidebarNav({ onNavigate, systemAlertCount }: { onNavigate?: () => void; systemAlertCount?: number }) {
+  const { t } = useI18n();
   return (
     <>
       <nav className="flex-1 py-4 space-y-1 px-3">
-        {navItems.map(({ to, icon: Icon, label, end, badgeKey }) => (
+        {navItems.map(({ to, icon: Icon, label, labelKey, end, badgeKey }) => (
           <NavLink
             key={to}
             to={to}
@@ -44,7 +47,7 @@ function SidebarNav({ onNavigate, systemAlertCount }: { onNavigate?: () => void;
             }
           >
             <Icon size={18} />
-            {label}
+            {labelKey ? t(labelKey) : label}
             {badgeKey === "notifications" && systemAlertCount != null && systemAlertCount > 0 && (
               <span className="absolute right-2 bg-red-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-1">
                 {systemAlertCount > 9 ? "9+" : systemAlertCount}

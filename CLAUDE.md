@@ -85,7 +85,7 @@ Details: docs/AUDIT_REPORT.md
 - Goal: a system that manages its own stock of content, with an admin page to review and schedule it — not a "one article at a time" flow. (FF6 = the public "News" archive; it had not been written down before 2026-09-26 and is folded in here.)
 - Structure:
   1. **Stock:** the system generates 5-10 articles in advance (same kind as the first issue — presentation/education, later news too), all in status `draft`, in `email_newsletter_drafts` or a table renamed for the new role (e.g. `article_library`).
-  2. **Admin page "News / Articles"** (new Admin Dashboard section): list drafts waiting for approval; edit content before approving; approve an article and pick/confirm its publication date; see the scheduled calendar (which article goes out on which date).
+  2. **Admin page "News / Articles"** (new Admin Dashboard section): list drafts waiting for approval; edit content before approving; approve an article and pick/confirm its publication date; see the scheduled calendar (which article goes out on which date). **Built 2026-09-26** (`/admin/newsletter`: list per campaign, per-language edit, `scheduled_for`, approve; calendar = the publication-date column of the list).
   3. **Automatic calendar:** every **Saturday** the system publishes/sends the next article that is **approved and scheduled** — the admin only chooses the order/dates, no manual trigger each week.
   4. **Automatic expiry + replacement:** any `draft` left unapproved for more than 90 days is deleted automatically and a NEW article is generated to replace it, so the stock stays at 5-10 available articles.
   5. **Language + archive:** each send uses the recipient's language (profiles.language_pref / preferred_language, EN fallback); every sent article automatically appears in a public "News" archive (FF6).
@@ -115,8 +115,8 @@ Never skip this step. Never put long logs in
 CLAUDE.md — details go in ACTIVITY_LOG.md only.
 
 ## Recent
+2026-09-26 — Admin News / Articles page — Done: /admin/newsletter lists one line per campaign (title in admin language + language dropdown), detail page edits title/content per language, sets scheduled_for and approves the whole article; column-limited UPDATE + trigger (server-stamped approval, only service role can mark sent). Live E2E 22/22 PASS, cleaned. See docs/ACTIVITY_LOG.md.
 2026-09-26 — HT "Manager" → "Manadyè" — Done: last 6 Kreyòl strings (manager-access on /billing) now say "Manadyè"; 0 "Manager"/"Manadjè" left in HT UI. Live E2E PASS. See docs/ACTIVITY_LOG.md.
 2026-09-26 — Newsletter HT rewritten + "Manadyè" — Done: HT draft of welcome-2026-10 rewritten in natural Kreyòl (approved by Dany, still pending_approval, NOT sent); UI HT "Manadjè" → "Manadyè" (2 keys). See docs/ACTIVITY_LOG.md.
 2026-09-26 — Language pref synced to profile — Done: every UI language change saved to profiles.language_pref (lowercase ISO, trigger keeps preferred_language equal, CHECK on 10 codes), restored at login; 6 profiles normalized to en. Live E2E 8/8 PASS. FF5 language blocker removed. See docs/ACTIVITY_LOG.md.
 2026-09-26 — FF5/FF6 redesigned (docs) — Done: FF5 replaced by an article library + admin News page + Saturday auto-publish of approved/scheduled articles + 90-day draft expiry with auto-replacement + public News archive (FF6); not started. See CLAUDE.md "Future Features".
-2026-09-26 — Newsletter #1 drafted — Done: email_newsletter_drafts table (admin-only RLS) + campaign welcome-2026-10 in 10 languages, status pending_approval, NOT sent. Blocker before sending: profiles.language_pref is "en" for everyone (UI language only in localStorage). See docs/ACTIVITY_LOG.md.
