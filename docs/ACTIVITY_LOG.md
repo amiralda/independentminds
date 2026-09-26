@@ -1,5 +1,12 @@
 # Activity Log
 
+## 2026-09-26 — Newsletter HT rewritten (natural Kreyòl) + "Manadyè" spelling
+- Summary: the HT version of `welcome-2026-10` was too literal. Rewritten in natural Haitian Creole (IPN spelling, no calques, proverb "men anpil, chay pa lou"), same meaning: 4 sections, 7 features, Mr A/reports in the subscription plans. Text approved by Dany, then "Manadjè" → "Manadyè". Row updated; status still `pending_approval`, NOT sent. UI i18n aligned: `role.manager` HT "Manadjè" → "Manadyè", `manager.dashboardTitle` HT "Tablo Bò Manadjè" → "Tablo Bò Manadyè".
+- Files touched: `src/lib/i18n.tsx`, `CLAUDE.md`, `docs/ACTIVITY_LOG.md`; DB row `email_newsletter_drafts` (welcome-2026-10, HT).
+- Validation: lint PASS; tsc PASS; vitest 110/110 PASS; build PASS. DB check: 0 "Manadjè", "Manadyè" present, no "ak ak"; 0 "Manadjè" left anywhere in src/.
+- Risks + rollback: revert the commit for the UI labels; the previous HT draft text is in this session's transcript (not kept in the DB).
+- Blockers/human actions needed: open question — 6 HT UI strings still use the English word "Manager" (manager-access request screens, i18n lines 81-90). Not changed; waiting for Dany's decision.
+
 ## 2026-09-26 — Language preference saved to the profile (FF5 blocker removed)
 - Summary: the UI language lived only in localStorage (`im_lang`), and `profiles.language_pref` was "en"/"EN" for every account, so language-based sending (newsletter, FF5) could not work. Now:
   - DB (migration `20260926170000_profiles_language_normalize`): `normalize_language_code()` ('EN'->'en', 'pt-BR'->'pt', unknown->NULL) + BEFORE INSERT/UPDATE trigger `profiles_sync_language` that lowercases both columns and keeps `language_pref` = `preferred_language` (signup writes `preferred_language`, the app reads `language_pref`); invalid -> 'en'. CHECK `profiles_language_pref_check` on the 10 lowercase codes. The 6 existing profiles normalized to 'en' (all were en/EN, no other signal of their real language, so EN by default, no guessing).
