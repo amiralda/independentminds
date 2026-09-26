@@ -9,7 +9,9 @@
 // (single newlines = line breaks), "- "/"* " and "1. " lists, **bold**,
 // *italic*, [text](https://link). Everything else is escaped as text.
 
-export const NEWSLETTER_FROM = "Independent Minds EDU <noreply@independentmindsedu.org>";
+// Newsletter-only sender (decided by Dany 2026-09-26). Transactional emails
+// keep noreply@ — see the sender rule in CLAUDE.md.
+export const NEWSLETTER_FROM = "Independent Minds EDU <hello@independentmindsedu.org>";
 export const SITE_URL = "https://www.independentmindsedu.org";
 
 const BRAND = {

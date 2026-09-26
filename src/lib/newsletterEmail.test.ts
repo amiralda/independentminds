@@ -36,6 +36,8 @@ describe("newsletter email template", () => {
   it("renders the full email in the recipient's language, RTL for Arabic", () => {
     const en = renderNewsletterEmail({ title: "Hello & welcome", markdown: md, language: "EN" });
     expect(en.from).toBe(NEWSLETTER_FROM);
+    // Newsletter sender is hello@ (transactional emails stay on noreply@).
+    expect(NEWSLETTER_FROM).toBe("Independent Minds EDU <hello@independentmindsedu.org>");
     expect(en.subject).toBe("Hello & welcome");
     expect(en.html).toContain('<html lang="en" dir="ltr">');
     expect(en.html).toContain("Hello &amp; welcome</h1>");

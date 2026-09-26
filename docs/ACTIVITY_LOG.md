@@ -1,5 +1,13 @@
 # Activity Log
 
+## 2026-09-26 — Newsletter sender changed to hello@ + sender rule
+- Summary: the newsletter now sends from "Independent Minds EDU <hello@independentmindsedu.org>" (same verified Resend domain, no DNS change). The only change is `NEWSLETTER_FROM` in `supabase/functions/_shared/newsletter-email.ts`, which is imported only by `send-newsletter-campaign` and the admin "Preview as email". `send-newsletter-campaign` redeployed (v3); its `dry_run` response now also returns `from`. Transactional emails untouched: morning-reminder, checkin-reminder, daily-report, weekly-badge, beta-*, send-beta-invite and process-email-queue (whose sender policy enforces noreply@ for queued emails) all stay on noreply@. CLAUDE.md Rules: senders listed per type + new rule — each new type of email communication gets its own sender address, proposed to Dany and confirmed before use.
+- Files touched: `supabase/functions/_shared/newsletter-email.ts`, `supabase/functions/send-newsletter-campaign/index.ts`, `src/lib/newsletterEmail.test.ts` (asserts hello@), `CLAUDE.md`, `docs/ACTIVITY_LOG.md`
+- Validation: lint PASS; tsc PASS; vitest 116/116 PASS; build PASS. Deployed v3 source read back and checked (hello@, `from` in dry_run, has_role fix). E2E: function dry_run (no send) → `from` = hello@; admin preview (local build pointed at prod) EN + HT → From = hello@, 0 DB writes, 0 send calls; the 4 reminder sources byte-identical (git hash-object before/after) and each still `from: "Independent Minds EDU <noreply@independentmindsedu.org>"`; deployed reminder functions unchanged (still v5, last deployed 2026-08-30).
+- Note: `admin-notify` (flagged earlier for the `_user_id` has_role call) is not deployed, so that bug has no production effect.
+- Risks + rollback: revert the commit and redeploy send-newsletter-campaign (restores noreply@).
+- Blockers/human actions needed: unchanged from the previous entry — Dany to check the 2 test emails, decide on unsubscribe, delete the 2 +nl test accounts before the real send, and give the explicit "wi, voye kounye a".
+
 ## 2026-09-26 — send-newsletter-campaign (manual, admin-only) — built + tested; REAL SEND NOT RUN
 - Summary: new edge function `send-newsletter-campaign` (verify_jwt, admin checked server-side via `has_role(user_id, role)`), manual trigger only, no cron. Modes:
   - `dry_run`: list of recipients + which language version each gets; sends nothing.

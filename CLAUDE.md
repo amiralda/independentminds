@@ -17,7 +17,10 @@ Canonical URL: https://www.independentmindsedu.org (www, not apex)
 
 ## Rules
 - Never hardcode secrets; env vars only (VITE_* = client-safe)
-- Sender: "Independent Minds EDU <noreply@independentmindsedu.org>"
+- Senders (one address per type of email communication):
+  - Transactional (reminders, reports, invites, password reset, auth…): "Independent Minds EDU <noreply@independentmindsedu.org>"
+  - Newsletter / articles: "Independent Minds EDU <hello@independentmindsedu.org>" (only in `supabase/functions/_shared/newsletter-email.ts`)
+- Sender rule for the future: every new type of email communication (transactional, newsletter, announcements, etc.) must have its own specific sender address (e.g. hello@ for the newsletter, noreply@ for transactional). Before creating or using a new sender address for a new type of communication, Claude Code must PROPOSE the name to Dany and WAIT for final confirmation before configuring or using it.
 - All generated URLs use www (never apex)
 - Small reversible commits on branches, never direct to main
 - Validation for non-trivial changes: lint + tsc --noEmit + build
@@ -116,8 +119,8 @@ Never skip this step. Never put long logs in
 CLAUDE.md — details go in ACTIVITY_LOG.md only.
 
 ## Recent
+2026-09-26 — Newsletter sender → hello@ — Done: send-newsletter-campaign (v3) + admin preview use "Independent Minds EDU <hello@independentmindsedu.org>"; all transactional functions unchanged on noreply@; sender rule added to Rules. See docs/ACTIVITY_LOG.md.
 2026-09-26 — send-newsletter-campaign — Built, deployed, tested (dry_run + test send to 2 test accounts EN/HT: 2 sent). REAL SEND NOT RUN: waits for Dany's "wi, voye kounye a"; delete the 2 +nl test accounts first; no unsubscribe link yet. See docs/ACTIVITY_LOG.md.
 2026-09-26 — Newsletter email preview — Done: "Preview as email" on the admin article page renders the selected language with the shared template supabase/functions/_shared/newsletter-email.ts (the FF5 send job must use the same file). E2E 24/24 PASS, no writes/sends. Open: welcome-2026-10 found approved by admin ae29fe11 — confirm with Dany. See docs/ACTIVITY_LOG.md.
 2026-09-26 — Admin News / Articles page — Done: /admin/newsletter lists one line per campaign (title in admin language + language dropdown), detail page edits title/content per language, sets scheduled_for and approves the whole article; column-limited UPDATE + trigger (server-stamped approval, only service role can mark sent). Live E2E 22/22 PASS, cleaned. See docs/ACTIVITY_LOG.md.
 2026-09-26 — HT "Manager" → "Manadyè" — Done: last 6 Kreyòl strings (manager-access on /billing) now say "Manadyè"; 0 "Manager"/"Manadjè" left in HT UI. Live E2E PASS. See docs/ACTIVITY_LOG.md.
-2026-09-26 — Newsletter HT rewritten + "Manadyè" — Done: HT draft of welcome-2026-10 rewritten in natural Kreyòl (approved by Dany, still pending_approval, NOT sent); UI HT "Manadjè" → "Manadyè" (2 keys). See docs/ACTIVITY_LOG.md.

@@ -14,7 +14,7 @@
 // "Preview as email" renders, so what was previewed is what is sent.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
-import { renderNewsletterEmail } from "../_shared/newsletter-email.ts";
+import { NEWSLETTER_FROM, renderNewsletterEmail } from "../_shared/newsletter-email.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -122,7 +122,7 @@ Deno.serve(async (req) => {
 
     if (mode === "dry_run") {
       return json({
-        mode, campaign, approved: allApproved, statuses: versions.map((v) => `${v.language}:${v.status}`),
+        mode, campaign, from: NEWSLETTER_FROM, approved: allApproved, statuses: versions.map((v) => `${v.language}:${v.status}`),
         recipients: plan.length, by_language: byLanguage,
         list: plan.map((p) => ({ email: mask(p.email), profile_language: p.language, version: p.version.language })),
       });
