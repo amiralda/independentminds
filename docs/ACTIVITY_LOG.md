@@ -1,5 +1,12 @@
 # Activity Log
 
+## 2026-09-26 — Commit 08-30 diagnostic doc; ignore supabase/.temp
+- Summary: committed `docs/DIAGNOSTIC_2026-08-30.md` (historical Supabase failure-rate diagnostic) at the user's request. Before committing to the public repo it was scanned for secrets/PII: one retired cron bearer token was quoted in clear (line 63) — redacted; verified it is used nowhere (0 in cron.job, 0 in SQL functions, 0 in code) and never was in git history. No emails/keys/IDs otherwise. Added `supabase/.temp/` (Supabase CLI local state) to `.gitignore`.
+- Files touched: `docs/DIAGNOSTIC_2026-08-30.md` (new, 1 line redacted), `.gitignore`, `CLAUDE.md`, `docs/ACTIVITY_LOG.md`.
+- Validation: docs/config only; `git status` clean afterwards (`.temp` ignored).
+- Risks + rollback: revert the commit.
+- Blockers/human actions needed: none.
+
 ## 2026-09-26 — Task 1: reminder functions committed (keep, not discard)
 - Summary: the 4 cron functions (morning-reminder, checkin-reminder, daily-report, weekly-badge) had been live since 2026-08-30 (v4/v5, rewritten from the legacy single-student "CHRIS"/Telegram code to multi-family Resend email with the x-cron-secret guard) but were never committed, so the repo still held the legacy code and `npm run lint` failed on them. User chose "keep and commit". Only change: the 4 `result.ok ? sent++ : failed++;` expression statements became `if (result.ok) sent++; else failed++;` (no behavior change).
 - Verified before committing: deployed source of all 4 matches the working copy (morning-reminder line by line; the other 3 by their distinctive lines, same line counts). Live since 09-08: 19 `sent` / 0 `failed` each for morning/checkin/daily; weekly-badge sends only with weekly progress. Functions not redeployed (the only diff vs production is the no-op lint form); the repo is now the source of truth for the next deploy.
