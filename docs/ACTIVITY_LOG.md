@@ -1,5 +1,12 @@
 # Activity Log
 
+## 2026-09-26 — CLOSED: server-side password rules (Supabase Free plan limit)
+- Summary: dossier closed at the user's decision. Leaked-password protection (HaveIBeenPwned) and the server-side minimum password length are not enforced on this project: live tests on 2026-09-26 showed the Auth server accepting a 7-character and a known-pwned password, and the security advisor still reports leaked-password protection disabled. The user confirmed the project is on the real Supabase Free plan and that both are plan limits, not a bug or misconfiguration.
+- Status: **Limit konfime plan Supabase Free — mande upgrade Pro pou rezoud.** No further technical action is possible without changing plan.
+- Mitigation in place: client-side minimum of 8 characters on signup and reset-password (commit `93cfae4`).
+- On upgrade to Pro: enable both settings in Authentication, then re-run the live check (7-char and pwned password must be rejected by PUT /auth/v1/user).
+- Files touched: `CLAUDE.md`, `docs/ACTIVITY_LOG.md` (docs only).
+
 ## 2026-09-26 — Client-side minimum password length 8
 - Summary: the Supabase dashboard minimum-length setting is not enforced by the server yet (live test: a 7-char password is accepted by PUT /auth/v1/user; checked twice today), and Leaked-password protection needs the Pro plan (project is on Free — confirmed by the user; the advisor still reports it disabled). Added a client-side second layer: shared `MIN_PASSWORD_LENGTH = 8` (`src/lib/password.ts`) used by ResetPassword (was 6) and the signup form (had no length check at all); `auth.passwordTooShort` now says 8 in all 10 languages.
 - Files touched: `src/lib/password.ts` (new), `src/lib/password.test.ts` (new), `src/pages/ResetPassword.tsx`, `src/pages/Login.tsx`, `src/lib/i18n.tsx`.
