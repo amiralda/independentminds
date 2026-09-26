@@ -61,7 +61,12 @@ Details: docs/AUDIT_REPORT.md
 - Flow: student requests the item (same `redeem_reward` mechanism) → parent/Manager approves (points are committed) → parent/Manager clicks the affiliate link **manually** and buys on their own account/card.
 - Out of scope by design: no inventory, no shipping, no Stripe payments handled by IME — IME only earns the affiliate commission.
 - Known impact to plan for (from the current codebase):
-  - Today `redeem_reward()` debits points **at request time** (status 'pending'), and `reward_redemptions.status` only allows pending/approved/redeemed — there is no reject/refund. The "approve then commit points" flow needs a decision: debit at approval, or keep debit-at-request and add a reject that refunds.
+  - Today `redeem_reward()` debits points **at request time** (status 'pending'), and `reward_redemptions.status` only allows pending/approved/redeemed — there is no reject/refund.
+  - **DECIDED 2026-09-26 (user): Option 1 — points are debited only when the parent/Manager approves, never when the student requests.** Split `redeem_reward` into two steps:
+    - *Request* (student or family): creates the `pending` redemption with the server price snapshot; **does not touch points** (a soft balance check is fine for UX, but it is not a reservation).
+    - *Approval* (parent/Manager/co-guardian only): re-checks the balance and inserts the negative `reward_points` debit in the same transaction under the per-student row lock, then marks it approved. If the balance is now too low (other requests approved meanwhile) → refuse, nothing debited.
+    - Add a *decline* status for requests the parent refuses (no refund needed, since nothing was debited). Existing pending rows created under the old debit-at-request rule must be handled in the migration (they are already debited).
+    - Why: the student's balance stays intact until an adult actually commits to buying; declined or forgotten requests never cost points and never need refunds.
   - Schema additions (additive): image URL/storage path, affiliate URL, reference USD price + a points-per-dollar rate (per family or global); an image bucket with the same limits as `student-photos`.
   - Affiliate links should be shown to parents/Managers only (not student accounts — minors/COPPA); Amazon Associates requires an affiliate disclosure on the page.
 
@@ -83,8 +88,8 @@ Never skip this step. Never put long logs in
 CLAUDE.md — details go in ACTIVITY_LOG.md only.
 
 ## Recent
+2026-09-26 — FF2 decision recorded — Done: affiliate store will debit points only at parent/Manager approval (split request vs approval in redeem_reward); docs only. See CLAUDE.md "Future Features".
 2026-09-26 — Future Features documented — Done: FF1 marketing site on www + platform on app. subdomain, FF2 affiliate store on rewards_catalog (docs only, not started). See CLAUDE.md "Future Features".
 2026-09-26 — Weekly Progress Report fixed — Done: weekly-report-data on real columns (checked_in_at, badge_type/earned_at, awarded_at), no more silent empty sections; UI uses lowercase status, real mood/focus scale, translated badge names, positive-only points. Real-data E2E (API + browser) PASS, cleaned. See docs/ACTIVITY_LOG.md.
 2026-09-26 — Client-side min password 8 — Done: shared MIN_PASSWORD_LENGTH=8 in signup (had none) + ResetPassword (was 6), message updated in 10 languages; E2E: 7 chars refused, nothing sent to Auth. Server-side rules: CLOSED — Limit konfime plan Supabase Free — mande upgrade Pro pou rezoud. See docs/ACTIVITY_LOG.md.
-2026-09-26 — CRON_SECRET rotated — Done: new value in Edge secrets (user) + Vault `cron_secret`; 4 cron jobs read it from Vault (no literal secret in cron/migrations/git). Curl: old leaked secret 401 on all 4, new secret 200 (weekly-badge, 0 emails), cron Vault path 200. See docs/ACTIVITY_LOG.md.
 2026-09-25 — Security audit + fixes (direct-to-main exception, this session only) — Done: CRITICAL test-faz1-fixture (delete-any-user, guarded by the leaked CRON_SECRET) neutralized; ai-tutor rate limit RPC created (was failing open); security headers; track-auth-failure flood cap; has_role/get_managed_parent_ids caller-only, trigger RPCs revoked, server-only student linking, dup-check cap, photo bucket limits; .env.test untracked, secret redacted. All live-tested, cleaned. CLOSED 2026-09-26: server min length + leaked-password protection = Limit konfime plan Supabase Free — mande upgrade Pro pou rezoud (client-side min 8 in place; CRON_SECRET rotated 2026-09-26). See docs/ACTIVITY_LOG.md.

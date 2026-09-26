@@ -1,5 +1,9 @@
 # Activity Log
 
+## 2026-09-26 — FF2 flow decision recorded (no code)
+- Summary: user decided Option 1 for the future affiliate store: points are debited only on parent/Manager approval, not on the student's request. Recorded in CLAUDE.md FF2 with the implementation outline (split redeem_reward into request = no points touched, approval = balance re-check + debit under the row lock; add a decline status; handle legacy pending rows that were debited at request) and the reasoning.
+- Files touched: `CLAUDE.md`, `docs/ACTIVITY_LOG.md` (docs only). Not implemented.
+
 ## 2026-09-26 — Future Features documented (no code)
 - Summary: added a "Future Features" section to CLAUDE.md at the user's request: FF1 marketing/showcase site on www (Homeschool Platform, Tutoring, Cours Privé) with the platform moved to an app. subdomain; FF2 affiliate/dropshipping store extending rewards_catalog (image, affiliate link, USD reference price → points; student requests via redeem_reward, parent/Manager approves and buys manually; IME earns commission only). Each entry lists the codebase impacts found (hardcoded www URLs in ~24 edge functions, Auth/OAuth/Stripe redirect settings; redeem_reward debits at request time with no reject/refund today).
 - Files touched: `CLAUDE.md`, `docs/ACTIVITY_LOG.md` (docs only). Not started — to be planned separately.
