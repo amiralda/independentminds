@@ -1,5 +1,12 @@
 # Activity Log
 
+## 2026-09-26 — CRON_SECRET rotated; cron jobs read it from Vault
+- Summary: the user set a new CRON_SECRET in Edge Function secrets. Stored the same value in Supabase Vault (`cron_secret`) and rewrote the 4 cron.job commands (morning-reminder, checkin-reminder, daily-report, weekly-badge) to read the `x-cron-secret` header from `vault.decrypted_secrets` at run time, so no secret value lives in cron.job, migrations or git anymore. Schedules unchanged. Next rotation = update Vault + Edge secret only.
+- Files touched: `supabase/migrations/20260926090000_cron_secret_from_vault.sql` (applied live; contains no secret value). Vault secret created via SQL (not in any file).
+- Validation (real curl): OLD (publicly leaked) secret → 401 on all 4 functions; no secret → 401; NEW secret → 200 on weekly-badge (`sent:0, noProgress:3` — chosen because no active family had progress this week, so no email went out; the other 3 functions send to every active parent, including a real Manager, so they were only tested for 401). Executing the job's own Vault-reading command through pg_net → 200 (request #86). cron.job: 4/4 read Vault, 0 literal secrets.
+- Risks + rollback: if Vault and the Edge secret ever differ, all 4 jobs get 401 (visible in net._http_response). Rollback: `cron.alter_job` back to a literal header.
+- Blockers/human actions needed: none. The old value is still in public git history but is now useless.
+
 ## 2026-09-25 — Co-guardian invite fixed end to end (Task 2)
 - Summary: the "Invite Co-Guardian" button never worked: send/accept-guardian-invite were not deployed and were written for a schema that doesn't exist (student_id, invitee_email, permissions jsonb, token_hash, invited_by, accepted_at). Rebuilt on the real family-level schema with the 4 approved decisions: (1) only the primary parent (owns a student) invites; (2) only the invited email can accept; (3) co-guardian = same access as the parent (the 4 permission toggles had no effect in RLS and were removed from the UI); (4) the family's subscription covers the co-guardian.
   - send-guardian-invite: copy-a-link, no automatic email. Existing account that has signed in → `/accept-invite?token=…`; new account (or never signed in) → generateLink invite/recovery that lands on `/reset-password?next=/accept-invite…` (set password, then accept). Reuses a pending invite for the same email; refuses self, existing co-guardian, student accounts, invalid email; non-owners 403.
