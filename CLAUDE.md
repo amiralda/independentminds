@@ -104,8 +104,8 @@ Never skip this step. Never put long logs in
 CLAUDE.md — details go in ACTIVITY_LOG.md only.
 
 ## Recent
+2026-09-26 — Newsletter #1 drafted — Done: email_newsletter_drafts table (admin-only RLS) + campaign welcome-2026-10 in 10 languages, status pending_approval, NOT sent. Blocker before sending: profiles.language_pref is "en" for everyone (UI language only in localStorage). See docs/ACTIVITY_LOG.md.
 2026-09-26 — Future Features FF3-FF5 documented — Done: FF3 self-monitoring proposed-fix journal, FF4 multilingual manual (Help link, auto-update; PDFs not in repo yet), FF5 weekly "what's new" email (docs only, not started). See CLAUDE.md "Future Features".
 2026-09-26 — track-error critical pages — Done: exact match (Set + trailing-slash normalize) instead of startsWith with "/" (which matched every page); non-critical errors no longer alert, /login and /admin/system still do. Live E2E PASS, cleaned. See docs/ACTIVITY_LOG.md.
 2026-09-26 — Monitoring live — Done: hourly-monitor (5 admin alert rules only; legacy Telegram/compliance part removed), beta-track (+ schema fix), dns-monitor (+ tables, silent baseline, 30-day retention) deployed; crons hourly / 15 min from Vault. DNS checks now accept Vercel IP ranges (resolvers return different anycast IPs). Live E2E PASS, cleaned. See docs/ACTIVITY_LOG.md.
 2026-09-26 — DNS Status false alarm fixed — Done: old Lovable IP 185.158.133.1 removed from panel, setup wizard (its instructions would have broken the site) and dns-monitor source; shared lib/dnsExpected (root A 216.198.79.1/64.29.17.1, www CNAME Vercel). Panel now "Resolving"/All checks passing; 104 tests PASS. See docs/ACTIVITY_LOG.md.
-2026-09-26 — admin_notifications created — Done: table + RLS (own rows, UPDATE is_read only, server-only writes) + Realtime; admin 404 gone; alert count fixed (was always 0); bell live via one shared channel (duplicate bindings dropped events). API+security+browser E2E PASS, cleaned. See docs/ACTIVITY_LOG.md.

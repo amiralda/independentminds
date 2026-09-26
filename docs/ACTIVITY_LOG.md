@@ -1,5 +1,12 @@
 # Activity Log
 
+## 2026-09-26 — First newsletter drafted in 10 languages (NOT sent)
+- Summary: created `email_newsletter_drafts` (id, campaign, language EN/HT/FR/ES/PT/AR/ZH/DE/JA/RU, title, content Markdown, status pending_approval/approved/sent/archived, created_at; unique (campaign, language); RLS: admins read/update only, service role writes, anon revoked) and stored campaign `welcome-2026-10`: a promotional presentation article (what homeschooling is + benefits; IME as an international platform in 10 languages; verified features only: personalized daily schedule, Mr A AI tutor answering in English + Haitian Creole, weekly progress reports, points/badges/rewards, a login per student, Co-Guardians with the same access as the parent, Managers for organizations; notes that Mr A + weekly reports are part of the subscription plans). 10 rows, all `pending_approval`; 378–498 words per language (ZH 950 / JA 1298 characters). Nothing was emailed.
+- Distribution finding (to solve before sending): the UI language lives in the browser (localStorage `im_lang`) and is never written back to the profile — `profiles.language_pref` is 'en'/'EN' for all 6 accounts (mixed case), `preferred_language` 'en'. Sending "per profile language" today would give everyone the English version. Options: save the language to the profile when the user switches it (and normalize case), or ask for it at send time; fallback EN as specified.
+- Files touched: `supabase/migrations/20260926160000_email_newsletter_drafts.sql` (applied live), `CLAUDE.md`, `docs/ACTIVITY_LOG.md`. Article content lives in the table (not in git).
+- Risks + rollback: `DROP TABLE public.email_newsletter_drafts;`.
+- Blockers/human actions needed: user review/approval of the 10 drafts; decide the language-sync fix before any send; sending itself needs explicit approval.
+
 ## 2026-09-26 — Future Features FF3-FF5 documented (no code)
 - Summary: added to CLAUDE.md "Future Features" at the user's request: FF3 self-monitoring with a proposed-fix journal (proposals only, never auto-applied), FF4 multilingual user manual reachable from a Help menu link and kept up to date (the 4 PDFs EN/FR/ES/HT are not in the repo yet), FF5 weekly "what's new" email to parents/co-guardians/Managers (needs an opt-out; no unsubscribe tables exist yet). Objectives + high-level overview only.
 - Files touched: `CLAUDE.md`, `docs/ACTIVITY_LOG.md` (docs only). Not started.
