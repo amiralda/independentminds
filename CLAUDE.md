@@ -81,10 +81,21 @@ Details: docs/AUDIT_REPORT.md
 - High-level shape: store the manuals in one place (public bucket or `public/manuals/`), a menu entry using the current UI language with a fallback to EN; long term, generate the manuals from one source (e.g. Markdown per language) so a feature change updates all 4 versions, with the update step tied to the feature logging rule.
 - Notes from the codebase: the 4 PDFs are **not in the repo yet** (only `OPERATIONAL_MANUAL_v4.md`, `docs/agent/*.pdf` and the in-app `StudentHelpGuide`); the app has 10 UI languages, so decide which fallback the other 6 get.
 
-### FF5 — Weekly "what's new" email
-- Goal: once a week, email every parent, co-guardian and Manager a short summary of the features/changes added that week.
-- High-level shape: a cron function in the same pattern as the existing reminders (Resend, sender `Independent Minds EDU <noreply@independentmindsedu.org>`, messages_log, secret from Vault), sent in the recipient's language; content from a curated, parent-friendly changelog (not the developer ACTIVITY_LOG); skip weeks with nothing to announce.
-- Notes from the codebase: needs an unsubscribe/opt-out per recipient (the email_unsubscribe_tokens / suppressed_emails tables don't exist on this project); de-duplicate people who are both parent and co-guardian; recipients = parent/manager roles + co_guardians.
+### FF5/FF6 — Article library + automatic publishing calendar (replaces the simple weekly email)
+- Goal: a system that manages its own stock of content, with an admin page to review and schedule it — not a "one article at a time" flow. (FF6 = the public "News" archive; it had not been written down before 2026-09-26 and is folded in here.)
+- Structure:
+  1. **Stock:** the system generates 5-10 articles in advance (same kind as the first issue — presentation/education, later news too), all in status `draft`, in `email_newsletter_drafts` or a table renamed for the new role (e.g. `article_library`).
+  2. **Admin page "News / Articles"** (new Admin Dashboard section): list drafts waiting for approval; edit content before approving; approve an article and pick/confirm its publication date; see the scheduled calendar (which article goes out on which date).
+  3. **Automatic calendar:** every **Saturday** the system publishes/sends the next article that is **approved and scheduled** — the admin only chooses the order/dates, no manual trigger each week.
+  4. **Automatic expiry + replacement:** any `draft` left unapproved for more than 90 days is deleted automatically and a NEW article is generated to replace it, so the stock stays at 5-10 available articles.
+  5. **Language + archive:** each send uses the recipient's language (profiles.language_pref / preferred_language, EN fallback); every sent article automatically appears in a public "News" archive (FF6).
+- Guardrails: generation is automatic, publishing is not — only articles an admin approved and scheduled are ever sent; a Saturday with nothing approved sends nothing.
+- Notes from the codebase (2026-09-26):
+  - `email_newsletter_drafts` exists (campaign, language, title, content Markdown, status `pending_approval|approved|sent|archived`, unique campaign+language, admin-only RLS) with campaign `welcome-2026-10` in 10 languages. The new flow needs at least a `draft` status (or map it to `pending_approval`), a `scheduled_for` date, and per-article grouping of the 10 language versions (the `campaign` column already does this).
+  - **Language blocker:** the UI language is only in localStorage (`im_lang`); `profiles.language_pref` is "en"/"EN" for every account → must be synced to the profile (and case-normalized) before language-based sending works.
+  - Generation needs a server-side LLM call (an OpenAI key already exists for ai-tutor) plus a fact base so articles only describe features that exist (same rule as the first issue).
+  - Sending: cron in the existing pattern (Resend, official sender, messages_log, secret from Vault); the Saturday send time is still to decide; needs an unsubscribe/opt-out per recipient (no unsubscribe tables exist yet); de-duplicate people who are both parent and co-guardian; recipients = parent/Manager roles + co-guardians.
+  - Public archive = a new public route reading only `sent` articles (RLS or a public view limited to sent rows) in the visitor's language.
 
 ## Logging rule (mandatory after EVERY completed task)
 After finishing any task, before reporting done:
@@ -104,8 +115,8 @@ Never skip this step. Never put long logs in
 CLAUDE.md — details go in ACTIVITY_LOG.md only.
 
 ## Recent
+2026-09-26 — FF5/FF6 redesigned (docs) — Done: FF5 replaced by an article library + admin News page + Saturday auto-publish of approved/scheduled articles + 90-day draft expiry with auto-replacement + public News archive (FF6); not started. See CLAUDE.md "Future Features".
 2026-09-26 — Newsletter #1 drafted — Done: email_newsletter_drafts table (admin-only RLS) + campaign welcome-2026-10 in 10 languages, status pending_approval, NOT sent. Blocker before sending: profiles.language_pref is "en" for everyone (UI language only in localStorage). See docs/ACTIVITY_LOG.md.
 2026-09-26 — Future Features FF3-FF5 documented — Done: FF3 self-monitoring proposed-fix journal, FF4 multilingual manual (Help link, auto-update; PDFs not in repo yet), FF5 weekly "what's new" email (docs only, not started). See CLAUDE.md "Future Features".
 2026-09-26 — track-error critical pages — Done: exact match (Set + trailing-slash normalize) instead of startsWith with "/" (which matched every page); non-critical errors no longer alert, /login and /admin/system still do. Live E2E PASS, cleaned. See docs/ACTIVITY_LOG.md.
 2026-09-26 — Monitoring live — Done: hourly-monitor (5 admin alert rules only; legacy Telegram/compliance part removed), beta-track (+ schema fix), dns-monitor (+ tables, silent baseline, 30-day retention) deployed; crons hourly / 15 min from Vault. DNS checks now accept Vercel IP ranges (resolvers return different anycast IPs). Live E2E PASS, cleaned. See docs/ACTIVITY_LOG.md.
-2026-09-26 — DNS Status false alarm fixed — Done: old Lovable IP 185.158.133.1 removed from panel, setup wizard (its instructions would have broken the site) and dns-monitor source; shared lib/dnsExpected (root A 216.198.79.1/64.29.17.1, www CNAME Vercel). Panel now "Resolving"/All checks passing; 104 tests PASS. See docs/ACTIVITY_LOG.md.
