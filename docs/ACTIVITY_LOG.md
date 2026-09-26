@@ -1,5 +1,17 @@
 # Activity Log
 
+## 2026-09-26 — Final real test email before the first newsletter send (PASS)
+- Summary: recreated one test account (`danyaugustin1982+nl-final@gmail.com`, ht, parent) and sent ONE real email with `send-newsletter-campaign` mode `test` (v4): 1 sent, 0 failed, from hello@. Read the received message in Gmail (RAW, via the Gmail connector):
+  - Delivered to INBOX (not spam), From `Independent Minds EDU <hello@independentmindsedu.org>`, Kreyòl version.
+  - `List-Unsubscribe: <https://gyvjcwuwfwrwwwnuwlex.supabase.co/functions/v1/unsubscribe?token=…>` and `List-Unsubscribe-Post: List-Unsubscribe=One-Click` present; token identical to the DB token for that user/campaign; both headers covered by the DKIM signature (`h=List-Unsubscribe:List-Unsubscribe-Post:From:…`).
+  - Authentication-Results: dkim=pass (independentmindsedu.org, selector resend), dkim=pass (amazonses), spf=pass.
+  - Footer "Dezabòne" link = `https://www.independentmindsedu.org/unsubscribe?token=<same token>&lang=ht`.
+  - One-click POST to the exact header URL → 200 unsubscribed; again → 410 already_used.
+  - Also confirmed retroactively: the 2 earlier test emails (18:14 UTC, noreply@, EN + HT) were delivered to INBOX.
+- Cleanup: test account deleted (token cascaded), its suppressed_emails row deleted. State: 0 test users, 0 tokens, 0 suppressed, 0 newsletter_sends, welcome-2026-10 approved, recipients = 4 (all EN).
+- Files touched: `CLAUDE.md`, `docs/ACTIVITY_LOG.md` (no code change).
+- Blockers/human actions needed: the real send waits for Dany's explicit "wi, voye kounye a".
+
 ## 2026-09-26 — Newsletter unsubscribe system + ready for the first real send (NOT sent)
 - Summary:
   - DB (migration `20260926200000_newsletter_unsubscribe`): `suppressed_emails` (email PK lowercase, unsubscribed_at, campaign_source, reason) and `email_unsubscribe_tokens` (token PK = 32 random bytes base64url, user_id, email, campaign, created_at, used_at; unique user+campaign = one token per person per communication). RLS: admins read suppressed_emails; tokens not readable by any client. `newsletter_unsubscribe_token(user, campaign)` (get-or-create) and `newsletter_unsubscribe(token)` (atomic: mark used + suppress; returns unsubscribed / already_used / invalid), both service_role only. `newsletter_recipients()` now excludes suppressed addresses.
