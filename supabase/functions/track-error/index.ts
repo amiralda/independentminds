@@ -11,7 +11,12 @@ const corsHeaders = {
     'authorization, x-client-info, apikey, content-type',
 };
 
-const CRITICAL_PAGES = ['/', '/login', '/admin', '/admin/system'];
+// Exact paths only (client sends window.location.pathname). A prefix check
+// with '/' in the list matched every page, so every error alerted the admins.
+const CRITICAL_PAGES = new Set(['/', '/login', '/admin', '/admin/system']);
+
+// "/login/" -> "/login"; "/" stays "/".
+const normalizePath = (p: string) => (p.length > 1 ? p.replace(/\/+$/, '') : p);
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -109,7 +114,7 @@ Deno.serve(async (req) => {
 
       // Admin notification for critical pages
       const pagePath = err.page_path || '/unknown';
-      if (CRITICAL_PAGES.some((p) => pagePath.startsWith(p))) {
+      if (CRITICAL_PAGES.has(normalizePath(pagePath))) {
         const { data: admins } = await db
           .from('user_roles')
           .select('user_id')

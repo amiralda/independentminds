@@ -1,5 +1,12 @@
 # Activity Log
 
+## 2026-09-26 — track-error: only the 4 critical pages alert admins
+- Summary: `CRITICAL_PAGES = ['/', '/login', '/admin', '/admin/system']` was checked with `pagePath.startsWith(p)`; since '/' is in the list and every path starts with '/', every error on any page created a platform_error admin notification (30-min dedup per admin). List verified against the app routes (`/` dashboard, `/login`, `/admin` overview, `/admin/system`) and kept; now an exact match on a Set, with the trailing slash normalized ("/admin/system/" = "/admin/system"). The client sends `window.location.pathname`, so there is no query string.
+- Files touched: `supabase/functions/track-error/index.ts` (deployed v4; deployed v3 verified identical to the repo before editing).
+- Validation: lint PASS, `npx tsc --noEmit` PASS, build PASS, vitest 106/106. Live: errors on /e2e-noncritical, /admin/students, /login/extra, /loginx → 4 platform_errors logged, 0 notifications; /admin/system/ → 1 per admin (2); /login → 1 per admin (2). (A first run was invalid: Git Bash rewrote the "/path" arguments to "C:/Program Files/Git/…" — rows deleted, rerun with MSYS_NO_PATHCONV=1.) Test rows removed.
+- Risks + rollback: revert the commit and redeploy the previous track-error.
+- Blockers/human actions needed: none. Still not fixed (cosmetic): track-error reads `profiles.role`, which doesn't exist, so userRole in the message stays "anonymous".
+
 ## 2026-09-26 — Monitoring live: hourly-monitor, beta-track, dns-monitor (+ cron)
 - Summary: the 3 functions were written but never deployed, and all 3 were out of sync with the schema. Stopped before applying (risk) and got 4 decisions from the user (all the recommended options): (A) drop hourly-monitor's legacy compliance part, keep the 5 admin alert rules; (B) fix the beta schema and deploy; (C) no alert on dns-monitor's first OK run; 30-day DNS history retention.
   - **hourly-monitor** (v1, verify_jwt=false, x-cron-secret): the legacy part sent Telegram nudges to students/parents every hour and auto-marked tasks "Missed", on columns that don't exist (students.monitoring_enabled, daily_plan.plan_date/start_time), so the function returned "No students" before ever reaching the admin rules. Rewritten to the 5 admin rules only, unchanged thresholds/dedup (error_spike 5+/page/h, low_rating, feature_trend, auth_failure_spike 10+/h, payment_failure); admin_notifications only. Cron `hourly-monitor-job` at :05 every hour.
