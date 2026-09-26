@@ -116,8 +116,8 @@ Never skip this step. Never put long logs in
 CLAUDE.md — details go in ACTIVITY_LOG.md only.
 
 ## Recent
+2026-09-26 — send-newsletter-campaign — Built, deployed, tested (dry_run + test send to 2 test accounts EN/HT: 2 sent). REAL SEND NOT RUN: waits for Dany's "wi, voye kounye a"; delete the 2 +nl test accounts first; no unsubscribe link yet. See docs/ACTIVITY_LOG.md.
 2026-09-26 — Newsletter email preview — Done: "Preview as email" on the admin article page renders the selected language with the shared template supabase/functions/_shared/newsletter-email.ts (the FF5 send job must use the same file). E2E 24/24 PASS, no writes/sends. Open: welcome-2026-10 found approved by admin ae29fe11 — confirm with Dany. See docs/ACTIVITY_LOG.md.
 2026-09-26 — Admin News / Articles page — Done: /admin/newsletter lists one line per campaign (title in admin language + language dropdown), detail page edits title/content per language, sets scheduled_for and approves the whole article; column-limited UPDATE + trigger (server-stamped approval, only service role can mark sent). Live E2E 22/22 PASS, cleaned. See docs/ACTIVITY_LOG.md.
 2026-09-26 — HT "Manager" → "Manadyè" — Done: last 6 Kreyòl strings (manager-access on /billing) now say "Manadyè"; 0 "Manager"/"Manadjè" left in HT UI. Live E2E PASS. See docs/ACTIVITY_LOG.md.
 2026-09-26 — Newsletter HT rewritten + "Manadyè" — Done: HT draft of welcome-2026-10 rewritten in natural Kreyòl (approved by Dany, still pending_approval, NOT sent); UI HT "Manadjè" → "Manadyè" (2 keys). See docs/ACTIVITY_LOG.md.
-2026-09-26 — Language pref synced to profile — Done: every UI language change saved to profiles.language_pref (lowercase ISO, trigger keeps preferred_language equal, CHECK on 10 codes), restored at login; 6 profiles normalized to en. Live E2E 8/8 PASS. FF5 language blocker removed. See docs/ACTIVITY_LOG.md.
