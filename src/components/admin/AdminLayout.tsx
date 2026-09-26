@@ -8,7 +8,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.svg";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { AdminNotifications } from "./AdminNotifications";
+import { AdminNotifications, ADMIN_NOTIFICATIONS_CHANGED } from "./AdminNotifications";
 
 const navItems = [
   { to: "/admin", icon: LayoutDashboard, label: "Overview", end: true },
@@ -82,23 +82,32 @@ export default function AdminLayout() {
   useEffect(() => {
     if (!isAdmin) return;
     const fetchAlertCount = async () => {
-      const { data, error } = await supabase
+      // head: true returns no rows, only the count.
+      const { count, error } = await supabase
         .from("admin_notifications" as any)
         .select("id", { count: "exact", head: true })
-        .in("notification_type", ["beta_error", "bug_report", "task_difficulty"])
+        .in("notification_type", ["beta_error", "bug_report", "task_difficulty", "platform_error", "error_spike"])
         .eq("is_read", false) as any;
-      if (!error) setSystemAlertCount(data?.length ?? 0);
+      if (!error) setSystemAlertCount(count ?? 0);
     };
     fetchAlertCount();
 
+    // The only Realtime subscription on admin_notifications in the admin shell.
+    // Two channels with the same postgres_changes binding share one server
+    // subscription id and only one of them receives the event, so the bell
+    // (AdminNotifications) listens to this re-broadcast instead of its own channel.
+    const onChange = () => {
+      fetchAlertCount();
+      window.dispatchEvent(new Event(ADMIN_NOTIFICATIONS_CHANGED));
+    };
     const channel = supabase
       .channel("admin-system-alerts")
       .on("postgres_changes", {
         event: "INSERT", schema: "public", table: "admin_notifications",
-      }, () => fetchAlertCount())
+      }, onChange)
       .on("postgres_changes", {
         event: "UPDATE", schema: "public", table: "admin_notifications",
-      }, () => fetchAlertCount())
+      }, onChange)
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [isAdmin]);

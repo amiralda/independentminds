@@ -25,6 +25,9 @@ const TYPE_CONFIG: Record<string, { label: string; icon: typeof Bell; color: str
   task_difficulty: { label: "Task Difficulty", icon: AlertTriangle, color: "text-purple-500" },
 };
 
+/** Fired by AdminLayout when admin_notifications changes (Realtime). */
+export const ADMIN_NOTIFICATIONS_CHANGED = "admin-notifications-changed";
+
 export function AdminNotifications() {
   const [notifications, setNotifications] = useState<AdminNotification[]>([]);
   const [open, setOpen] = useState(false);
@@ -41,13 +44,10 @@ export function AdminNotifications() {
 
   useEffect(() => {
     fetchNotifications();
-    const channel = supabase
-      .channel("admin-notifs")
-      .on("postgres_changes", {
-        event: "INSERT", schema: "public", table: "admin_notifications",
-      }, () => fetchNotifications())
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    // Realtime changes arrive through AdminLayout's single channel (see there).
+    const onChange = () => fetchNotifications();
+    window.addEventListener(ADMIN_NOTIFICATIONS_CHANGED, onChange);
+    return () => window.removeEventListener(ADMIN_NOTIFICATIONS_CHANGED, onChange);
   }, []);
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
