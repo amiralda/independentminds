@@ -119,8 +119,8 @@ Never skip this step. Never put long logs in
 CLAUDE.md — details go in ACTIVITY_LOG.md only.
 
 ## Recent
+2026-09-26 — Newsletter welcome-2026-10 SENT — 4/4 sent, 0 failed (EN, from hello@, unsubscribe link + headers per person); campaign marked sent. See docs/ACTIVITY_LOG.md.
 2026-09-26 — Final real newsletter test — PASS: real email in Gmail INBOX from hello@, List-Unsubscribe + One-Click headers with the real token (DKIM-signed, dkim/spf pass), footer link OK, one-click works once then 410; test account deleted. Real send (4 people) waits for "wi, voye kounye a". See docs/ACTIVITY_LOG.md.
 2026-09-26 — Newsletter unsubscribe — Done: single-use tokens + suppressed_emails, public `unsubscribe` function (+RFC 8058 one-click) and /unsubscribe page (10 langs), real footer link; send skips suppressed. E2E 10/10 PASS; +nl test accounts deleted. Real send of welcome-2026-10 to 4 people waits for "wi, voye kounye a". See docs/ACTIVITY_LOG.md.
 2026-09-26 — Newsletter sender → hello@ — Done: send-newsletter-campaign (v3) + admin preview use "Independent Minds EDU <hello@independentmindsedu.org>"; all transactional functions unchanged on noreply@; sender rule added to Rules. See docs/ACTIVITY_LOG.md.
 2026-09-26 — send-newsletter-campaign — Built, deployed, tested (dry_run + test send to 2 test accounts EN/HT: 2 sent). REAL SEND NOT RUN: waits for Dany's "wi, voye kounye a"; delete the 2 +nl test accounts first; no unsubscribe link yet. See docs/ACTIVITY_LOG.md.
-2026-09-26 — Newsletter email preview — Done: "Preview as email" on the admin article page renders the selected language with the shared template supabase/functions/_shared/newsletter-email.ts (the FF5 send job must use the same file). E2E 24/24 PASS, no writes/sends. Open: welcome-2026-10 found approved by admin ae29fe11 — confirm with Dany. See docs/ACTIVITY_LOG.md.

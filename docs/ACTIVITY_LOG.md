@@ -1,5 +1,13 @@
 # Activity Log
 
+## 2026-09-26 — Newsletter welcome-2026-10 SENT (first real send)
+- Summary: after Dany's explicit "Wi, voye kounye a", ran `send-newsletter-campaign` (v4) mode `send`, confirm = campaign, preceded by a dry_run guard (abort unless approved + from hello@ + exactly the 4 confirmed recipients). Result: 4 recipients, 4 sent, 0 failed, 0 suppressed, all EN, from "Independent Minds EDU <hello@independentmindsedu.org>"; campaign marked `sent` (all 10 language rows).
+  - aug…@hotmail.com EN sent 18:46:26 UTC · las…@yahoo.com EN sent 18:46:27 · des…@gmail.com EN sent 18:46:28 · jul…@gmail.com EN sent 18:46:29 — each with a Resend id in `newsletter_sends`, a `messages_log` row, and its own unused unsubscribe token (footer link + List-Unsubscribe headers).
+  - A re-run is refused (every row `sent` → 409 "already sent"; per-person `newsletter_sends` also prevents duplicates).
+- Files touched: `CLAUDE.md`, `docs/ACTIVITY_LOG.md` (no code change).
+- Risks + rollback: an email cannot be unsent. Recipients can unsubscribe via the footer link or their mail app's button.
+- Blockers/human actions needed: none. Replies go to hello@independentmindsedu.org (make sure that mailbox/forward exists).
+
 ## 2026-09-26 — Final real test email before the first newsletter send (PASS)
 - Summary: recreated one test account (`danyaugustin1982+nl-final@gmail.com`, ht, parent) and sent ONE real email with `send-newsletter-campaign` mode `test` (v4): 1 sent, 0 failed, from hello@. Read the received message in Gmail (RAW, via the Gmail connector):
   - Delivered to INBOX (not spam), From `Independent Minds EDU <hello@independentmindsedu.org>`, Kreyòl version.
