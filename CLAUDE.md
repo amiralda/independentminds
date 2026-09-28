@@ -22,9 +22,16 @@ Canonical URL: https://www.independentmindsedu.org (www, not apex)
   - Newsletter / articles + welcome email: "Independent Minds Edu News <hello@independentmindsedu.org>" (only in `supabase/functions/_shared/newsletter-email.ts`)
 - Sender rule for the future: every new type of email communication (transactional, newsletter, announcements, etc.) must have its own specific sender address (e.g. hello@ for the newsletter, noreply@ for transactional). Before creating or using a new sender address for a new type of communication, Claude Code must PROPOSE the name to Dany and WAIT for final confirmation before configuring or using it.
 - All generated URLs use www (never apex)
-- Small reversible commits on branches, never direct to main
-- Validation for non-trivial changes: lint + tsc --noEmit + build
+- Branches, commits, merges, migrations and reports: see "Working rules" below (they override anything older)
 - New user-facing strings need i18n keys in all 10 languages
+
+## Working rules (decided by Dany 2026-09-28 — apply to every session)
+1. Every change on a branch (`fix/...`, `feat/...`), small commits with one purpose each. Direct push to main only for small, low-risk changes (text, translations, documentation).
+2. Anything touching auth, RLS, payments, migrations, functions that send email, triggers on `auth.users`, or user data: branch + tests + Vercel preview + Dany's approval BEFORE merge.
+3. Before any merge: lint, `tsc --noEmit`, unit tests and build must pass.
+4. Migrations: written in `supabase/migrations/` BEFORE being applied, additive only, with the SQL to undo them at the end of the file. Never apply SQL that deletes data without Dany's explicit approval.
+5. Every end-of-task report states: the commit, what changed, how to roll back (revert + undo SQL), the test results, and today's real date.
+6. No exception to these rules unless Dany says "eksepsyon pou sesyon sa a" (exception for this session).
 
 ## Launch plan status (update after each task)
 - [x] T1: Remove Lovable remnants
@@ -100,6 +107,11 @@ Details: docs/AUDIT_REPORT.md
   - Email template: **must** use `supabase/functions/_shared/newsletter-email.ts` (`renderNewsletterEmail`, also used by the admin "Preview as email"), passing the per-recipient `unsubscribeUrl`.
   - Sending: cron in the existing pattern (Resend, official sender, messages_log, secret from Vault); the Saturday send time is still to decide; unsubscribe **done 2026-09-26** (tokens + suppressed_emails, reuse `newsletter_unsubscribe_token` + `newsletter_recipients`); de-duplicate people who are both parent and co-guardian; recipients = parent/Manager roles + co-guardians.
   - Public archive = a new public route reading only `sent` articles (RLS or a public view limited to sent rows) in the visitor's language.
+
+## Pending (open items — propose, do not apply without Dany)
+- **Database backup:** Supabase Free has no automatic backups. Propose one of 2 options (do NOT apply anything): (a) upgrade to Pro (daily backups included); (b) a regular `pg_dump` script (scheduled, stored off-Supabase).
+- **hello@independentmindsedu.org mailbox (Cloudflare Email Routing): not verified.** Replies to the newsletter/welcome email go there.
+- **Admin page to edit `welcome_emails`** (today only editable via SQL).
 
 ## Logging rule (mandatory after EVERY completed task)
 After finishing any task, before reporting done:
