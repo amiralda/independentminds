@@ -1,5 +1,12 @@
 # Activity Log
 
+## 2026-09-28 — CLAUDE.md working rules + pending list
+- Summary: added "Working rules" (decided by Dany, every session): branch per change with small single-purpose commits (direct to main only for text/translations/docs); auth/RLS/payments/migrations/email-sending functions/auth.users triggers/user data need branch + tests + Vercel preview + Dany's approval before merge; lint + tsc --noEmit + unit tests + build before any merge; migrations written in supabase/migrations/ first, additive, with undo SQL, no data-deleting SQL without explicit approval; end-of-task report = commit, changes, rollback, test results, real date; no exception without "eksepsyon pou sesyon sa a". The two older lines ("never direct to main", "Validation…") replaced by a pointer to the new section. New "Pending" section: database backup proposal (Supabase Pro vs regular pg_dump — nothing applied), hello@ mailbox (Cloudflare Email Routing) not verified, admin page for welcome_emails.
+- Files touched: `CLAUDE.md`, `docs/ACTIVITY_LOG.md`
+- Validation: docs only (no code/DB change); diff reviewed and approved by Dany before merge.
+- Risks + rollback: `git revert` of the commits; no SQL involved.
+- Blockers/human actions needed: decide the backup option; verify the hello@ mailbox.
+
 ## 2026-09-28 — Newsletter sender name + automatic welcome email
 - Summary:
   - Sender display name (decided by Dany): `NEWSLETTER_FROM` = "Independent Minds Edu News <hello@independentmindsedu.org>" (shared template; newsletter + welcome). `send-newsletter-campaign` redeployed (v5, code unchanged).
