@@ -11,7 +11,7 @@
 
 // Newsletter-only sender (decided by Dany 2026-09-26). Transactional emails
 // keep noreply@ — see the sender rule in CLAUDE.md.
-export const NEWSLETTER_FROM = "Independent Minds EDU <hello@independentmindsedu.org>";
+export const NEWSLETTER_FROM = "Independent Minds Edu News <hello@independentmindsedu.org>";
 export const SITE_URL = "https://www.independentmindsedu.org";
 const FUNCTIONS_URL = "https://gyvjcwuwfwrwwwnuwlex.supabase.co/functions/v1";
 

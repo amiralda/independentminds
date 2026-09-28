@@ -1,5 +1,26 @@
 # Activity Log
 
+## 2026-09-28 — Newsletter sender name + automatic welcome email
+- Summary:
+  - Sender display name (decided by Dany): `NEWSLETTER_FROM` = "Independent Minds Edu News <hello@independentmindsedu.org>" (shared template; newsletter + welcome). `send-newsletter-campaign` redeployed (v5, code unchanged).
+  - Welcome email, once per person, automatic, in 3 cases: new parent (signup with confirmed email — sent on confirmation for email/password signups), new Manager (request approved → `manager` role), new Co-Guardian (invite accepted → `co_guardians` row). Language = profiles.language_pref, EN fallback. Same template, sender and unsubscribe system (token campaign `welcome`, footer link + List-Unsubscribe headers); suppressed addresses get nothing (status `suppressed`).
+  - Migration `20260928120000_welcome_email`: `welcome_emails` (independent copy of welcome-2026-10, 10 languages; admin read/update), `welcome_email_sends` (PK user_id = once per person; statuses sending/sent/failed/suppressed/existing), `welcome_email_candidate()`, `welcome_email_claim()` (atomic; only a `failed` row can be retried), `enqueue_welcome_email()` (pg_net → edge function with the Vault cron secret; wrapped in EXCEPTION so it can never block signup/approval/acceptance), triggers on `user_roles` (parent/manager insert), `co_guardians` (insert), `auth.users` (email_confirmed_at null → set).
+  - Backfill: the 4 people who already received welcome-2026-10 as the newsletter are marked `existing` (never receive the same content twice).
+  - Edge function `send-welcome-email` (new, verify_jwt false, x-cron-secret auth).
+- Files touched: `supabase/functions/_shared/newsletter-email.ts`, `supabase/functions/send-welcome-email/index.ts` (new, deployed v1), `supabase/migrations/20260928120000_welcome_email.sql`, `src/lib/newsletterEmail.test.ts`, `CLAUDE.md`, `docs/ACTIVITY_LOG.md`
+- Validation: lint PASS; tsc PASS; vitest 118/118 PASS; build PASS. E2E on prod with 4 real Gmail plus-address accounts:
+  - Parent (ht): created unconfirmed → nothing; email confirmed → 1 email, Kreyòl, INBOX (18:05:47 UTC).
+  - Manager-only (fr): approved through the real `review-manager-request` (200) → 1 email, French, INBOX (18:06:29 UTC).
+  - Co-Guardian-only (es): accepted through the real `accept-guardian-invite` (200) → 1 email, Spanish, INBOX (18:07:01 UTC); the acceptance also added the parent role (2nd trigger) → nothing more.
+  - Suppressed (en): status `suppressed`, no email (Gmail: none).
+  - Second triggers: manager role added to the parent → nothing; direct calls to send-welcome-email for all 3 (bypassing the DB pre-check) → `already_handled` ×3. Gmail: exactly 1 email per address.
+  - Independence: editing welcome_emails EN left the newsletter unchanged; a (rolled-back) newsletter HT edit left welcome_emails unchanged; restored → 10/10 identical.
+  - Sender: dry_run `from` and admin preview (EN/HT) = "Independent Minds Edu News <hello@independentmindsedu.org>".
+  - Cleanup: 4 test users (cascade: roles, profiles, sends, tokens, co_guardians), manager request, invite, suppression row deleted; 2 `@independentminds.test` accounts kept.
+- Note (test fixture): auth users inserted by SQL need `confirmation_token`, `email_change`, … set to '' (not NULL) before GoTrue password login works ("Database error querying schema").
+- Risks + rollback: drop the 3 triggers (stops all welcome sends immediately); full rollback at the bottom of the migration; delete the send-welcome-email function; revert the commit.
+- Blockers/human actions needed: none. Real signups/approvals/acceptances now send the welcome email automatically.
+
 ## 2026-09-26 — Newsletter welcome-2026-10 SENT (first real send)
 - Summary: after Dany's explicit "Wi, voye kounye a", ran `send-newsletter-campaign` (v4) mode `send`, confirm = campaign, preceded by a dry_run guard (abort unless approved + from hello@ + exactly the 4 confirmed recipients). Result: 4 recipients, 4 sent, 0 failed, 0 suppressed, all EN, from "Independent Minds EDU <hello@independentmindsedu.org>"; campaign marked `sent` (all 10 language rows).
   - aug…@hotmail.com EN sent 18:46:26 UTC · las…@yahoo.com EN sent 18:46:27 · des…@gmail.com EN sent 18:46:28 · jul…@gmail.com EN sent 18:46:29 — each with a Resend id in `newsletter_sends`, a `messages_log` row, and its own unused unsubscribe token (footer link + List-Unsubscribe headers).

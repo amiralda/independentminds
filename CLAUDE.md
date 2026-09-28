@@ -19,7 +19,7 @@ Canonical URL: https://www.independentmindsedu.org (www, not apex)
 - Never hardcode secrets; env vars only (VITE_* = client-safe)
 - Senders (one address per type of email communication):
   - Transactional (reminders, reports, invites, password reset, auth…): "Independent Minds EDU <noreply@independentmindsedu.org>"
-  - Newsletter / articles: "Independent Minds EDU <hello@independentmindsedu.org>" (only in `supabase/functions/_shared/newsletter-email.ts`)
+  - Newsletter / articles + welcome email: "Independent Minds Edu News <hello@independentmindsedu.org>" (only in `supabase/functions/_shared/newsletter-email.ts`)
 - Sender rule for the future: every new type of email communication (transactional, newsletter, announcements, etc.) must have its own specific sender address (e.g. hello@ for the newsletter, noreply@ for transactional). Before creating or using a new sender address for a new type of communication, Claude Code must PROPOSE the name to Dany and WAIT for final confirmation before configuring or using it.
 - All generated URLs use www (never apex)
 - Small reversible commits on branches, never direct to main
@@ -119,8 +119,8 @@ Never skip this step. Never put long logs in
 CLAUDE.md — details go in ACTIVITY_LOG.md only.
 
 ## Recent
+2026-09-28 — Welcome email + sender name — Done: automatic welcome email once per person (parent confirmed signup / Manager approved / Co-Guardian accepted) from welcome_emails (independent 10-language copy), same template/unsubscribe, respects suppressed_emails, async via pg_net (never blocks). Newsletter sender = "Independent Minds Edu News <hello@…>". E2E PASS, cleaned. See docs/ACTIVITY_LOG.md.
 2026-09-26 — Newsletter welcome-2026-10 SENT — 4/4 sent, 0 failed (EN, from hello@, unsubscribe link + headers per person); campaign marked sent. See docs/ACTIVITY_LOG.md.
 2026-09-26 — Final real newsletter test — PASS: real email in Gmail INBOX from hello@, List-Unsubscribe + One-Click headers with the real token (DKIM-signed, dkim/spf pass), footer link OK, one-click works once then 410; test account deleted. Real send (4 people) waits for "wi, voye kounye a". See docs/ACTIVITY_LOG.md.
 2026-09-26 — Newsletter unsubscribe — Done: single-use tokens + suppressed_emails, public `unsubscribe` function (+RFC 8058 one-click) and /unsubscribe page (10 langs), real footer link; send skips suppressed. E2E 10/10 PASS; +nl test accounts deleted. Real send of welcome-2026-10 to 4 people waits for "wi, voye kounye a". See docs/ACTIVITY_LOG.md.
 2026-09-26 — Newsletter sender → hello@ — Done: send-newsletter-campaign (v3) + admin preview use "Independent Minds EDU <hello@independentmindsedu.org>"; all transactional functions unchanged on noreply@; sender rule added to Rules. See docs/ACTIVITY_LOG.md.
-2026-09-26 — send-newsletter-campaign — Built, deployed, tested (dry_run + test send to 2 test accounts EN/HT: 2 sent). REAL SEND NOT RUN: waits for Dany's "wi, voye kounye a"; delete the 2 +nl test accounts first; no unsubscribe link yet. See docs/ACTIVITY_LOG.md.

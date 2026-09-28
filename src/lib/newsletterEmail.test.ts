@@ -39,7 +39,7 @@ describe("newsletter email template", () => {
     const en = renderNewsletterEmail({ title: "Hello & welcome", markdown: md, language: "EN" });
     expect(en.from).toBe(NEWSLETTER_FROM);
     // Newsletter sender is hello@ (transactional emails stay on noreply@).
-    expect(NEWSLETTER_FROM).toBe("Independent Minds EDU <hello@independentmindsedu.org>");
+    expect(NEWSLETTER_FROM).toBe("Independent Minds Edu News <hello@independentmindsedu.org>");
     expect(en.subject).toBe("Hello & welcome");
     expect(en.html).toContain('<html lang="en" dir="ltr">');
     expect(en.html).toContain("Hello &amp; welcome</h1>");
