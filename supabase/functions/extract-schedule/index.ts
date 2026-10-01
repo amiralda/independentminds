@@ -54,7 +54,7 @@ serve(async (req) => {
       });
     }
 
-    const { fileName, fileType, content, isBase64, grade } = await req.json();
+    const { fileName, fileType, content, isBase64, grade, startDate } = await req.json();
 
     if (!content || !fileName) {
       return new Response(JSON.stringify({ error: "Missing content or fileName" }), {
@@ -72,20 +72,40 @@ serve(async (req) => {
       throw new Error("AI_GATEWAY_URL not configured");
     }
 
+    const today = new Date().toISOString().split("T")[0];
+    const anchorDate = typeof startDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(startDate)
+      ? startDate
+      : today;
+
     const prompt = `You are a schedule data extractor. Extract schedule/timetable information from the following document content.
 
-The student is in Grade ${grade || 7}. 
+The student is in Grade ${grade || 7}.
+Today's date is ${today}. The schedule should start on ${anchorDate} unless the document clearly states other dates.
 
 Return a JSON object with a "schedule" array. Each item must have:
+- "date": string (YYYY-MM-DD). See the date rules below.
 - "subject": string (subject name)
-- "start_time": string (HH:MM format, 24-hour)
-- "end_time": string (HH:MM format, 24-hour)
-- "notes": string (unknown additional info like teacher name, room, platform link)
+- "start_time": string (HH:MM, 24-hour)
+- "end_time": string (HH:MM, 24-hour)
+- "notes": string (any additional info such as teacher name, room, chapter, platform link; empty string if none)
 
-If the content is base64-encoded binary (PDF/image), describe what you can interpret from the text.
-If it's CSV/text, parse the rows directly.
+Date rules, in priority order:
+1. If a row has an explicit calendar date in any format (2026-10-05, 10/05/2026, 5 Oct 2026, Oct 5), convert it to YYYY-MM-DD. For an ambiguous numeric date assume MM/DD/YYYY (US format). If the year is missing, use the year of ${anchorDate}.
+2. If rows are labelled by weekday only (Monday/Lundi/Lendi, Tue, Mèkredi...), map each weekday to its date in the week that begins on or after ${anchorDate}, and repeat nothing: one date per weekday occurrence.
+3. If rows are labelled "Day 1", "Week 2 Day 3", "Jou 4" or similar counters, count forward from ${anchorDate} across calendar days, skipping Sundays.
+4. If a row has no usable date information at all, set "date" to "".
 
-If you cannot extract unknown schedule data, return {"schedule": []}.
+Time rules:
+- Normalize to 24-hour HH:MM. "8:00" becomes "08:00"; "1:30 PM" becomes "13:30".
+- If a row has no times, set both "start_time" and "end_time" to "".
+
+Other rules:
+- One array item per distinct task/period. Do not merge two subjects into one item.
+- Do not invent subjects, dates or times that are not supported by the document.
+- Preserve the document's own order.
+- If the content is base64-encoded binary (PDF/image), extract what you can read from it.
+- If it is CSV or text, parse the rows directly, whatever the column names or column order.
+- If you cannot extract any schedule data, return {"schedule": []}.
 
 File: ${fileName} (${fileType})
 Content${isBase64 ? " (base64)" : ""}:
