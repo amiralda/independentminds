@@ -14,9 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertTriangle, BarChart3, Calendar, Plus, BookOpen, Trash2, Pencil, Upload, Award, Settings, Activity, Bell, FileText, UserCircle, Wrench, Bot, Coins, ClipboardList, Menu, UserPlus, GraduationCap, Check, ChevronRight, Shield, Inbox, Eye } from "lucide-react";
+import { AlertTriangle, BarChart3, Calendar, Plus, BookOpen, Trash2, Pencil, Award, Settings, Activity, Bell, FileText, UserCircle, Wrench, Bot, Coins, ClipboardList, Menu, UserPlus, GraduationCap, Check, ChevronRight, Shield, Inbox, Eye } from "lucide-react";
 import { toast } from "sonner";
-import { useRef } from "react";
 import { SubjectIcon } from "@/components/SubjectIcon";
 import { CertificatesPanel } from "@/components/CertificatesPanel";
 import { ReportsPanel } from "@/components/ReportsPanel";
@@ -30,6 +29,7 @@ import { RewardsManagement } from "@/components/RewardsManagement";
 import { TutorChat } from "@/components/TutorChat";
 import { WeeklyProgressReport } from "@/components/WeeklyProgressReport";
 import { ScheduleTemplates as ScheduleTemplatesImport } from "@/components/ScheduleTemplates";
+import { ScheduleCsvImport } from "@/components/ScheduleCsvImport";
 import { MfaSettings } from "@/components/MfaSettings";
 import { DeleteAccountButton } from "@/components/DeleteAccountButton";
 import { AccountMergeRequest } from "@/components/AccountMergeRequest";
@@ -392,33 +392,7 @@ function ScheduleBuilderTab({ studentId }: { studentId: string }) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ ...EMPTY_FORM });
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleCsvUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const text = await file.text();
-    const lines = text.trim().split("\n");
-    const headers = lines[0].split(",").map(h => h.trim().toLowerCase());
-    const rows = lines.slice(1).map(line => {
-      const vals = line.split(",").map(v => v.trim());
-      const row: Record<string, string> = {};
-      headers.forEach((h, i) => { row[h] = vals[i] || ""; });
-      if (!row.plan_date || !row.subject || !row.start_time || !row.end_time) return null;
-      // New blocks always start as planned; points are paid on the done transition.
-      return {
-        student_id: studentId, planned_date: row.plan_date, subject: row.subject,
-        title: composeTitle(row.subject, row.start_time, row.end_time, row.notes),
-        status: "planned",
-      };
-    }).filter((r): r is NonNullable<typeof r> => r !== null);
-    if (rows.length === 0) { toast.error("No valid rows found in CSV"); return; }
-    const { error } = await supabase.from("daily_plan").insert(rows);
-    if (error) { toast.error("Upload failed: " + error.message); return; }
-    toast.success(`${rows.length} blocks imported!`);
-    invalidateAll();
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  };
 
   const startDate = new Date().toISOString().split("T")[0];
   const endDate = new Date(Date.now() + 7 * 86400000).toISOString().split("T")[0];
@@ -489,10 +463,12 @@ function ScheduleBuilderTab({ studentId }: { studentId: string }) {
               <Plus size={16} className="mr-2" /> {t("schedule.addBlock")}
             </Button>
           </DialogTrigger>
-          <Button variant="outline" className="font-display" onClick={() => fileInputRef.current?.click()}>
-            <Upload size={16} className="mr-2" /> {t("schedule.bulkUpload")}
-          </Button>
-          <input ref={fileInputRef} type="file" accept=".csv" className="hidden" onChange={handleCsvUpload} />
+          <ScheduleCsvImport
+            studentId={studentId}
+            knownSubjects={SUBJECTS}
+            existing={upcoming.map((b) => ({ date: b.plan_date, subject: b.subject, start_time: b.start_time }))}
+            onImported={invalidateAll}
+          />
         </div>
         <DialogContent>
           <DialogHeader>
