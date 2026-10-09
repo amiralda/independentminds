@@ -2,9 +2,15 @@
 // Emails a weekly progress badge to parents — only when there's new
 // progress this week (tasks done, points, or achievements), to avoid spam.
 //
-// Self-contained (no _shared/ cross-file imports — the deploy bundler could
-// not resolve them for this function set; kept inline for reliability).
+// Footer + List-Unsubscribe come from ../_shared/notification-footer.ts. (The
+// old "self-contained, the bundler cannot resolve _shared" note is obsolete:
+// other deployed functions import _shared/ — docs/ACTIVITY_LOG.md 2026-10-09.)
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { type NotificationCategory, prefsHeaders, renderPrefsFooter } from "../_shared/notification-footer.ts";
+
+// Category in notification_preferences (the person can pause/stop it) and
+// message_type in messages_log.
+const CATEGORY: NotificationCategory = "weekly_badge";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -78,13 +84,24 @@ function shouldOfferAltChannel(planKey: string | null, notificationChannel: stri
     (notificationChannel === "whatsapp" || notificationChannel === "both");
 }
 
-async function sendResendEmail(to: string, subject: string, html: string): Promise<{ ok: boolean; error?: string }> {
+async function sendResendEmail(
+  to: string,
+  subject: string,
+  html: string,
+  headers?: Record<string, string>,
+): Promise<{ ok: boolean; error?: string }> {
   const apiKey = Deno.env.get("RESEND_API_KEY");
   if (!apiKey) return { ok: false, error: "RESEND_API_KEY not configured" };
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: "Independent Minds EDU <noreply@independentmindsedu.org>", to: [to], subject, html }),
+    body: JSON.stringify({
+      from: "Independent Minds EDU <noreply@independentmindsedu.org>",
+      to: [to],
+      subject,
+      html,
+      ...(headers ? { headers } : {}),
+    }),
   });
   const data = await res.json().catch(() => ({} as Record<string, unknown>));
   if (!res.ok) return { ok: false, error: (data as { message?: string })?.message || `Resend API error ${res.status}` };
@@ -111,22 +128,31 @@ interface Recipient {
   userId: string;
   email: string;
   kind: string;
+  prefToken: string | null; // footer link + List-Unsubscribe; null on the fallback
+  lang: string | null; // footer language (profiles.language_pref)
 }
 
-// Parent + every co-guardian of that parent (deleted/banned accounts excluded),
-// from notify_recipients_for_parent() — see
-// supabase/migrations/20261009120000_co_guardian_notifications.sql.
+// Parent + every co-guardian of that parent who still receives this
+// category (deleted/banned accounts and paused/stopped preferences
+// excluded), with their footer token and language, in ONE call per family:
+// notify_recipients_for_parent() — see
+// supabase/migrations/20261009140000_notification_preferences.sql.
 // If the lookup itself fails, fall back to the parent alone: a broken lookup
 // must never cost the parent their email.
-async function getRecipients(supabase: SupabaseClient, parentId: string, parentEmail: string | null): Promise<Recipient[]> {
-  const { data, error } = await supabase.rpc("notify_recipients_for_parent", { p_parent_id: parentId });
+async function getRecipients(
+  supabase: SupabaseClient,
+  parentId: string,
+  parentEmail: string | null,
+  category: NotificationCategory,
+): Promise<Recipient[]> {
+  const { data, error } = await supabase.rpc("notify_recipients_for_parent", { p_parent_id: parentId, p_category: category });
   if (error || !Array.isArray(data)) {
     console.error(`notify_recipients_for_parent failed for ${parentId}: ${error?.message ?? "no data"} — parent only`);
-    return parentEmail ? [{ userId: parentId, email: parentEmail, kind: "parent" }] : [];
+    return parentEmail ? [{ userId: parentId, email: parentEmail, kind: "parent", prefToken: null, lang: null }] : [];
   }
-  return (data as { user_id: string; email: string | null; kind: string }[])
+  return (data as { user_id: string; email: string | null; kind: string; pref_token: string | null; lang: string | null }[])
     .filter((r) => r.email)
-    .map((r) => ({ userId: r.user_id, email: r.email as string, kind: r.kind }));
+    .map((r) => ({ userId: r.user_id, email: r.email as string, kind: r.kind, prefToken: r.pref_token ?? null, lang: r.lang ?? null }));
 }
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -197,7 +223,7 @@ Deno.serve(async (req) => {
     }
     const parent = parentCache.get(student.parent_id)!;
     if (!recipientCache.has(student.parent_id)) {
-      recipientCache.set(student.parent_id, await getRecipients(supabase, student.parent_id, parent.email));
+      recipientCache.set(student.parent_id, await getRecipients(supabase, student.parent_id, parent.email, CATEGORY));
     }
     const recipients = recipientCache.get(student.parent_id)!;
     if (recipients.length === 0) { skipped++; continue; }
@@ -224,8 +250,17 @@ Deno.serve(async (req) => {
 
     const subject = `${emoji} Weekly badge for ${student.display_name || "your student"} — ${label}`;
     for (const r of recipients) {
-      const result = await sendResendEmail(r.email, subject, html);
-      await logMessage(supabase, student.parent_id, r.userId, "weekly_badge", result.ok ? "sent" : "failed");
+      // Body is shared (bilingual EN/HT); the footer is per recipient.
+      const footer = renderPrefsFooter({
+        language: r.lang,
+        kind: r.kind,
+        studentName: student.display_name || "your student",
+        category: CATEGORY,
+        token: r.prefToken,
+      });
+      const headers = r.prefToken ? prefsHeaders(r.prefToken, CATEGORY) : undefined;
+      const result = await sendResendEmail(r.email, subject, html + footer, headers);
+      await logMessage(supabase, student.parent_id, r.userId, CATEGORY, result.ok ? "sent" : "failed");
       if (result.ok) sent++; else failed++;
     }
 
