@@ -103,6 +103,24 @@ GRANT EXECUTE ON FUNCTION public.is_notification_enabled(uuid, text) TO service_
 
 
 -- ============================================================
+-- 2b. Footer tokens (used by section 3 and section 4)
+-- ============================================================
+-- One long-lived token per person (not per email); see section 4.
+
+CREATE TABLE IF NOT EXISTS public.notification_pref_tokens (
+  user_id    uuid        PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  -- pgcrypto lives in the `extensions` schema; qualified so this does not
+  -- depend on the migration session's search_path.
+  token      text        NOT NULL UNIQUE DEFAULT encode(extensions.gen_random_bytes(32), 'hex'),
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+ALTER TABLE public.notification_pref_tokens ENABLE ROW LEVEL SECURITY;
+-- No policy on purpose: only service_role (which bypasses RLS) touches this.
+-- A leaked token must not be lookup-able by a signed-in user.
+
+
+-- ============================================================
 -- 3. Recipient list now filters on the category
 -- ============================================================
 -- p_category DEFAULTs to NULL on purpose: the four notification functions are
@@ -118,19 +136,54 @@ GRANT EXECUTE ON FUNCTION public.is_notification_enabled(uuid, text) TO service_
 -- resolves with p_category = NULL. Migrations run in a transaction, so there
 -- is no window where neither exists.
 
+--
+-- It also returns, per recipient, the footer token (pref_token) and the UI
+-- language (lang), so the senders build each footer with NO extra call per
+-- recipient: still one RPC per family per run. Tokens are created here on the
+-- first send (one per person, never rotated), which is why the function is
+-- plpgsql VOLATILE instead of sql STABLE. Callers that only read
+-- user_id/email/kind (the live v6 functions) ignore the extra columns.
+--
+-- PL/pgSQL note: the RETURNS TABLE columns are variables in the body (and can
+-- be qualified with the function name). Every column below is qualified, the
+-- upsert uses ON CONSTRAINT, and the subquery alias is `rcp` — never a bare
+-- user_id/email/kind/lang, never an alias that could clash (42702 otherwise;
+-- both traps reproduced on pg_temp 2026-10-09).
+
 DROP FUNCTION IF EXISTS public.notify_recipients_for_parent(uuid);
 
 CREATE OR REPLACE FUNCTION public.notify_recipients_for_parent(
   p_parent_id uuid,
   p_category  text DEFAULT NULL
 )
-RETURNS TABLE(user_id uuid, email text, kind text)
-LANGUAGE sql
-STABLE
+RETURNS TABLE(user_id uuid, email text, kind text, pref_token text, lang text)
+LANGUAGE plpgsql
+VOLATILE
 SECURITY DEFINER
 SET search_path TO 'public'
 AS $function$
-  SELECT u.id, u.email::text, r.kind
+BEGIN
+  -- Make sure every person of this family has a footer token.
+  INSERT INTO public.notification_pref_tokens (user_id)
+  SELECT u.id
+  FROM (
+    SELECT p_parent_id AS uid
+    UNION
+    SELECT cg.guardian_id
+    FROM public.co_guardians cg
+    WHERE cg.parent_id = p_parent_id
+      AND cg.guardian_id IS NOT NULL
+  ) rcp
+  JOIN auth.users u ON u.id = rcp.uid
+  ON CONFLICT ON CONSTRAINT notification_pref_tokens_pkey DO NOTHING;
+
+  RETURN QUERY
+  SELECT u.id,
+         u.email::text,
+         rcp.kind,
+         t.token,
+         -- profiles.language_pref holds the UI language as a lowercase ISO code
+         coalesce(nullif(lower(p.language_pref), ''), 'en')
   FROM (
     SELECT p_parent_id AS uid, 'parent'::text AS kind
     UNION
@@ -138,13 +191,17 @@ AS $function$
     FROM public.co_guardians cg
     WHERE cg.parent_id = p_parent_id
       AND cg.guardian_id IS NOT NULL
-  ) r
-  JOIN auth.users u ON u.id = r.uid
+  ) rcp
+  JOIN auth.users u ON u.id = rcp.uid
+  LEFT JOIN public.notification_pref_tokens t ON t.user_id = u.id
+  LEFT JOIN public.profiles p ON p.id = u.id
   WHERE u.email IS NOT NULL
+    -- never mail a deleted or banned account
     AND u.deleted_at IS NULL
     AND (u.banned_until IS NULL OR u.banned_until <= now())
     AND (p_category IS NULL OR public.is_notification_enabled(u.id, p_category))
-  ORDER BY (r.kind = 'parent') DESC, u.email
+  ORDER BY (rcp.kind = 'parent') DESC, u.email;
+END;
 $function$;
 
 REVOKE ALL ON FUNCTION public.notify_recipients_for_parent(uuid, text) FROM PUBLIC;
@@ -163,57 +220,24 @@ GRANT EXECUTE ON FUNCTION public.notify_recipients_for_parent(uuid, text) TO ser
 -- is reversible from the same page. The endpoint never changes anything on GET
 -- (link scanners prefetch GETs); changes are POSTs, same as `unsubscribe`.
 
-CREATE TABLE IF NOT EXISTS public.notification_pref_tokens (
-  user_id    uuid        PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  -- pgcrypto lives in the `extensions` schema; qualified so this does not
-  -- depend on the migration session's search_path.
-  token      text        NOT NULL UNIQUE DEFAULT encode(extensions.gen_random_bytes(32), 'hex'),
-  created_at timestamptz NOT NULL DEFAULT now()
-);
 
-ALTER TABLE public.notification_pref_tokens ENABLE ROW LEVEL SECURITY;
--- No policy on purpose: only service_role (which bypasses RLS) touches this.
--- A leaked token must not be lookup-able by a signed-in user.
-
-CREATE OR REPLACE FUNCTION public.get_or_create_notification_token(p_user_id uuid)
-RETURNS text
-LANGUAGE plpgsql
-VOLATILE
-SECURITY DEFINER
-SET search_path TO 'public'
-AS $function$
-DECLARE
-  v_token text;
-BEGIN
-  INSERT INTO public.notification_pref_tokens (user_id)
-  VALUES (p_user_id)
-  ON CONFLICT (user_id) DO NOTHING;
-
-  SELECT t.token INTO v_token
-  FROM public.notification_pref_tokens t
-  WHERE t.user_id = p_user_id;
-
-  RETURN v_token;
-END;
-$function$;
-
-REVOKE ALL ON FUNCTION public.get_or_create_notification_token(uuid) FROM PUBLIC;
-REVOKE ALL ON FUNCTION public.get_or_create_notification_token(uuid) FROM anon;
-REVOKE ALL ON FUNCTION public.get_or_create_notification_token(uuid) FROM authenticated;
-GRANT EXECUTE ON FUNCTION public.get_or_create_notification_token(uuid) TO service_role;
+-- Tokens are created by notify_recipients_for_parent() on the first send
+-- (section 3), so there is no separate get-or-create function to expose.
 
 
 -- Applies a change from the emailed link. Validates the token itself, so the
 -- public endpoint never needs to read the token table or trust its caller.
 -- Called with p_category NULL it changes nothing and only returns the set.
--- Returns the person's full preference set so the page can render it.
+-- Returns {email, prefs: [{category, state, paused_until}]} so the page can
+-- render it (also when the person has no rows yet = everything on). The raw
+-- email only goes to service_role; the endpoint masks it before replying.
 CREATE OR REPLACE FUNCTION public.apply_notification_token_action(
   p_token        text,
   p_category     text,
   p_state        text,
   p_paused_until date DEFAULT NULL
 )
-RETURNS TABLE(category text, state text, paused_until date)
+RETURNS jsonb
 LANGUAGE plpgsql
 VOLATILE
 SECURITY DEFINER
@@ -221,9 +245,11 @@ SET search_path TO 'public'
 AS $function$
 DECLARE
   v_user_id uuid;
+  v_email   text;
 BEGIN
-  SELECT t.user_id INTO v_user_id
+  SELECT t.user_id, u.email::text INTO v_user_id, v_email
   FROM public.notification_pref_tokens t
+  JOIN auth.users u ON u.id = t.user_id
   WHERE t.token = p_token;
 
   IF v_user_id IS NULL THEN
@@ -239,9 +265,10 @@ BEGIN
       RAISE EXCEPTION 'paused requires a date' USING ERRCODE = '22023';
     END IF;
 
-    -- ON CONSTRAINT, not ON CONFLICT (user_id, category): the RETURNS TABLE
-    -- columns are PL/pgSQL variables named category/state/paused_until, and a
-    -- bare column list is ambiguous with them (42702, reproduced 2026-10-09).
+    -- ON CONSTRAINT: explicit about which uniqueness is meant. (The first
+    -- draft returned TABLE(category, state, ...), whose PL/pgSQL variables made
+    -- a bare ON CONFLICT (user_id, category) ambiguous — 42702, reproduced
+    -- 2026-10-09. Returning jsonb removes those variables altogether.)
     INSERT INTO public.notification_preferences (user_id, category, state, paused_until, updated_at)
     VALUES (v_user_id, p_category, p_state,
             CASE WHEN p_state = 'paused' THEN p_paused_until ELSE NULL END, now())
@@ -251,11 +278,18 @@ BEGIN
           updated_at = now();
   END IF;
 
-  RETURN QUERY
-    SELECT np.category, np.state, np.paused_until
-    FROM public.notification_preferences np
-    WHERE np.user_id = v_user_id
-    ORDER BY np.category;
+  RETURN jsonb_build_object(
+    'email', v_email,
+    'prefs', coalesce((
+      SELECT jsonb_agg(jsonb_build_object(
+               'category', np.category,
+               'state', np.state,
+               'paused_until', np.paused_until)
+             ORDER BY np.category)
+      FROM public.notification_preferences np
+      WHERE np.user_id = v_user_id
+    ), '[]'::jsonb)
+  );
 END;
 $function$;
 
@@ -269,9 +303,8 @@ GRANT EXECUTE ON FUNCTION public.apply_notification_token_action(text, text, tex
 -- UNDO
 -- ============================================================
 -- DROP FUNCTION IF EXISTS public.apply_notification_token_action(text, text, text, date);
--- DROP FUNCTION IF EXISTS public.get_or_create_notification_token(uuid);
--- DROP TABLE IF EXISTS public.notification_pref_tokens;
 -- DROP FUNCTION IF EXISTS public.notify_recipients_for_parent(uuid, text);
+-- DROP TABLE IF EXISTS public.notification_pref_tokens;
 -- DROP FUNCTION IF EXISTS public.is_notification_enabled(uuid, text);
 -- DROP TABLE IF EXISTS public.notification_preferences;
 --
