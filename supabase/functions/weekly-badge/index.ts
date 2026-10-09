@@ -91,8 +91,56 @@ async function sendResendEmail(to: string, subject: string, html: string): Promi
   return { ok: true };
 }
 
-async function logMessage(supabase: SupabaseClient, parentId: string, messageType: string, status: "sent" | "failed") {
-  await supabase.from("messages_log").insert({ parent_id: parentId, channel: "email", message_type: messageType, status });
+async function logMessage(
+  supabase: SupabaseClient,
+  parentId: string,
+  recipientId: string,
+  messageType: string,
+  status: "sent" | "failed",
+) {
+  await supabase.from("messages_log").insert({
+    parent_id: parentId,
+    recipient_id: recipientId,
+    channel: "email",
+    message_type: messageType,
+    status,
+  });
+}
+
+interface Recipient {
+  userId: string;
+  email: string;
+  kind: string;
+}
+
+// Parent + every co-guardian of that parent (deleted/banned accounts excluded),
+// from notify_recipients_for_parent() — see
+// supabase/migrations/20261009120000_co_guardian_notifications.sql.
+// If the lookup itself fails, fall back to the parent alone: a broken lookup
+// must never cost the parent their email.
+async function getRecipients(supabase: SupabaseClient, parentId: string, parentEmail: string | null): Promise<Recipient[]> {
+  const { data, error } = await supabase.rpc("notify_recipients_for_parent", { p_parent_id: parentId });
+  if (error || !Array.isArray(data)) {
+    console.error(`notify_recipients_for_parent failed for ${parentId}: ${error?.message ?? "no data"} — parent only`);
+    return parentEmail ? [{ userId: parentId, email: parentEmail, kind: "parent" }] : [];
+  }
+  return (data as { user_id: string; email: string | null; kind: string }[])
+    .filter((r) => r.email)
+    .map((r) => ({ userId: r.user_id, email: r.email as string, kind: r.kind }));
+}
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// Manual test runs only (still behind the cron secret): {"only_parent_id": "<uuid>"}
+// limits the run to one family. The cron sends '{}' and is unaffected.
+async function readOnlyParentId(req: Request): Promise<string | null> {
+  try {
+    const body = await req.json();
+    const id = body?.only_parent_id;
+    return typeof id === "string" && UUID_RE.test(id) ? id : null;
+  } catch {
+    return null;
+  }
 }
 
 const escapeHtml = (s: string) =>
@@ -121,8 +169,10 @@ Deno.serve(async (req) => {
   const mondayStr = monday.toISOString().split("T")[0];
   const sundayStr = new Date(sundayEnd.getTime() - 1).toISOString().split("T")[0];
 
-  const students = await getActiveStudents(supabase);
+  const onlyParentId = await readOnlyParentId(req);
+  const students = (await getActiveStudents(supabase)).filter((s) => !onlyParentId || s.parent_id === onlyParentId);
   const parentCache = new Map<string, ParentInfo>();
+  const recipientCache = new Map<string, Recipient[]>();
   let sent = 0, failed = 0, skipped = 0, noProgress = 0;
 
   for (const student of students) {
@@ -146,7 +196,11 @@ Deno.serve(async (req) => {
       parentCache.set(student.parent_id, await getParentInfo(supabase, student.parent_id));
     }
     const parent = parentCache.get(student.parent_id)!;
-    if (!parent.email) { skipped++; continue; }
+    if (!recipientCache.has(student.parent_id)) {
+      recipientCache.set(student.parent_id, await getRecipients(supabase, student.parent_id, parent.email));
+    }
+    const recipients = recipientCache.get(student.parent_id)!;
+    if (recipients.length === 0) { skipped++; continue; }
 
     const rate = total > 0 ? Math.round((done / total) * 100) : 0;
     const { emoji, label } = badgeFor(rate);
@@ -168,9 +222,12 @@ Deno.serve(async (req) => {
       <p style="color:#888;font-size:12px">— Independent Minds EDU</p>
     `;
 
-    const result = await sendResendEmail(parent.email, `${emoji} Weekly badge for ${student.display_name || "your student"} — ${label}`, html);
-    await logMessage(supabase, student.parent_id, "weekly_badge", result.ok ? "sent" : "failed");
-    if (result.ok) sent++; else failed++;
+    const subject = `${emoji} Weekly badge for ${student.display_name || "your student"} — ${label}`;
+    for (const r of recipients) {
+      const result = await sendResendEmail(r.email, subject, html);
+      await logMessage(supabase, student.parent_id, r.userId, "weekly_badge", result.ok ? "sent" : "failed");
+      if (result.ok) sent++; else failed++;
+    }
 
     if (shouldOfferAltChannel(parent.planKey, parent.notificationChannel)) {
       // Not implemented yet — WhatsApp/SMS dispatch would go here.
