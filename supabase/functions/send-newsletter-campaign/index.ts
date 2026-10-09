@@ -1,5 +1,14 @@
-// Trigger: manual only (admin), never cron.
-// Auth: admin JWT (has_role admin), checked server-side.
+// Trigger: manual (admin) OR the weekly cron (scheduled mode, below).
+// Auth: admin JWT (has_role admin), checked server-side — unchanged. The cron
+//   instead sends x-cron-secret (= CRON_SECRET, read from Vault by pg_cron);
+//   a request carrying that header is ONLY ever the cron: a wrong secret is
+//   401 and never falls through to the admin path.
+// Scheduled (cron, body '{}'): sends the campaign whose scheduled_for is
+//   today's date in America/New_York, only if EVERY language version of it is
+//   scheduled for today AND 'approved'. Otherwise 200 + a reason, nothing
+//   written, nothing sent (fail closed). Two campaigns on the same date:
+//   nothing sent, error logged. Optional {check_date: 'YYYY-MM-DD'} evaluates
+//   another date and returns the dry-run plan — it NEVER sends or writes.
 // Body: { campaign, mode: "dry_run" | "test" | "send", test_emails?: string[], confirm?: string }
 //   dry_run — who would get which language version; sends nothing.
 //   test    — sends only to test_emails (each must be a real recipient, so the
@@ -16,7 +25,7 @@
 // Template: ../_shared/newsletter-email.ts — the same file the admin
 // "Preview as email" renders, so what was previewed is what is sent.
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+import { createClient, type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { NEWSLETTER_FROM, listUnsubscribeHeaders, renderNewsletterEmail, unsubscribePageUrl } from "../_shared/newsletter-email.ts";
 
 const corsHeaders = {
@@ -33,6 +42,14 @@ const mask = (e: string) => `${e.slice(0, 3)}…@${e.split("@")[1] ?? ""}`;
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 // Resend's default limit is 2 requests/second.
 const GAP_MS = 600;
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+/** Today's date in New York, YYYY-MM-DD, via Intl (DST-aware, no fixed offset).
+ * Not `new Date(d.toLocaleString(...))`: that re-parses local wall time as
+ * UTC and gives the wrong day around midnight. */
+export function newYorkToday(now = new Date()): string {
+  return now.toLocaleDateString("en-CA", { timeZone: "America/New_York" });
+}
 
 async function sendEmail(
   apiKey: string, to: string, email: { from: string; subject: string; html: string },
@@ -60,6 +77,14 @@ Deno.serve(async (req) => {
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY")!;
   const resendKey = Deno.env.get("RESEND_API_KEY");
 
+  // --- scheduled (weekly cron) ------------------------------------------------
+  const cronSecret = req.headers.get("x-cron-secret");
+  if (cronSecret !== null) {
+    const expected = Deno.env.get("CRON_SECRET");
+    if (!expected || cronSecret !== expected) return json({ error: "Unauthorized" }, 401);
+    return await runScheduled(req, createClient(url, serviceKey, { auth: { persistSession: false } }), resendKey);
+  }
+
   // --- admin only -----------------------------------------------------------
   const authHeader = req.headers.get("Authorization");
   if (!authHeader?.startsWith("Bearer ")) return json({ error: "Unauthorized" }, 401);
@@ -81,6 +106,21 @@ Deno.serve(async (req) => {
   if (!campaign) return json({ error: "campaign is required" }, 400);
   if (!["dry_run", "test", "send"].includes(mode)) return json({ error: "mode must be dry_run, test or send" }, 400);
 
+  return await runCampaign(db, resendKey, campaign, mode, body, user.id, "manual");
+});
+
+// The campaign run shared by the admin path and the cron. Unchanged logic:
+// skip people already in newsletter_sends, re-check suppressed_emails, one
+// unsubscribe token per person, Idempotency-Key, mark 'sent' when done.
+async function runCampaign(
+  db: SupabaseClient,
+  resendKey: string | undefined,
+  campaign: string,
+  mode: string,
+  body: { test_emails?: string[]; confirm?: string },
+  sentBy: string | null,
+  trigger: "manual" | "scheduled",
+): Promise<Response> {
   try {
     const { data: drafts, error: dErr } = await db
       .from("email_newsletter_drafts").select("language, title, content, status").eq("campaign", campaign);
@@ -168,7 +208,7 @@ Deno.serve(async (req) => {
         await db.from("newsletter_sends").upsert({
           campaign, user_id: p.user_id, email: p.email, language: p.version.language,
           status: r.ok ? "sent" : "failed", resend_id: r.ok ? r.id : null, error: r.ok ? null : r.error,
-          sent_by: user.id, updated_at: new Date().toISOString(),
+          sent_by: sentBy, updated_at: new Date().toISOString(),
         }, { onConflict: "campaign,user_id" });
         await db.from("messages_log").insert({
           parent_id: p.user_id, channel: "email", message_type: `newsletter:${campaign}`, status: r.ok ? "sent" : "failed",
@@ -187,13 +227,63 @@ Deno.serve(async (req) => {
     }
 
     const sent = results.length - failed - skippedSuppressed;
-    console.log(`[send-newsletter-campaign] ${mode} ${campaign} by ${user.id}: sent=${sent} failed=${failed} skipped=${skipped} suppressed=${skippedSuppressed}`);
+    console.log(`[send-newsletter-campaign] ${trigger} ${mode} ${campaign} by ${sentBy ?? "cron"}: sent=${sent} failed=${failed} skipped=${skipped} suppressed=${skippedSuppressed}`);
     return json({
-      mode, campaign, from: NEWSLETTER_FROM, recipients: plan.length, sent, failed,
+      mode, trigger, campaign, from: NEWSLETTER_FROM, recipients: plan.length, sent, failed,
       skipped_already_sent: skipped, skipped_suppressed: skippedSuppressed, by_language: byLanguage, marked_sent: markedSent, results,
     });
   } catch (e) {
     console.error("[send-newsletter-campaign] error:", e);
     return json({ error: e instanceof Error ? e.message : "Internal error" }, 500);
   }
-});
+}
+
+interface ScheduledRow { campaign: string; language: string; status: string; scheduled_for: string | null }
+
+// Weekly cron. Fail closed: anything unexpected -> nothing written, nothing sent.
+async function runScheduled(req: Request, db: SupabaseClient, resendKey: string | undefined): Promise<Response> {
+  let body: { check_date?: unknown } = {};
+  try { body = await req.json(); } catch { /* the cron sends '{}'; an empty body is fine */ }
+  const evaluateOnly = body.check_date !== undefined;
+  if (evaluateOnly && (typeof body.check_date !== "string" || !DATE_RE.test(body.check_date))) {
+    return json({ error: "check_date must be YYYY-MM-DD" }, 400);
+  }
+  const date = evaluateOnly ? (body.check_date as string) : newYorkToday();
+  const skip = (reason: string, extra: Record<string, unknown> = {}) => {
+    console.log(`[send-newsletter-campaign] scheduled ${date}: ${reason} — nothing sent`);
+    return json({ mode: "scheduled", date, evaluate_only: evaluateOnly, sent: 0, reason, ...extra });
+  };
+
+  const { data: dated, error: dErr } = await db
+    .from("email_newsletter_drafts").select("campaign, language, status, scheduled_for").eq("scheduled_for", date);
+  if (dErr) {
+    console.error("[send-newsletter-campaign] scheduled lookup failed:", dErr);
+    return json({ mode: "scheduled", date, sent: 0, reason: "lookup_failed" }, 500);
+  }
+  const campaigns = [...new Set(((dated ?? []) as ScheduledRow[]).map((r) => r.campaign))];
+  if (campaigns.length === 0) return skip("no_campaign_today");
+  if (campaigns.length > 1) {
+    console.error(`[send-newsletter-campaign] scheduled ${date}: ${campaigns.length} campaigns on the same date (${campaigns.join(", ")}) — nothing sent`);
+    return skip("multiple_campaigns", { campaigns });
+  }
+
+  // Every language version of that campaign, not only the rows dated today.
+  const campaign = campaigns[0];
+  const { data: all, error: aErr } = await db
+    .from("email_newsletter_drafts").select("campaign, language, status, scheduled_for").eq("campaign", campaign);
+  if (aErr) {
+    console.error("[send-newsletter-campaign] scheduled lookup failed:", aErr);
+    return json({ mode: "scheduled", date, sent: 0, reason: "lookup_failed" }, 500);
+  }
+  const versions = (all ?? []) as ScheduledRow[];
+  const statuses = versions.map((v) => `${v.language}:${v.status}`);
+  if (versions.every((v) => v.status === "sent")) return skip("already_sent", { campaign, statuses });
+  if (versions.some((v) => v.scheduled_for !== date)) return skip("date_mismatch", { campaign, statuses });
+  if (!versions.every((v) => v.status === "approved")) return skip("not_approved", { campaign, statuses });
+
+  // check_date only evaluates: return the read-only dry-run plan, never send.
+  if (evaluateOnly) return await runCampaign(db, resendKey, campaign, "dry_run", {}, null, "scheduled");
+  // Conditions verified above stand in for the manual "confirm"; runCampaign
+  // re-checks approval and already-sent itself.
+  return await runCampaign(db, resendKey, campaign, "send", { confirm: campaign }, null, "scheduled");
+}
