@@ -30,6 +30,7 @@ Canonical URL: https://www.independentmindsedu.org (www, not apex)
 2. Anything touching auth, RLS, payments, migrations, functions that send email, triggers on `auth.users`, or user data: branch + tests + Vercel preview + Dany's approval BEFORE merge.
 3. Before any merge: lint, `tsc --noEmit`, unit tests and build must pass.
 4. Migrations: written in `supabase/migrations/` BEFORE being applied, additive only, with the SQL to undo them at the end of the file. Never apply SQL that deletes data without Dany's explicit approval.
+   - Nouvo fonksyon nan public jwenn EXECUTE pou anon ak authenticated otomatikman (pg_default_acl). REVOKE FROM PUBLIC pa retire yo. Chak nouvo fonksyon dwe gen REVOKE eksplisit sou anon ak authenticated, epi verifye ak has_function_privilege apre.
 5. Every end-of-task report states: the commit, what changed, how to roll back (revert + undo SQL), the test results, and today's real date.
 6. No exception to these rules unless Dany says "eksepsyon pou sesyon sa a" (exception for this session).
 
