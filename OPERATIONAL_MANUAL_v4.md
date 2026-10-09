@@ -533,12 +533,16 @@ A "Download Report" button generates a professional PDF using jsPDF with:
 
 What parents and co-guardians actually receive today are **four automatic emails**, sent from `Independent Minds EDU <noreply@independentmindsedu.org>`, bilingual EN/HT, to families with an active or trialing subscription:
 
-| Email | When (Haiti time) | Condition |
-|-------|-------------------|-----------|
-| Morning plan | Every day, 7:00 am | Today's tasks for each student |
-| Check-in reminder | Every day, 9:00 am | Only if the student has not checked in yet |
-| Daily report | Every day, 8:00 pm | Tasks done / not done, check-ins, help requests |
-| Weekly badge | Sunday, 9:00 pm | Only if the student made progress that week |
+| Email | Cron (UTC) | Haiti time, summer (UTC−4) | Haiti time, winter (UTC−5) | Condition |
+|-------|------------|----------------------------|----------------------------|-----------|
+| Morning plan | `0 12 * * *` — daily 12:00 UTC | 8:00 am | 7:00 am | Today's tasks for each student |
+| Check-in reminder | `0 14 * * *` — daily 14:00 UTC | 10:00 am | 9:00 am | Only if the student has not checked in yet |
+| Daily report | `0 1 * * *` — daily 01:00 UTC | 9:00 pm (the day before, in Haiti) | 8:00 pm (the day before, in Haiti) | Tasks done / not done, check-ins, help requests |
+| Weekly badge | `0 2 * * 1` — Monday 02:00 UTC | Sunday 10:00 pm | Sunday 9:00 pm | Only if the student made progress that week |
+
+Haiti summer time (UTC−4) runs from the 2nd Sunday of March to the 1st Sunday of November (2026: March 8 → November 1); winter time (UTC−5) the rest of the year. Times checked with Postgres `at time zone 'America/Port-au-Prince'` on 2026-10-09.
+
+**Internal note:** the crons are fixed in UTC, so the local time in Haiti changes with each season (one hour later in summer). Keeping a fixed local time would require changing the crons — a decision Dany has not taken yet.
 
 Each email goes to the parent **and every co-guardian** (see §7). Parents and co-guardians cannot pause or stop them yet (see §24, "Not Yet Available").
 
