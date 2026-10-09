@@ -2,6 +2,7 @@
 
 **Version:** 4.1  
 **Date:** March 2026  
+**Last updated:** 2026-10-09 — co-guardians and automatic emails (§4, §7, §12, §24). Rule for this document: it describes only what a parent can do **in production today**; features waiting on an unmerged branch are listed separately in §24 under "Not Yet Available".  
 **Author:** Dany Augustin  
 **Platform URL:** https://www.independentmindsedu.org  
 **Contact:** privacy@independentmindsedu.org  
@@ -224,7 +225,7 @@ This sets `adult_confirmed: true` and `adult_confirmed_at` in the profile. Googl
 | Schedule Templates | Save, apply, clone weekly schedules |
 | Weekly Reports | Analytics with PDF export |
 | Rewards Management | Create/manage the rewards catalog |
-| Co-Guardians | Invite co-parents, manage permissions (above Students in sidebar) |
+| Co-Guardians | Invite co-guardians with a link, see active co-guardians and pending invites, remove access (above Students in sidebar) |
 | Inbox | Unified message center with filter tabs |
 | Notification Settings | Telegram, WhatsApp, channel selection |
 | Activity Feed | Recent student actions |
@@ -342,42 +343,46 @@ Admin dashboard metrics auto-refresh every 30 seconds using the `useAutoRefresh`
 
 ### Overview
 
-The primary parent (account owner) can invite additional co-guardians per student. Each co-guardian has a granular permission set controlled with individual on/off toggles. Co-guardians are added via secure token-based invite links.
+The primary parent (account owner) can invite other adults (co-parent, grandparent…) as co-guardians. An invite is **for the whole family, not for one student**: once accepted, the co-guardian has the same access as the parent to **all** of the parent's students. Co-guardians are added via secure token-based invite links.
 
 ### Database Tables
 
 | Table | Purpose |
 |-------|---------|
 | `guardian_invites` | Stores pending/accepted/revoked invite tokens with 7-day expiry |
-| `co_guardians` | Active co-guardian relationships with 5 permission toggles |
+| `co_guardians` | Active co-guardian relationships (one row per parent + co-guardian; no student column) |
 
 ### Permission Model
 
-| Permission | Default | Description |
-|-----------|---------|-------------|
-| `can_view_progress` | ✅ ON | View student progress (always on, minimum permission) |
-| `can_receive_sos` | ❌ OFF | Receive SOS alerts |
-| `can_approve_rewards` | ❌ OFF | Approve & deny reward redemptions |
-| `can_edit_lessons` | ❌ OFF | Add & edit lessons |
-| `is_full_access` | ❌ OFF | Enables all permissions; disabling reverts to individual states |
+There is **no per-permission control today**: a co-guardian has the same read/write access as the parent on all of the family's data, through `get_managed_parent_ids()`. The table still has five legacy columns (`can_view_progress`, `can_receive_sos`, `can_approve_rewards`, `can_edit_lessons`, `is_full_access`), but no screen sets them and no RLS policy reads them (checked 2026-10-09) — do not present them to parents as permissions.
 
 ### Invite Flow
 
-1. Primary parent enters email in the Co-Guardians section (above Students in sidebar)
-2. `send-guardian-invite` edge function validates ownership, creates invite, sends branded email
-3. Invitee receives email with accept link (`/accept-invite?token=...`)
-4. If not logged in, invitee is redirected to login/signup first
-5. `accept-guardian-invite` edge function validates token, creates co-guardian record
-6. Primary parent is notified via inbox
-7. Primary parent manages permissions via toggle switches
+1. Primary parent enters the person's email in the Co-Guardians section and clicks "Create invite link"
+2. `send-guardian-invite` validates ownership, creates (or reuses) the invite and returns a link — **no email is sent automatically**
+3. The parent copies the link and sends it to the person themselves
+4. The invitee opens `/accept-invite?token=...` (someone without an account first sets a password)
+5. `accept-guardian-invite` validates the token and creates the co-guardian record
+6. The new co-guardian receives the welcome email (once per person)
+
+Pending invites can be copied again or cancelled. The parent can remove an active co-guardian at any time (with a confirmation); access ends immediately.
 
 ### Security
 
 - Invite tokens are 64-character hex, single-use, expire after 7 days
 - Self-accept is blocked (primary parent cannot accept their own invite)
-- Permissions enforced at DB layer via `has_guardian_permission()` security-definer
-- Co-guardians cannot elevate their own permissions
-- RLS policies ensure co-guardians only see students they co-manage
+- Only the primary parent can invite or remove co-guardians; a co-guardian cannot remove themselves (DELETE policy `parent_id = auth.uid()`)
+- Access covers every student of the parent (`get_managed_parent_ids()`), not a single child
+
+### Automatic Emails (live since 2026-10-09)
+
+Co-guardians receive **every automatic email the parent receives** — morning plan, check-in reminder, daily report, weekly badge (see §12). Proven in production by the real crons of 2026-10-09 (12:00 UTC morning reminder and 14:00 UTC check-in reminder: parent and co-guardian both received them; other families unchanged). Each send is logged in `messages_log` with `recipient_id` = the person who actually received it.
+
+There is no way yet for a parent or a co-guardian to pause or stop these emails (see §24, "Not Yet Available").
+
+### Production Notes (internal)
+
+- 2026-10-09: Julna DOR AUGUSTIN is a co-guardian on Dany's account, for Christian — the first co-guardian in the system.
 
 ### UI Location
 
@@ -523,6 +528,21 @@ A "Download Report" button generates a professional PDF using jsPDF with:
 ---
 
 ## 12. Notification System
+
+### Current State (2026-10-09)
+
+What parents and co-guardians actually receive today are **four automatic emails**, sent from `Independent Minds EDU <noreply@independentmindsedu.org>`, bilingual EN/HT, to families with an active or trialing subscription:
+
+| Email | When (Haiti time) | Condition |
+|-------|-------------------|-----------|
+| Morning plan | Every day, 7:00 am | Today's tasks for each student |
+| Check-in reminder | Every day, 9:00 am | Only if the student has not checked in yet |
+| Daily report | Every day, 8:00 pm | Tasks done / not done, check-ins, help requests |
+| Weekly badge | Sunday, 9:00 pm | Only if the student made progress that week |
+
+Each email goes to the parent **and every co-guardian** (see §7). Parents and co-guardians cannot pause or stop them yet (see §24, "Not Yet Available").
+
+The multi-channel design below is the earlier v4.0 plan, not today's behavior: WhatsApp dispatch is not implemented, no parent has Telegram configured, and the `weekly-report` and `parent-alerts` functions are in the repo but not deployed.
 
 ### Multi-Channel Architecture (v4.0)
 
@@ -1045,6 +1065,21 @@ All accessibility labels are available in all 10 supported languages:
 - No automated curriculum alignment verification
 - Push notifications require browser support (not available on older iOS)
 - WhatsApp requires Twilio account with approved templates for some regions
+
+### Not Yet Available — Awaiting Merge (2026-10-09)
+
+Built and tested on a branch, **not in production**. Do not tell parents these exist until the branch is merged.
+
+| Feature | Branch | What it will do |
+|---------|--------|-----------------|
+| Schedule bulk upload + CSV template | `feat/csv-import` | Upload a CSV (or let the AI read another file) to fill the schedule, with a preview before import; download a CSV template. Tested 4/4 |
+| Co-Guardian Management list | `feat/co-guardian-list` | Redesigned co-guardian list: card per person, "co-guardian since" date, clearer remove confirmation, note that access covers all students |
+| Pause / stop automatic emails | `feat/notification-preferences` | Public page `/notifications`, linked from each email's footer: pause a type of email (1 week, 2 weeks, 1 month), stop it, or stop all; works for parents and co-guardians, each for their own mail only |
+
+**Internal notes (pause / stop emails):**
+- Already live in production: the database part (migration `notification_preferences`) and the `notification-preferences` endpoint. Nobody can use them yet: there is no page and the emails sent by the crons have no footer link.
+- The `/notifications` page only exists after the branch is merged. Until then, any link to `/notifications` leads to a page that does not exist — this is the case for the footer of the one test email sent on 2026-10-09 at 18:19 UTC.
+- After the merge, the four email functions must be redeployed (with `_shared/notification-footer.ts`) so that the footer links appear.
 
 ### Future Roadmap
 
