@@ -57,3 +57,5 @@ project_id = "gyvjcwuwfwrwwwnuwlex"
     verify_jwt = true
   [functions.stripe-webhook]
     verify_jwt = false
+  [functions.send-newsletter-campaign]
+    verify_jwt = false
