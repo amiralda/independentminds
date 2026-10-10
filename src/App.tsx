@@ -43,6 +43,7 @@ const AcceptInvite = lazy(() => import("./pages/AcceptInvite"));
 const BetaRequest = lazy(() => import("./pages/BetaRequest"));
 const BetaAccept = lazy(() => import("./pages/BetaAccept"));
 const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
+const NotificationPreferences = lazy(() => import("./pages/NotificationPreferences"));
 const AcceptEducatorInvite = lazy(() => import("./pages/AcceptEducatorInvite"));
 const AcceptEducatorParentInvite = lazy(() => import("./pages/AcceptEducatorParentInvite"));
 
@@ -119,6 +120,7 @@ const App = () => (
                   <Route path="/beta" element={<BetaRequest />} />
                   <Route path="/beta/accept" element={<BetaAccept />} />
                   <Route path="/unsubscribe" element={<Unsubscribe />} />
+                  <Route path="/notifications" element={<NotificationPreferences />} />
                   <Route path="/accept-educator-invite" element={<AcceptEducatorInvite />} />
                   <Route
                     path="/accept-educator-parent-invite"

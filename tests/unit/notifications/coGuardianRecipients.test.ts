@@ -2,16 +2,21 @@
 // Supabase client + fake Resend, to check that every recipient returned by
 // notify_recipients_for_parent() is emailed and logged with its recipient_id,
 // that a failed lookup falls back to the parent alone, and that
-// {"only_parent_id"} limits a manual run to one family.
+// {"only_parent_id"} limits a manual run to one family. Also checks the
+// per-recipient preferences footer + List-Unsubscribe (own token, own
+// language) and that the RPC is asked for this function's category.
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 const PARENT = "11111111-1111-4111-8111-111111111111";
 const GUARDIAN = "22222222-2222-4222-8222-222222222222";
 const OTHER_PARENT = "33333333-3333-4333-8333-333333333333";
+const PARENT_TOKEN = "a".repeat(64);
+const GUARDIAN_TOKEN = "b".repeat(64);
 
 interface FakeState {
   rpc: { data: unknown; error: { message: string } | null };
   rpcCalls: string[];
+  rpcArgs: Record<string, unknown>[];
   logs: Record<string, unknown>[];
 }
 
@@ -49,6 +54,7 @@ vi.mock("https://esm.sh/@supabase/supabase-js@2", () => ({
     from: table,
     rpc: async (fn: string, args: { p_parent_id: string }) => {
       state.current!.rpcCalls.push(`${fn}:${args.p_parent_id}`);
+      state.current!.rpcArgs.push(args);
       return state.current!.rpc;
     },
     auth: {
@@ -67,6 +73,7 @@ const FUNCTIONS = [
 ] as const;
 
 let sentTo: string[];
+let sentBodies: { to: string[]; html: string; headers?: Record<string, string> }[];
 
 async function loadHandler(fn: string) {
   let handler: ((req: Request) => Promise<Response>) | undefined;
@@ -86,21 +93,25 @@ const call = (handler: (req: Request) => Promise<Response>, body: unknown = {}) 
 
 beforeEach(() => {
   sentTo = [];
+  sentBodies = [];
   state.current = {
     rpc: {
       data: [
-        { user_id: PARENT, email: "parent@family.test", kind: "parent" },
-        { user_id: GUARDIAN, email: "guardian@family.test", kind: "co_guardian" },
+        { user_id: PARENT, email: "parent@family.test", kind: "parent", pref_token: PARENT_TOKEN, lang: "en" },
+        { user_id: GUARDIAN, email: "guardian@family.test", kind: "co_guardian", pref_token: GUARDIAN_TOKEN, lang: "ht" },
       ],
       error: null,
     },
     rpcCalls: [],
+    rpcArgs: [],
     logs: [],
   };
   vi.stubGlobal(
     "fetch",
     vi.fn(async (_url: string, init: RequestInit) => {
-      sentTo.push(...(JSON.parse(String(init.body)).to as string[]));
+      const body = JSON.parse(String(init.body));
+      sentTo.push(...(body.to as string[]));
+      sentBodies.push(body);
       return new Response(JSON.stringify({ id: "email_1" }), { status: 200 });
     }),
   );
@@ -164,6 +175,41 @@ describe.each(FUNCTIONS)("%s", (fn, messageType) => {
     const handler = await loadHandler(fn);
     await call(handler, { only_parent_id: "not-a-uuid" });
     expect(state.current!.rpcCalls).toHaveLength(2);
+  });
+
+  it("asks the RPC for this function's category (paused/stopped people are filtered there)", async () => {
+    const handler = await loadHandler(fn);
+    await call(handler, { only_parent_id: PARENT });
+    expect(state.current!.rpcArgs).toEqual([{ p_parent_id: PARENT, p_category: messageType }]);
+  });
+
+  it("gives each recipient their own footer link, language and List-Unsubscribe for this category", async () => {
+    const handler = await loadHandler(fn);
+    await call(handler, { only_parent_id: PARENT });
+    const [toParent, toGuardian] = sentBodies;
+
+    expect(toParent.html).toContain(`notifications?token=${PARENT_TOKEN}&amp;lang=en&amp;category=${messageType}`);
+    expect(toParent.html).toContain("as the parent of Kid");
+    expect(toParent.html).not.toContain(GUARDIAN_TOKEN);
+    expect(toParent.headers).toEqual({
+      "List-Unsubscribe": `<https://gyvjcwuwfwrwwwnuwlex.supabase.co/functions/v1/notification-preferences?token=${PARENT_TOKEN}&category=${messageType}>`,
+      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+    });
+
+    expect(toGuardian.html).toContain(`notifications?token=${GUARDIAN_TOKEN}&amp;lang=ht&amp;category=${messageType}`);
+    expect(toGuardian.html).toContain("ko-gadyen Kid");
+    expect(toGuardian.html).not.toContain(PARENT_TOKEN);
+    expect(toGuardian.headers?.["List-Unsubscribe"]).toContain(GUARDIAN_TOKEN);
+  });
+
+  it("on the parent-only fallback: no token, so no List-Unsubscribe and an account link instead", async () => {
+    state.current!.rpc = { data: null, error: { message: "boom" } };
+    const handler = await loadHandler(fn);
+    await call(handler, { only_parent_id: PARENT });
+    expect(sentBodies).toHaveLength(1);
+    expect(sentBodies[0].headers).toBeUndefined();
+    expect(sentBodies[0].html).not.toContain("/notifications");
+    expect(sentBodies[0].html).toContain("https://www.independentmindsedu.org/login");
   });
 
   it("still rejects calls without the cron secret", async () => {
