@@ -1,5 +1,6 @@
-// Cron: daily 7am Haiti time (12:00 UTC, fixed UTC-5 assumed — Haiti does not
-// observe DST). Emails every active student's parent with today's plan.
+// Cron: daily 12:00 UTC = 8:00 am EDT / 7:00 am EST in Haiti (Haiti observes
+// DST, the cron is fixed in UTC). Emails every active student's parent with
+// today's plan.
 //
 // Footer + List-Unsubscribe come from ../_shared/notification-footer.ts. (The
 // old "self-contained, the bundler cannot resolve _shared" note is obsolete:

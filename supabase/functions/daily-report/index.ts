@@ -1,4 +1,5 @@
-// Cron: daily 8pm Haiti time (01:00 UTC, fixed UTC-5 assumed). Emails each
+// Cron: daily 01:00 UTC = 9:00 pm EDT / 8:00 pm EST in Haiti (the previous
+// day there; Haiti observes DST, the cron is fixed in UTC). Emails each
 // active student's parent a same-day summary (check-ins + tasks done).
 //
 // Footer + List-Unsubscribe come from ../_shared/notification-footer.ts. (The
@@ -6,6 +7,7 @@
 // other deployed functions import _shared/ — docs/ACTIVITY_LOG.md 2026-10-09.)
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { type NotificationCategory, prefsHeaders, renderPrefsFooter } from "../_shared/notification-footer.ts";
+import { haitiDayBounds } from "../_shared/haiti-time.ts";
 
 // Category in notification_preferences (the person can pause/stop it) and
 // message_type in messages_log.
@@ -178,12 +180,9 @@ Deno.serve(async (req) => {
 
   const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
-  const now = new Date();
-  const haitiMidnight = new Date(now.toLocaleString("en-US", { timeZone: "America/Port-au-Prince" }));
-  haitiMidnight.setHours(0, 0, 0, 0);
-  const dayStart = haitiMidnight.toISOString();
-  const dayEnd = new Date(haitiMidnight.getTime() + 24 * 60 * 60 * 1000).toISOString();
-  const today = now.toLocaleDateString("en-CA", { timeZone: "America/Port-au-Prince" });
+  // Today on the Haiti calendar, [00:00, next 00:00) Haiti time, via Intl
+  // (see _shared/haiti-time.ts for why not new Date(toLocaleString(...))).
+  const { today, dayStart, dayEnd } = haitiDayBounds(new Date());
 
   const onlyParentId = await readOnlyParentId(req);
   const students = (await getActiveStudents(supabase)).filter((s) => !onlyParentId || s.parent_id === onlyParentId);

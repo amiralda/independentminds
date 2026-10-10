@@ -1,4 +1,5 @@
-// Cron: Sunday 9pm Haiti time (Monday 02:00 UTC, fixed UTC-5 assumed).
+// Cron: Monday 02:00 UTC = Sunday 10:00 pm EDT / 9:00 pm EST in Haiti (Haiti
+// observes DST, the cron is fixed in UTC).
 // Emails a weekly progress badge to parents — only when there's new
 // progress this week (tasks done, points, or achievements), to avoid spam.
 //
@@ -7,6 +8,7 @@
 // other deployed functions import _shared/ — docs/ACTIVITY_LOG.md 2026-10-09.)
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { type NotificationCategory, prefsHeaders, renderPrefsFooter } from "../_shared/notification-footer.ts";
+import { haitiWeekBounds } from "../_shared/haiti-time.ts";
 
 // Category in notification_preferences (the person can pause/stop it) and
 // message_type in messages_log.
@@ -186,14 +188,9 @@ Deno.serve(async (req) => {
 
   const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
-  const haitiNow = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Port-au-Prince" }));
-  const dayOfWeek = haitiNow.getDay();
-  const monday = new Date(haitiNow);
-  monday.setDate(haitiNow.getDate() - ((dayOfWeek + 6) % 7));
-  monday.setHours(0, 0, 0, 0);
-  const sundayEnd = new Date(monday.getTime() + 7 * 24 * 60 * 60 * 1000);
-  const mondayStr = monday.toISOString().split("T")[0];
-  const sundayStr = new Date(sundayEnd.getTime() - 1).toISOString().split("T")[0];
+  // Monday-to-Sunday week on the Haiti calendar via Intl: date strings for
+  // planned_date, [monday, sundayEnd) instants (Haiti midnights) for timestamps.
+  const { mondayStr, sundayStr, weekStart: monday, weekEnd: sundayEnd } = haitiWeekBounds(new Date());
 
   const onlyParentId = await readOnlyParentId(req);
   const students = (await getActiveStudents(supabase)).filter((s) => !onlyParentId || s.parent_id === onlyParentId);
