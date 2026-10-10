@@ -2,7 +2,7 @@
 
 **Version:** 4.1  
 **Date:** March 2026  
-**Last updated:** 2026-10-10 — schedule bulk upload is live (§4), Google sign-in removed (§3); 2026-10-09 — co-guardians and automatic emails (§4, §7, §12, §24). Rule for this document: it describes only what a parent can do **in production today**; features waiting on an unmerged branch are listed separately in §24 under "Not Yet Available".  
+**Last updated:** 2026-10-10 — co-guardian list and pause/stop of automatic emails are live (§7, §12, §24); schedule bulk upload is live (§4), Google sign-in removed (§3); 2026-10-09 — co-guardians and automatic emails (§4, §7, §12, §24). Rule for this document: it describes only what a parent can do **in production today**; features waiting on an unmerged branch are listed separately in §24 under "Not Yet Available".  
 **Author:** Dany Augustin  
 **Platform URL:** https://www.independentmindsedu.org  
 **Contact:** privacy@independentmindsedu.org  
@@ -375,7 +375,16 @@ There is **no per-permission control today**: a co-guardian has the same read/wr
 5. `accept-guardian-invite` validates the token and creates the co-guardian record
 6. The new co-guardian receives the welcome email (once per person)
 
-Pending invites can be copied again or cancelled. The parent can remove an active co-guardian at any time (with a confirmation); access ends immediately.
+### Co-Guardian Management list (live since 2026-10-10)
+
+The Co-Guardians section ("Co-Guardian Management") shows:
+
+- A note at the top: a co-guardian gets access to **all** of the parent's students, not just one.
+- **Active co-guardians** (with a count): one card per person with their initials, their **email as the title**, their name only when it is a real name (not just the start of the email), and "Co-guardian since <date>" (the day they accepted).
+- **Pending invites** (with a count): each can have its link copied again or be cancelled.
+- When there is nobody yet, an empty state explains how to invite someone.
+
+**Remove** opens a confirmation dialog that says the person will immediately lose access to all of the parent's students; access ends as soon as the parent confirms.
 
 ### Security
 
@@ -388,7 +397,7 @@ Pending invites can be copied again or cancelled. The parent can remove an activ
 
 Co-guardians receive **every automatic email the parent receives** — morning plan, check-in reminder, daily report, weekly badge (see §12). Proven in production by the real crons of 2026-10-09 (12:00 UTC morning reminder and 14:00 UTC check-in reminder: parent and co-guardian both received them; other families unchanged). Each send is logged in `messages_log` with `recipient_id` = the person who actually received it.
 
-There is no way yet for a parent or a co-guardian to pause or stop these emails (see §24, "Not Yet Available").
+Each co-guardian (like the parent) can pause or stop these emails for themselves, from the link at the bottom of every email (see §12).
 
 ### Production Notes (internal)
 
@@ -554,7 +563,19 @@ Haiti summer time (UTC−4) runs from the 2nd Sunday of March to the 1st Sunday 
 
 **Internal note:** the crons are fixed in UTC, so the local time in Haiti changes with each season (one hour later in summer). Keeping a fixed local time would require changing the crons — a decision Dany has not taken yet.
 
-Each email goes to the parent **and every co-guardian** (see §7). Parents and co-guardians cannot pause or stop them yet (see §24, "Not Yet Available").
+Each email goes to the parent **and every co-guardian** (see §7).
+
+### Pause or Stop Automatic Emails (live since 2026-10-10)
+
+Every one of these four emails ends with a short footer, in the person's own language: why they receive it ("as the parent of …" / "as a co-guardian for …"), a link **"Pause or stop this type of email"** and a link **"Manage all emails"**. Both open the page `/notifications` (no login needed — the link is personal). On that page each person can, for each type of email (morning plan, check-in reminder, daily report, weekly badge) or for all of them at once:
+
+- **Pause** it for 1 week, 2 weeks or 1 month — the page shows "Paused — resumes <date>";
+- **Stop** it;
+- **Turn it back on**.
+
+Each person only controls their own emails: a parent cannot silence a co-guardian's, and a co-guardian cannot silence the parent's. Mail apps that support one-click unsubscribe (Gmail, Outlook, Apple Mail) also show their own "Unsubscribe" button, which stops that type of email only. Emails about the account itself (password reset, etc.) are not affected.
+
+**Internal notes:** preferences live in `notification_preferences` (no row = on; 'all' is a master switch; a pause's date is the first day mail resumes, on the Haiti calendar). The four senders ask `notify_recipients_for_parent(parent, category)`, which leaves out anyone who paused or stopped that category. Since 2026-10-10 the daily report and check-in reminder count check-ins over the Haiti calendar day (00:00–24:00 Haiti time), and the weekly badge over the Haiti Monday-to-Sunday week — before, the window started at midnight UTC (20:00 / 19:00 Haiti the day before).
 
 The multi-channel design below is the earlier v4.0 plan, not today's behavior: WhatsApp dispatch is not implemented, no parent has Telegram configured, and the `weekly-report` and `parent-alerts` functions are in the repo but not deployed.
 
@@ -1080,19 +1101,9 @@ All accessibility labels are available in all 10 supported languages:
 - Push notifications require browser support (not available on older iOS)
 - WhatsApp requires Twilio account with approved templates for some regions
 
-### Not Yet Available — Awaiting Merge (2026-10-09)
+### Not Yet Available — Awaiting Merge
 
-Built and tested on a branch, **not in production**. Do not tell parents these exist until the branch is merged.
-
-| Feature | Branch | What it will do |
-|---------|--------|-----------------|
-| Co-Guardian Management list | `feat/co-guardian-list` | Redesigned co-guardian list: card per person, "co-guardian since" date, clearer remove confirmation, note that access covers all students |
-| Pause / stop automatic emails | `feat/notification-preferences` | Public page `/notifications`, linked from each email's footer: pause a type of email (1 week, 2 weeks, 1 month), stop it, or stop all; works for parents and co-guardians, each for their own mail only |
-
-**Internal notes (pause / stop emails):**
-- Already live in production: the database part (migration `notification_preferences`) and the `notification-preferences` endpoint. Nobody can use them yet: there is no page and the emails sent by the crons have no footer link.
-- The `/notifications` page only exists after the branch is merged. Until then, any link to `/notifications` leads to a page that does not exist — this is the case for the footer of the one test email sent on 2026-10-09 at 18:19 UTC.
-- After the merge, the four email functions must be redeployed (with `_shared/notification-footer.ts`) so that the footer links appear.
+Nothing is waiting on a branch as of 2026-10-10: the CSV import, the co-guardian list and the pause/stop of automatic emails are all live (see §4, §7, §12). New features built on a branch are listed here until they are merged.
 
 ### Future Roadmap
 
