@@ -2,7 +2,7 @@
 
 **Version:** 4.1  
 **Date:** March 2026  
-**Last updated:** 2026-10-09 — co-guardians and automatic emails (§4, §7, §12, §24). Rule for this document: it describes only what a parent can do **in production today**; features waiting on an unmerged branch are listed separately in §24 under "Not Yet Available".  
+**Last updated:** 2026-10-10 — schedule bulk upload is live (§4), Google sign-in removed (§3); 2026-10-09 — co-guardians and automatic emails (§4, §7, §12, §24). Rule for this document: it describes only what a parent can do **in production today**; features waiting on an unmerged branch are listed separately in §24 under "Not Yet Available".  
 **Author:** Dany Augustin  
 **Platform URL:** https://www.independentmindsedu.org  
 **Contact:** privacy@independentmindsedu.org  
@@ -172,7 +172,6 @@ supabase/
 | Method | Description |
 |--------|-------------|
 | Email + Password | Primary signup/login with email verification |
-| Google OAuth | Social login with post-redirect adult confirmation |
 | MFA (TOTP) | Optional two-factor for parent accounts via authenticator app |
 
 ### Role Comparison
@@ -209,7 +208,9 @@ At parent signup, a required checkbox must be checked before the Sign Up button 
 
 > "I confirm I am 18 years of age or older and am the parent or legal guardian of the students I will manage on this platform."
 
-This sets `adult_confirmed: true` and `adult_confirmed_at` in the profile. Google OAuth users see a post-redirect modal if `adult_confirmed` is false.
+This sets `adult_confirmed: true` and `adult_confirmed_at` in the profile.
+
+**Internal note — Google sign-in (removed from the login page 2026-10-10):** Google sign-in is not available. Every Google signup failed: `handle_new_user()` raises 'Adult confirmation required' when the signup metadata has no `adult_confirmed`, and Google never sends it (zero `google` identities in `auth.identities`). There is no post-redirect adult-confirmation screen in the app. The button is hidden (`GOOGLE_SIGN_IN_ENABLED = false` in `src/pages/Login.tsx`); the OAuth code is kept. Bringing it back needs two pieces that **must ship together**: (1) `handle_new_user` creates OAuth profiles with `adult_confirmed = false` instead of raising; (2) after the OAuth callback, the app blocks the person on an adult-confirmation screen while `adult_confirmed = false`. Piece 1 alone removes a compliance control. The Google client secret in the Supabase dashboard must also be fixed (`invalid_client` since at least 2026-10-09).
 
 ---
 
@@ -243,6 +244,15 @@ Three template actions are available in the schedule section:
   - Middle School Standard Week (6-8): Math, English, Science, Social Studies, PE, Creative
   - Flex Schedule: 4 core blocks + 1 free block per day
 - **Copy Last Week** — Duplicates previous week's blocks shifted forward 7 days
+
+### Schedule Bulk Upload (live since 2026-10-10)
+
+Next to "Add Block" in a student's schedule, the parent has two buttons:
+
+- **Download CSV template** — a ready-to-fill file with the expected columns.
+- **Bulk Upload** — choose a file (CSV, TSV, TXT, PDF, image, or Excel `.xlsx`). A CSV whose columns are recognised is read instantly in the browser; any other file (or a CSV with unrecognised columns) is read by the AI ("read by AI").
+
+Either way, nothing is saved until the parent checks a **preview** of every row ("Check the schedule before importing"): rows ready, rows to check (warnings), and rows with errors, which are skipped. If some dates can be read two ways (05/10 = 5 October or 10 May), the preview says so and offers a "Day comes first (DD/MM)" switch. The parent then clicks "Import N tasks".
 
 ### PDF Report Export (v4.0)
 
@@ -1076,7 +1086,6 @@ Built and tested on a branch, **not in production**. Do not tell parents these e
 
 | Feature | Branch | What it will do |
 |---------|--------|-----------------|
-| Schedule bulk upload + CSV template | `feat/csv-import` | Upload a CSV (or let the AI read another file) to fill the schedule, with a preview before import; download a CSV template. Tested 4/4 |
 | Co-Guardian Management list | `feat/co-guardian-list` | Redesigned co-guardian list: card per person, "co-guardian since" date, clearer remove confirmation, note that access covers all students |
 | Pause / stop automatic emails | `feat/notification-preferences` | Public page `/notifications`, linked from each email's footer: pause a type of email (1 week, 2 weeks, 1 month), stop it, or stop all; works for parents and co-guardians, each for their own mail only |
 

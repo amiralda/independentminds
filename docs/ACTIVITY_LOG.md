@@ -1,5 +1,11 @@
 # Activity Log
 
+## 2026-10-10 — Operational manual: CSV import live, Google sign-in removed (docs only)
+- Summary: `OPERATIONAL_MANUAL_v4.md` brought back to production reality after the two merges. §4: new "Schedule Bulk Upload (live since 2026-10-10)" — Download CSV template, Bulk Upload (CSV/TSV/TXT read in the browser; PDF/image/xlsx or unrecognised columns read by AI), mandatory preview with ready / to-check / error rows, ambiguous-date switch (DD/MM), "Import N tasks" (checked against `ScheduleCsvImport.tsx` and its i18n strings). §24: CSV import removed from "Not Yet Available" (co-guardian-list and notification-preferences stay). §3: Google OAuth removed from the sign-in methods; the false claim "Google OAuth users see a post-redirect modal" removed (no such screen exists in src/); internal note with the cause and the two pieces that must ship together (+ the invalid Google client secret). Header "Last updated" bumped.
+- Files touched: `OPERATIONAL_MANUAL_v4.md`, `CLAUDE.md`, `docs/ACTIVITY_LOG.md`.
+- Validation: docs only; every statement checked against main's code.
+- Risks + rollback: `git revert` of the commit.
+
 ## 2026-10-10 — Merges to main: fix/hide-google-signin, then feat/csv-import
 - Summary: two merges, one after the other, each checked on the merged tree before committing. (1) `fix/hide-google-signin` → merge `39620c7` (no conflict; branch was on main). Preview checked by Dany in both modes: Sign In and Sign Up show no Google button and no divider; the adult-confirmation checkbox is still on Sign Up. (2) Before the second merge, `git merge-tree` against the new main predicted a single conflict in `docs/ACTIVITY_LOG.md` (CLAUDE.md auto-merged: csv-import only changes the AI Tutor line of the Stripe gate). `feat/csv-import` (still at `df270c5`, the commit Dany tested 4/4 yesterday: normal CSV; bad date without rejecting the file; ';' separator with Kreyol headers and ambiguous-date detection; AI path on free text) → merge `0138fc2`. Conflict resolved by keeping every main entry and inserting the 2026-10-01 entry in date order (before 2026-09-28): +14 / −0 lines vs main, no entry lost.
 - Validation (each merged tree, before its commit): eslint exit 0; `tsc -p tsconfig.app.json` 395 = main (the 10 DadPanel errors pre-exist on main, same lines); vitest 144/144 after merge 1, 199/199 after merge 2; build PASS.
