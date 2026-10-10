@@ -15,6 +15,14 @@ import { buildAppUrl } from "@/lib/siteUrl";
 import { buildOAuthRedirectUrl } from "@/lib/oauth";
 import { isPasswordLongEnough } from "@/lib/password";
 
+// Google sign-in is hidden, not removed: every Google signup fails with
+// "Database error saving new user" because handle_new_user() requires
+// raw_user_meta_data.adult_confirmed, which Google never sends. The OAuth code
+// (handleGoogleAuth, src/lib/oauth.ts, AuthCallback.tsx) stays in place; set
+// this back to true only together with the two fixes described in
+// docs/ACTIVITY_LOG.md (2026-10-10, "Google sign-in hidden").
+const GOOGLE_SIGN_IN_ENABLED = false;
+
 const TRACK_AUTH_FAILURE_URL = import.meta.env.VITE_SUPABASE_URL
   ? `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/track-auth-failure`
   : null;
@@ -257,6 +265,7 @@ export default function Login() {
             )}
           </Button>
 
+          {GOOGLE_SIGN_IN_ENABLED && (<>
           {/* Divider */}
           <div className="relative">
             <div className="absolute inset-0 flex items-center"><div className="w-full border-t" /></div>
@@ -280,6 +289,7 @@ export default function Login() {
             </svg>
             Google
           </Button>
+          </>)}
 
           {/* Toggle Sign up / Sign in */}
           <p className="text-center text-sm text-muted-foreground">

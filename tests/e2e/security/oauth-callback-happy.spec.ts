@@ -147,6 +147,9 @@ test('OAuth callback contract: session honors ?redirect intended target', async 
 // LIVE: real Google round-trip (opt-in only)
 // -------------------------------------------------------------------------
 
+// NOTE 2026-10-10: the Google button is hidden on /login (GOOGLE_SIGN_IN_ENABLED
+// in src/pages/Login.tsx) until OAuth signups pass the adult confirmation — see
+// docs/ACTIVITY_LOG.md. This opt-in live test cannot pass until it is back.
 test('OAuth callback LIVE: full Google round-trip establishes session', async ({
   page,
 }) => {
