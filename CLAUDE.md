@@ -31,6 +31,7 @@ Canonical URL: https://www.independentmindsedu.org (www, not apex)
 3. Before any merge: lint, `tsc --noEmit`, unit tests and build must pass.
 4. Migrations: written in `supabase/migrations/` BEFORE being applied, additive only, with the SQL to undo them at the end of the file. Never apply SQL that deletes data without Dany's explicit approval.
    - Nouvo fonksyon nan public jwenn EXECUTE pou anon ak authenticated otomatikman (pg_default_acl). REVOKE FROM PUBLIC pa retire yo. Chak nouvo fonksyon dwe gen REVOKE eksplisit sou anon ak authenticated, epi verifye ak has_function_privilege apre.
+   - Presizyon (Dany, 2026-10-11): règ sa a se pou fonksyon service_role. Yon fonksyon admin ki rele depi navigatè a (tankou admin_set_plan_key) dwe gen GRANT sou authenticated ak yon gad `has_role(auth.uid(),'admin')` andedan (sinon 42501); REVOKE sou PUBLIC ak anon. Verifye ak has_function_privilege: anon = false, authenticated = true (fè espre), epi yon tès ki pwouve yon moun ki pa admin pran 42501.
 5. Every end-of-task report states: the commit, what changed, how to roll back (revert + undo SQL), the test results, and today's real date.
 6. No exception to these rules unless Dany says "eksepsyon pou sesyon sa a" (exception for this session).
 
