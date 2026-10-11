@@ -1,5 +1,11 @@
 # Activity Log
 
+## 2026-10-11 — Merged to main: feat/subscription-admin (+ production deploy)
+- Dany tested /admin/billing on the preview with test-parent@independentminds.test and checked the database: 4 changes logged, the upsert created a row for LaShonda (who had none), changed_by correct on each, Julna correctly excluded as co-guardian. Approval: merge.
+- Merge commit `7cd6aad` (--no-ff, from main df78024) pushed once. Checks on the merged tree: eslint clean; tsc -p tsconfig.app.json 393 (baseline 395); vitest 286/286 (also TZ=UTC); build OK.
+- Vercel production `dpl_HKiTQ8VFJYDdw9fFQT48Gr5pmKyN` READY; www /admin/billing → 200. After deploy: cron subscription-expiry-job active=false (NOT turned on — Dany does it), subscription_admin_changes 4 rows, subscriptions 5 rows.
+- Rollback: `git revert -m 1 7cd6aad` + push (UI), then the UNDO block at the end of the migration (DB). Rows created by trials/admin stay in subscriptions.
+
 ## 2026-10-11 — Subscription admin migration APPLIED in production (not merged)
 - Applied `20261011120000_subscription_admin.sql` (apply_migration `subscription_admin`) on Dany's approval. Checks after: table subscription_admin_changes exists, RLS on, single policy SELECT to authenticated using has_role(auth.uid(),'admin'); anon SELECT=false, authenticated INSERT=false; admin_set_subscription + admin_list_parent_subscriptions anon=false authenticated=true; expire_manual_subscriptions anon=false authenticated=false service_role=true; trigger trial_on_email_confirmed on auth.users enabled; cron subscription-expiry-job active=false (05:15 UTC); subscription_admin_changes 0 rows; subscriptions 4 rows, md5 fingerprint identical before/after (aca1b099…).
 - Rollback: UNDO block at the end of the migration file. From now on the trigger is live: a new parent who confirms their email gets a 14-day basic trial.

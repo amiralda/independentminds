@@ -133,7 +133,7 @@ Never skip this step. Never put long logs in
 CLAUDE.md — details go in ACTIVITY_LOG.md only.
 
 ## Recent
-2026-10-11 — Subscription admin (feat/subscription-admin 766360a+863f2d4, NOT merged; migration APPLIED in prod 2026-10-11, checks PASS, cron off) — admin_set_subscription + /admin/billing (all parents, confirm, change trace), 14-day trial on email confirm, expiry cron built disabled. Prod dry run (BEGIN…ROLLBACK) all PASS. Waits for Dany. See docs/ACTIVITY_LOG.md.
+2026-10-11 — Subscription admin MERGED (7cd6aad) + Vercel prod READY; migration applied in prod; preview tested by Dany (LaShonda row created, co-guardian excluded); expiry cron still OFF (Dany turns it on) — admin_set_subscription + /admin/billing (all parents, confirm, change trace), 14-day trial on email confirm, expiry cron built disabled. Prod dry run (BEGIN…ROLLBACK) all PASS. Waits for Dany. See docs/ACTIVITY_LOG.md.
 2026-10-10 — DEPLOYED: Vercel prod 0d5f6b3 READY (/notifications live) + morning-reminder v9, checkin-reminder v7, daily-report v7, weekly-badge v7 (footer, preferences, Haiti date windows). Prod check: Dany + Julna on 3 sends, weekly-badge noProgress. Manual §7/§12/§24 updated. See docs/ACTIVITY_LOG.md.
 2026-10-10 — Merged to main: feat/co-guardian-list (3ff53eb) + feat/notification-preferences (pause/stop page, footer, date-window fix); checks PASS on each merged tree (vitest 280/280, also TZ=UTC). Deploy + prod checks: see docs/ACTIVITY_LOG.md.
 2026-10-10 — Manual updated (docs, main): §4 Schedule Bulk Upload live; §24 CSV import removed from Not Yet Available; §3 Google OAuth removed + internal note (adult_confirmed, two pieces together). See docs/ACTIVITY_LOG.md.
