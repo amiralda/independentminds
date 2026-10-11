@@ -92,74 +92,62 @@ Independent Minds EDU provides a free, mobile-first PWA with full Haitian Creole
 | Styling | Tailwind CSS + shadcn/ui | Design system |
 | State Management | TanStack React Query v5 | Server state, caching |
 | Routing | React Router v6 | Client-side navigation |
-| Backend | Supabase (PostgreSQL 15) | Database, auth, storage |
+| Backend | Supabase (PostgreSQL 17) | Database, auth, storage |
 | Edge Functions | Deno (Supabase Edge Functions) | Server-side logic |
-| AI Engine | Google Gemini 2.5 Flash | AI tutor responses |
-| Notifications | Telegram Bot API + Twilio WhatsApp | Parent alerts |
-| Push Notifications | Web Push API + VAPID | Student browser alerts |
+| AI Engine | OpenAI GPT-4.1 | AI tutor (Mr A) and schedule import |
+| Email | Resend | Reminders, reports, invites, newsletter, welcome email |
+| Payments | Stripe (test mode) | Subscriptions, checkout, billing portal |
 | Offline Storage | idb (IndexedDB) | Offline action queue |
-| PDF Generation | jsPDF | Weekly report export |
-| Build Tool | Vite 5 | Development and bundling |
+| PDF Generation | jsPDF | Weekly report and digital check export |
+| Build Tool | Vite | Development and bundling |
 | PWA | vite-plugin-pwa | Service worker, installability |
-| Encryption | Web Crypto API (AES-256-GCM) | Token encryption |
+| Hosting | Vercel | Web app (www.independentmindsedu.org) |
 
 ### Data Flow
 
 ```
-Student Device (PWA)
+Browser / installed PWA
     ↓ HTTPS
-Supabase Platform
-    ├── PostgreSQL 15 (RLS-protected)
-    ├── Auth (JWT sessions)
-    ├── Edge Functions (Deno)
-    │   ├── ai-tutor → Gemini AI
-    │   ├── parent-alerts → Telegram / WhatsApp
-    │   ├── hourly-monitor → Push + Telegram
-    │   ├── morning-reminder → Push + Telegram
-    │   ├── checkin-reminder → Telegram
-    │   ├── daily-report → Telegram
-    │   ├── weekly-report → Telegram
-    │   ├── weekly-badge → Database
-    │   └── account-maintenance → Email + Cleanup
-    └── Storage (student photos, email assets)
+Vercel (web app)          Supabase Platform
+                              ├── PostgreSQL 17 (RLS on every table)
+                              ├── Auth (JWT sessions, optional TOTP MFA)
+                              ├── pg_cron + pg_net → scheduled edge functions
+                              ├── Edge Functions (Deno)
+                              │   ├── ai-tutor, extract-schedule → OpenAI
+                              │   ├── morning-reminder, checkin-reminder,
+                              │   │   daily-report, weekly-badge → email (Resend)
+                              │   ├── send-welcome-email, send-newsletter-campaign → email (Resend)
+                              │   ├── hourly-monitor → admin notifications (database)
+                              │   ├── dns-monitor → admin email/WhatsApp alert
+                              │   └── stripe-webhook, create-checkout-session,
+                              │       create-portal-session → Stripe
+                              └── Storage (private bucket: student-photos)
 ```
 
 ### Project Structure
 
 ```
 src/
-├── components/         # UI components (40+)
+├── components/         # UI components (60+)
 │   ├── ui/            # shadcn/ui primitives
+│   ├── admin/         # Admin panel pieces
 │   ├── TutorChat.tsx  # AI tutor interface
 │   ├── RewardsPanel.tsx
 │   ├── OfflineIndicator.tsx
 │   ├── MfaSettings.tsx
 │   ├── DeleteAccountButton.tsx
-│   ├── PushPermissionPrompt.tsx (planned)
 │   └── ...
 ├── contexts/          # AuthContext
 ├── hooks/             # Custom React hooks
-├── lib/               # Utilities (i18n, offlineQueue, syncManager)
-├── pages/             # Route pages (Index, Login, Privacy, Terms, etc.)
+├── lib/               # Utilities (i18n, offlineQueue, syncManager, newsletter…)
+├── pages/             # Route pages (Index, Login, admin/*, Privacy, Terms, etc.)
 └── integrations/      # Supabase client + types
 
 supabase/
-├── functions/
-│   ├── ai-tutor/
-│   ├── parent-alerts/
-│   ├── hourly-monitor/
-│   ├── morning-reminder/
-│   ├── checkin-reminder/
-│   ├── daily-report/
-│   ├── weekly-report/
-│   ├── weekly-badge/
-│   ├── account-maintenance/
-│   ├── auth-email-hook/
-│   └── _shared/
-│       ├── crypto.ts
-│       ├── notify.ts
-│       ├── whatsapp.ts
-│       └── email-templates/
+├── functions/         # One folder per edge function (see §18)
+│   └── _shared/       # newsletter-email.ts, notification-footer.ts,
+│                      # haiti-time.ts, whatsapp.ts, email templates…
+├── migrations/        # SQL migrations (each ends with its undo SQL)
 └── config.toml
 ```
 
@@ -697,61 +685,48 @@ All features include translations across all 10 languages:
 
 ### Row-Level Security (RLS)
 
-Every table in the database has RLS enabled. All 25 tables have appropriate policies:
+Every table in the `public` schema (55 in production) has RLS enabled. In the table below, **Family** means the parent account and the people who work for that family: its Managers and its Co-Guardians (database function `get_managed_parent_ids`). **Student** means the student account, for its own rows only. **None** means no browser client can do it; only server functions (service role) can.
 
 | Table | SELECT | INSERT | UPDATE | DELETE |
 |-------|--------|--------|--------|--------|
-| profiles | Own only | Own + parent role | Own (role/student_id locked) | Blocked |
-| students | Parent or self | Parent only | Parent only | Parent only |
-| daily_plan | Own student | Own student | Own student | Parent only |
-| check_ins | Own student | Own student | Own student | Own student |
-| achievements | Own student | Parent only | Parent only | Parent only |
-| subject_tracks | Own student | Parent only | Parent only | Parent only |
-| reward_points | Own student | Parent only (via RPC) | Blocked | Blocked |
-| reward_redemptions | Own student | Own (pending only) | Parent only | Blocked |
-| rewards_catalog | Own student | Parent only | Parent only | Parent only |
-| ai_conversations | Own student + parent | Student only | Blocked | Blocked |
-| messages_log | Own only | Blocked | Blocked | Blocked |
-| parent_settings | Own only | Own only | Own only | Own only |
-| rate_limits | Own only | Blocked | Blocked | Blocked |
-| flagged_inputs | Blocked | Blocked | Blocked | Blocked |
-| push_subscriptions | Own student | Own student | Own student | Own student |
-| schedule_templates | Own or builtin | Own only | Own only | Own only |
-| curriculum_map | Own only | Parent only | Parent only | Parent only |
-| activity_logs | Own student | Own student | Parent only | Parent only |
-| co_guardians | Primary parent + own | Via edge fn | Primary parent | Primary parent |
-| guardian_invites | Primary parent + admin | Via edge fn | Via edge fn | Blocked |
-| inbox_messages | Own + co-guardian SOS | Via edge fn | Own (mark read) | Blocked |
-| user_roles | Admin only | Admin only | Admin only | Admin only |
-| challenges | Own student | Parent only | Parent/student | Parent only |
-| merge_requests | Own only | Own only | Admin only | Blocked |
-| learning_tools | Own student | Parent only | Parent only | Parent only |
+| profiles | Own (+ admin) | Own | Own | Own |
+| students | Family, student (own row), admin | Family | Family; student (own photo only, enforced by trigger) | Family |
+| daily_plan | Family, student | Family | Family; student (status only, enforced by trigger) | Family |
+| check_ins | Family, student, admin | Family, student | Family | Family |
+| achievements | Family, student | None | None | None |
+| subject_tracks | Family, student | Family | Family | Family |
+| reward_points | Family, student, admin | None (server functions) | None | None |
+| reward_redemptions | Family, student, admin | Family (students go through `redeem_reward`) | Family | Family |
+| rewards_catalog | Family, student (own family) | Family | Family | Family |
+| ai_conversations | Family, student | Family, student | Family, student | Family |
+| messages_log | Admin only | None | None | None |
+| parent_settings | Own | Own | Own | Own |
+| rate_limits | Admin only | None (`increment_rate_limit`) | None | None |
+| flagged_inputs | Admin only | None | None | None |
+| schedule_templates | Family | Family | Family | Family |
+| activity_logs | Family, student, admin | Family | Family | Family |
+| co_guardians | Primary parent, the co-guardian (own row) | None (edge function) | None | Primary parent |
+| guardian_invites | Primary parent | None (edge function) | Primary parent (revoke a pending invite only) | None |
+| inbox_messages | Family | Family | Family | Family |
+| user_roles | Own role, admin | Admin | Admin | Admin |
+| learning_tools | Family | Family | Family | Family |
 
-### Encryption (v4.0)
-
-Telegram bot tokens stored in `parent_settings.telegram_bot_token` are encrypted using AES-256-GCM:
-- **Key:** 256-bit hex key stored as `ENCRYPTION_KEY` secret
-- **Format:** `ivHex:ciphertextHex`
-- **Encrypt on write:** All edge functions encrypt tokens before storing
-- **Decrypt on read:** All edge functions decrypt tokens before using
-
-### Rate Limiting (v4.0)
+### Rate Limiting
 
 | Function | Limit | Window |
 |----------|-------|--------|
-| ai-tutor | 30 requests | Per student per hour |
-| parent-alerts | 10 requests | Per parent per hour |
+| ai-tutor | 30 requests | Per signed-in user per clock hour |
 
-Implemented via the `increment_rate_limit()` SECURITY DEFINER RPC. The `rate_limits` table has no client INSERT policy — only the RPC can write to it.
+Implemented via the `increment_rate_limit()` SECURITY DEFINER RPC. The `rate_limits` table has no client write policy — only the RPC can write to it.
 
-### Prompt Injection Defense (v4.0)
+### Prompt Injection Defense
 
 - Hardened system prompt with explicit refusal instructions
 - `sanitizeInput()` function strips injection patterns
 - Input length capped at 2,000 characters
-- Flagged inputs logged without storing content
+- Flagged inputs logged without storing content (`flagged_inputs`: student, reason, length)
 
-### MFA (v4.0)
+### MFA
 
 - Optional TOTP-based MFA for parent accounts
 - Enrollment via QR code scanning
@@ -759,22 +734,12 @@ Implemented via the `increment_rate_limit()` SECURITY DEFINER RPC. The `rate_lim
 - "Account Protected" badge when active
 - Disable requires password re-entry
 
-### Security Audit Results (v4.0)
+### Other Controls
 
-| # | Check | Result |
-|---|-------|--------|
-| 1 | RLS on all tables | ✅ PASS |
-| 2 | Storage buckets private | ✅ PASS |
-| 3 | Edge function JWT validation | ✅ PASS |
-| 4 | Student privilege escalation blocked | ✅ PASS |
-| 5 | Profile role/student_id locked | ✅ PASS |
-| 6 | Telegram token encryption | ✅ PASS |
-| 7 | Cross-user data isolation | ✅ PASS |
-| 8 | messages_log write protection | ✅ PASS |
-| 9 | Input sanitisation | ✅ PASS |
-| 10 | Rate limit enforcement | ✅ PASS |
-| 11 | New tables audit | ✅ PASS |
-| 12 | Secret isolation (VAPID/encryption) | ✅ PASS |
+- Storage: the only bucket, `student-photos`, is private.
+- Admin functions called from the browser (e.g. `admin_set_subscription`) check `has_role(auth.uid(), 'admin')` inside and refuse others with error 42501; anonymous visitors cannot call them.
+- Scheduled functions require the `x-cron-secret` header (value kept in Supabase Vault).
+- Paid features (AI tutor, weekly reports) are checked on the server against the family's subscription.
 
 ---
 
@@ -833,35 +798,48 @@ AI conversations are persisted for active tutoring continuity but:
 
 ## 17. Database Schema
 
-### Tables (25 total)
+### Tables (55 in production, RLS on all)
 
-| Table | Purpose | RLS |
-|-------|---------|-----|
-| profiles | User profiles and settings | ✅ |
-| students | Student records | ✅ |
-| daily_plan | Daily schedule blocks | ✅ |
-| check_ins | Student mood/progress check-ins | ✅ |
-| achievements | Badges and awards | ✅ |
-| subject_tracks | Subject configuration | ✅ |
-| activity_logs | Track-level activity records | ✅ |
-| curriculum_map | Curriculum lesson mapping | ✅ |
-| reward_points | Points ledger | ✅ |
-| reward_redemptions | Reward claim records | ✅ |
-| rewards_catalog | Available rewards | ✅ |
-| messages_log | Notification delivery log | ✅ |
-| parent_settings | Notification configuration | ✅ |
-| learning_tools | Educational resource links | ✅ |
-| ai_conversations | AI tutor chat history (v4.0) | ✅ |
-| schedule_templates | Reusable schedule templates (v4.0) | ✅ |
-| push_subscriptions | Web Push subscriptions (v4.0) | ✅ |
-| rate_limits | API rate limit counters (v4.0) | ✅ |
-| flagged_inputs | Suspicious AI input metadata (v4.0) | ✅ |
-| co_guardians | Co-guardian relationships & permissions (v4.1) | ✅ |
-| guardian_invites | Invite tokens for co-guardians (v4.1) | ✅ |
-| inbox_messages | Unified parent message inbox (v4.1) | ✅ |
-| user_roles | Role-based access control (v4.1) | ✅ |
-| challenges | Student challenge tracking (v4.1) | ✅ |
-| merge_requests | Account merge requests (v4.1) | ✅ |
+| Table | Purpose |
+|-------|---------|
+| profiles | User profiles and settings (incl. language) |
+| students | Student records |
+| daily_plan | Daily schedule blocks |
+| check_ins | Student mood/progress check-ins |
+| achievements | Badges and awards |
+| subject_tracks | Subject configuration |
+| activity_logs | Track-level activity records |
+| reward_points | Points ledger |
+| reward_redemptions | Reward claim records |
+| rewards_catalog | Available rewards |
+| learning_tools | Educational resource links |
+| ai_conversations | AI tutor chat history |
+| schedule_templates | Reusable schedule templates |
+| rate_limits | API rate limit counters |
+| flagged_inputs | Suspicious AI input metadata |
+| user_roles | Roles (parent, student, manager, admin…) |
+| co_guardians | Co-guardian relationships |
+| guardian_invites | Invite tokens for co-guardians |
+| student_account_invites | Student login invitations |
+| manager_requests, manager_parents | Manager applications and the families each Manager works for |
+| inbox_messages | Parent message inbox |
+| parent_settings | Notification configuration |
+| messages_log | Email delivery log |
+| notification_preferences, notification_pref_tokens | Pause/stop per email category, footer link tokens |
+| suppressed_emails, email_unsubscribe_tokens | Newsletter unsubscribes and their single-use tokens |
+| email_newsletter_drafts, newsletter_sends | Newsletter articles (10 languages) and per-person send log |
+| welcome_emails, welcome_email_sends | Welcome email text (10 languages) and once-per-person send log |
+| subscriptions | Plan and status per family (Stripe or set by an admin) |
+| subscription_admin_changes | Who changed a subscription, when, before → after |
+| stripe_customers, billing_events | Stripe customer link and webhook/billing event log |
+| password_reset_requests | "Forgot password" requests |
+| auth_failures | Failed sign-in tracking |
+| platform_errors | Client error reports (track-error) |
+| admin_notifications | Admin alerts (bell in the admin panel) |
+| impersonation_logs | Admin "view as" log |
+| dns_monitor_state, dns_monitor_history | Domain monitoring |
+| user_feedback | In-app feedback widget |
+| beta_config, beta_events, beta_feedback, beta_invite_logs, beta_invites, beta_requests, beta_sessions, beta_task_completions, beta_tasks, beta_testers | Beta program |
 
 ### Key Database Functions
 
@@ -869,60 +847,71 @@ AI conversations are persisted for active tutoring continuity but:
 |----------|---------|
 | `handle_new_user()` | Trigger: creates profile on signup with adult_confirmed fields |
 | `get_my_student_id()` | Returns calling user's student_id |
-| `get_my_role()` | Returns calling user's role |
-| `is_my_student(_student_id)` | Checks ownership of a student |
+| `get_managed_parent_ids(uid)` | The family ids a user may act for (own, as Manager, as Co-Guardian) — used by RLS |
 | `award_points(...)` | SECURITY DEFINER: awards points safely |
 | `redeem_reward(...)` | SECURITY DEFINER: redeems rewards with balance check |
-| `get_points_balance(...)` | SECURITY DEFINER: returns points sum |
 | `increment_rate_limit(...)` | SECURITY DEFINER: atomic rate limit counter |
-| `clear_ai_history(...)` | SECURITY DEFINER: deletes AI conversation for subject |
-| `delete_my_account()` | SECURITY DEFINER: deletes user from auth.users |
 | `update_updated_at_column()` | Trigger: auto-updates updated_at |
-| `has_role(_user_id, _role)` | SECURITY DEFINER: checks admin role |
-| `has_guardian_permission(uid, sid, permission)` | SECURITY DEFINER: checks co-guardian permission |
-| `set_user_role(target_uid, new_role)` | Assigns role to user |
-| `remove_user_role(target_uid, old_role)` | Removes role from user |
-| `get_student_id_by_parent(...)` | Validates parent-student relationship |
+| `has_role(_user_id, _role)` | SECURITY DEFINER: checks a role (e.g. admin) |
+| `get_my_effective_subscription()` | The subscription that applies to the caller (own, or the family's) |
+| `admin_set_subscription(...)`, `admin_list_parent_subscriptions()` | Admin: set plan/status/end date, list every parent (logged in subscription_admin_changes) |
+| `trg_trial_on_email_confirmed()` | Trigger: 14-day Basic trial when a new parent confirms their email |
+| `expire_manual_subscriptions()` | Expires trials/manual subscriptions past their end date (cron created disabled) |
+| `enqueue_welcome_email(...)` | Queues the welcome email (never blocks signup) |
+| `is_notification_enabled(...)` | Checks a person's pause/stop choice before an email is sent |
 
 ---
 
 ## 18. Edge Functions Reference
 
-### Function Inventory
+### Function Inventory (deployed in production)
 
-| Function | Trigger | Auth | Rate Limit | Description |
-|----------|---------|------|------------|-------------|
-| ai-tutor | HTTP POST | JWT | 30/hr/student | AI tutoring via Gemini |
-| parent-alerts | HTTP POST | JWT | 10/hr/parent | Send notification alerts |
-| hourly-monitor | Cron (hourly) | Cron secret | — | Check missed blocks |
-| morning-reminder | Cron (daily) | Cron secret | — | Morning schedule push |
-| checkin-reminder | Cron (midday) | Cron secret | — | Check-in reminder |
-| daily-report | Cron (evening) | Cron secret | — | End-of-day summary |
-| weekly-report | Cron (weekly) | Cron secret | — | Weekly progress report |
-| weekly-badge | Cron (weekly) | Cron secret | — | Award weekly badges |
-| account-merge | HTTP POST | JWT | — | Account merge processing |
-| auth-email-hook | Auth hook | Internal | — | Custom branded email templates |
-| send-guardian-invite | HTTP POST | JWT | — | Send co-guardian invite emails |
-| accept-guardian-invite | HTTP POST | JWT | — | Process co-guardian invite acceptance |
+| Function | Trigger | Auth | Description |
+|----------|---------|------|-------------|
+| ai-tutor | HTTP POST | JWT | Mr A tutoring via OpenAI GPT-4.1 (30 requests/hour/user, paid plans) |
+| extract-schedule | HTTP POST | JWT | Reads an uploaded schedule for the schedule import |
+| weekly-report-data | HTTP POST | JWT | Data for the weekly progress report (paid plans) |
+| morning-reminder | Cron 12:00 UTC daily | Cron secret | Morning schedule email |
+| checkin-reminder | Cron 14:00 UTC daily | Cron secret | Check-in reminder email |
+| daily-report | Cron 01:00 UTC daily | Cron secret | End-of-day summary email |
+| weekly-badge | Cron Monday 02:00 UTC | Cron secret | Weekly badge email |
+| hourly-monitor | Cron hourly (:05) | Cron secret | Admin alert rules → admin notifications |
+| dns-monitor | Cron every 15 min | Cron secret | Domain checks, alerts the admin |
+| send-newsletter-campaign | Admin (manual) + cron Saturday 19:00 UTC | Admin JWT / cron secret | Newsletter send (the deployed version, with the cron, comes from the unmerged branch feat/newsletter-cron; main has the manual-only version) |
+| send-welcome-email | Database trigger (pg_net) | Cron secret | Welcome email, once per person |
+| unsubscribe | Public link | Token | Newsletter unsubscribe (+ one-click) |
+| notification-preferences | Public link | Token | Pause/stop an email category |
+| create-checkout-session | HTTP POST | JWT | Stripe checkout |
+| create-portal-session | HTTP POST | JWT | Stripe billing portal |
+| stripe-webhook | Stripe webhook | Stripe signature | Keeps subscriptions in sync |
+| send-guardian-invite | HTTP POST | JWT | Creates a co-guardian invite |
+| accept-guardian-invite | HTTP POST | JWT | Accepts a co-guardian invite |
+| create-student-account | HTTP POST | JWT | Creates a student login |
+| reset-student-password | HTTP POST | JWT | New "set your password" link for a student |
+| request-password-reset | HTTP POST | Public | "Forgot password?" |
+| manager-create-parent | HTTP POST | JWT | Manager creates a family account |
+| review-manager-request | HTTP POST | JWT | Admin approves/declines a Manager request |
+| track-error | HTTP POST | JWT | Client error reports |
+| track-auth-failure | HTTP POST | Public | Failed sign-in tracking |
+| beta-track | HTTP POST | Public | Beta program tracking |
 
-### Environment Secrets
+Also deployed, with no source folder in the repository (older names): `test-faz1-fixture`, `monitor-create-parent`, `review-monitor-request`.
+
+Folders in `supabase/functions/` that are **not** deployed (not running in production): parent-alerts, weekly-report, telegram-link, auth-email-hook, process-email-queue, send-transactional-email, weekly-backup, admin-notify, account-merge and others.
+
+### Environment Secrets (read by the deployed functions)
 
 | Secret | Used By | Frontend? |
 |--------|---------|-----------|
-| SUPABASE_URL | All edge functions | Via VITE_ prefix |
-| SUPABASE_SERVICE_ROLE_KEY | All edge functions | ❌ Never |
-| SUPABASE_ANON_KEY | parent-alerts (JWT verify) | Via VITE_ prefix |
-| AI_GATEWAY_API_KEY | ai-tutor (Gemini gateway) | ❌ Never |
-| EMAIL_GATEWAY_API_KEY | email delivery/auth hooks | ❌ Never |
-| TELEGRAM_BOT_TOKEN | Notification functions | ❌ Never |
-| TELEGRAM_CHAT_ID | Notification functions | ❌ Never |
-| TWILIO_ACCOUNT_SID | whatsapp.ts | ❌ Never |
-| TWILIO_AUTH_TOKEN | whatsapp.ts | ❌ Never |
-| TWILIO_WHATSAPP_FROM | whatsapp.ts | ❌ Never |
-| ENCRYPTION_KEY | crypto.ts | ❌ Never |
-| VAPID_PUBLIC_KEY | webpush.ts | Via VITE_ prefix |
-| VAPID_PRIVATE_KEY | webpush.ts | ❌ Never |
-| VAPID_EMAIL | webpush.ts | ❌ Never |
+| SUPABASE_URL | All | Via VITE_ prefix |
+| SUPABASE_SERVICE_ROLE_KEY | Most functions | ❌ Never |
+| SUPABASE_ANON_KEY / SUPABASE_PUBLISHABLE_KEY | JWT functions, send-newsletter-campaign | Via VITE_ prefix |
+| AI_GATEWAY_URL, AI_GATEWAY_API_KEY | ai-tutor, extract-schedule (OpenAI) | ❌ Never |
+| RESEND_API_KEY | Email-sending functions | ❌ Never |
+| CRON_SECRET | Scheduled functions, send-welcome-email | ❌ Never |
+| STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET | Stripe functions | ❌ Never |
+| TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_WHATSAPP_FROM, ADMIN_WHATSAPP_NUMBER | dns-monitor (admin alert only) | ❌ Never |
+| BETA_ADMIN_EMAIL, MONITOR_DOMAIN, MONITOR_CANONICAL_DOMAIN | dns-monitor | ❌ Never |
 
 ---
 
