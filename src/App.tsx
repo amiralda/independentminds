@@ -39,6 +39,7 @@ const AdminDnsStatus = lazy(() => import("./pages/admin/AdminDnsStatus"));
 const AdminBilling = lazy(() => import("./pages/admin/AdminBilling"));
 const AdminNewsletter = lazy(() => import("./pages/admin/AdminNewsletter"));
 const AdminNewsletterDetail = lazy(() => import("./pages/admin/AdminNewsletterDetail"));
+const AdminWelcomeEmail = lazy(() => import("./pages/admin/AdminWelcomeEmail"));
 const AcceptInvite = lazy(() => import("./pages/AcceptInvite"));
 const BetaRequest = lazy(() => import("./pages/BetaRequest"));
 const BetaAccept = lazy(() => import("./pages/BetaAccept"));
@@ -148,6 +149,7 @@ const App = () => (
                     <Route path="billing" element={<AdminBilling />} />
                     <Route path="newsletter" element={<AdminNewsletter />} />
                     <Route path="newsletter/:campaign" element={<AdminNewsletterDetail />} />
+                    <Route path="welcome-email" element={<AdminWelcomeEmail />} />
                   </Route>
                   <Route
                     path="/"
