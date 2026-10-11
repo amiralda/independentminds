@@ -111,9 +111,8 @@ Details: docs/AUDIT_REPORT.md
   - Public archive = a new public route reading only `sent` articles (RLS or a public view limited to sent rows) in the visitor's language.
 
 ## Pending (open items — propose, do not apply without Dany)
-- **Database backup:** Supabase Free has no automatic backups. Propose one of 2 options (do NOT apply anything): (a) upgrade to Pro (daily backups included); (b) a regular `pg_dump` script (scheduled, stored off-Supabase).
+- **Database backup:** built 2026-10-11 (GitHub Actions, see docs/BACKUP_RESTORE.md). Waiting on Dany: GitHub secret `SUPABASE_DB_URL`, private age key into the password manager, first run + restore test.
 - **hello@independentmindsedu.org mailbox (Cloudflare Email Routing): not verified.** Replies to the newsletter/welcome email go there.
-- **Admin page to edit `welcome_emails`** (today only editable via SQL).
 
 ## Logging rule (mandatory after EVERY completed task)
 After finishing any task, before reporting done:
@@ -133,8 +132,8 @@ Never skip this step. Never put long logs in
 CLAUDE.md — details go in ACTIVITY_LOG.md only.
 
 ## Recent
+2026-10-11 — Backup (merged 412df58): GitHub Actions daily pg_dump 17 → age → artifact 7 days; skips green until secret SUPABASE_DB_URL exists; new age key (private key only on Dany's PC). Stub test 13/13; real DB not tested yet. See docs/BACKUP_RESTORE.md + ACTIVITY_LOG.
+2026-10-11 — Manual §2/§15/§17/§18 corrected to production (docs, 3103ad5): Gemini, Telegram/WhatsApp/Web Push, missing tables/functions, undeployed functions removed. Other sections still list them. See ACTIVITY_LOG.
+2026-10-11 — /admin/welcome-email (merged b01d1b3, prod READY): 10-language editor, confirm before save, email preview, read-only send stats; no migration. Tests 294/294.
 2026-10-11 — Subscription admin MERGED (7cd6aad) + Vercel prod READY; migration applied in prod; preview tested by Dany (LaShonda row created, co-guardian excluded); expiry cron still OFF (Dany turns it on) — admin_set_subscription + /admin/billing (all parents, confirm, change trace), 14-day trial on email confirm, expiry cron built disabled. Prod dry run (BEGIN…ROLLBACK) all PASS. Waits for Dany. See docs/ACTIVITY_LOG.md.
 2026-10-10 — DEPLOYED: Vercel prod 0d5f6b3 READY (/notifications live) + morning-reminder v9, checkin-reminder v7, daily-report v7, weekly-badge v7 (footer, preferences, Haiti date windows). Prod check: Dany + Julna on 3 sends, weekly-badge noProgress. Manual §7/§12/§24 updated. See docs/ACTIVITY_LOG.md.
-2026-10-10 — Merged to main: feat/co-guardian-list (3ff53eb) + feat/notification-preferences (pause/stop page, footer, date-window fix); checks PASS on each merged tree (vitest 280/280, also TZ=UTC). Deploy + prod checks: see docs/ACTIVITY_LOG.md.
-2026-10-10 — Manual updated (docs, main): §4 Schedule Bulk Upload live; §24 CSV import removed from Not Yet Available; §3 Google OAuth removed + internal note (adult_confirmed, two pieces together). See docs/ACTIVITY_LOG.md.
-2026-10-10 — Merged to main: fix/hide-google-signin (39620c7, preview checked by Dany in Sign In + Sign Up) then feat/csv-import (0138fc2, tested 4/4 by Dany on df270c5). lint/tsc(395=main)/vitest 199/199/build PASS on each merged tree. feat/co-guardian-list + feat/notification-preferences NOT merged (previews untested). See docs/ACTIVITY_LOG.md.
