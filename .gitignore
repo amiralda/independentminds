@@ -27,3 +27,11 @@ dist-ssr
 
 # Supabase CLI local state
 supabase/.temp/
+
+# Database backups: never commit a dump or a private key (backup/age-recipient.txt is the PUBLIC key)
+*.dump
+*.dump.age
+*.age
+*.partial
+backup-out/
+age-key*.txt

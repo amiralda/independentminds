@@ -1,0 +1,5 @@
+# age PUBLIC key (recipient) used by .github/workflows/backup.yml to encrypt the
+# database dumps. Public by design: it can only ENCRYPT. The matching private key
+# (AGE-SECRET-KEY-…) is never in git; Dany keeps it (see docs/BACKUP_RESTORE.md).
+# Generated 2026-10-11 with age-keygen v1.3.1.
+age1xkf9dp9uuj4sz2st5apzptse00j7x2n62rjws84jj6x46u4cas9qdmmnm0
