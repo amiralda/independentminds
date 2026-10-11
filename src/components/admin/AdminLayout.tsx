@@ -3,7 +3,7 @@ import { NavLink, Outlet, Navigate, Link } from "react-router-dom";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import {
   LayoutDashboard, Users, TrendingUp, Gift, Activity,
-  MessageSquare, Shield, LogOut, Home, Menu, X, Eye, FlaskConical, Bell, Globe, CreditCard, Newspaper
+  MessageSquare, Shield, LogOut, Home, Menu, X, Eye, FlaskConical, Bell, Globe, CreditCard, Newspaper, MailPlus
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.svg";
@@ -25,6 +25,7 @@ const navItems = [
   { to: "/admin/dns", icon: Globe, label: "DNS Status" },
   { to: "/admin/billing", icon: CreditCard, label: "Billing" },
   { to: "/admin/newsletter", icon: Newspaper, label: "News / Articles", labelKey: "adminNews.nav" },
+  { to: "/admin/welcome-email", icon: MailPlus, label: "Welcome email", labelKey: "adminWelcome.nav" },
 ];
 
 function SidebarNav({ onNavigate, systemAlertCount }: { onNavigate?: () => void; systemAlertCount?: number }) {
