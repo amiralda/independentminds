@@ -1,0 +1,77 @@
+# Daily encrypted database backup (pg_dump 17 -> age), kept 7 days as a
+# GitHub Actions artifact. Restore: docs/BACKUP_RESTORE.md.
+#
+# Needs the repository secret SUPABASE_DB_URL (added by Dany). Until it
+# exists, every run ends successfully with a "Backup skipped" notice, so no
+# failure email is sent.
+#
+# This repository is public: the artifact is encrypted with the age PUBLIC key
+# in backup/age-recipient.txt (only the private key, kept by Dany, can read
+# it), and backup/backup.sh never prints the connection string.
+name: Database backup
+
+on:
+  schedule:
+    - cron: "30 6 * * *" # 06:30 UTC daily (02:30 EDT / 01:30 EST in Haiti)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: db-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Is the secret set?
+        id: cfg
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ]; then
+            echo "::notice title=Backup skipped::Secret SUPABASE_DB_URL is not set yet, so no backup was made (see docs/BACKUP_RESTORE.md)."
+            echo "### Backup skipped: secret \`SUPABASE_DB_URL\` is not set yet." >> "$GITHUB_STEP_SUMMARY"
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.cfg.outputs.configured == 'true'
+
+      # Production runs PostgreSQL 17: pg_dump must be 17 (Ubuntu 24.04 ships 16,
+      # which refuses to dump a newer server). Official PGDG repository.
+      - name: Install pg_dump 17 and age
+        if: steps.cfg.outputs.configured == 'true'
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
+            | sudo tee /etc/apt/sources.list.d/pgdg.list > /dev/null
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client-17 age > /dev/null
+          /usr/lib/postgresql/17/bin/pg_dump --version
+          age --version
+
+      - name: Dump and encrypt
+        id: dump
+        if: steps.cfg.outputs.configured == 'true'
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PG_BIN: /usr/lib/postgresql/17/bin
+          OUT_DIR: ${{ runner.temp }}/backup-out
+        run: bash backup/backup.sh
+
+      - name: Keep the encrypted dump for 7 days
+        if: steps.cfg.outputs.configured == 'true' && steps.dump.outputs.status == 'ok'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.dump.outputs.name }}
+          path: ${{ steps.dump.outputs.file }}
+          retention-days: 7
+          compression-level: 0
+          if-no-files-found: error
