@@ -9,6 +9,7 @@ import {
   type NewsletterArticle, type NewsletterDraft,
 } from "@/lib/newsletter";
 import { NewsletterLangSelect, NewsletterStatusBadge } from "@/components/admin/NewsletterBits";
+import { NewArticleDialog } from "@/components/admin/NewArticleDialog";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 
 export default function AdminNewsletter() {
@@ -33,9 +34,12 @@ export default function AdminNewsletter() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <div>
-        <h1 className="text-2xl font-display font-bold text-white">{t("adminNews.nav")}</h1>
-        <p className="text-sm text-white/50 mt-1">{t("adminNews.subtitle")}</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-display font-bold text-white">{t("adminNews.nav")}</h1>
+          <p className="text-sm text-white/50 mt-1">{t("adminNews.subtitle")}</p>
+        </div>
+        <NewArticleDialog />
       </div>
 
       {error && <div className="rounded-md border border-red-500/40 bg-red-500/10 p-3 text-red-300 text-sm">{error}</div>}
