@@ -132,8 +132,8 @@ Never skip this step. Never put long logs in
 CLAUDE.md — details go in ACTIVITY_LOG.md only.
 
 ## Recent
+2026-10-14 — Managers in notify_recipients_for_parent (fix/manager-notifications, migration NOT applied): same signature, kind 'manager', dedup parent > co_guardian > manager; dry run OK (cathia 1 → 2, others unchanged). Footer shows parent wording for managers (separate change). See ACTIVITY_LOG.
 2026-10-14 — Backup live (docs): secret SUPABASE_DB_URL = session pooler (direct = IPv6, runs #3-#5 failed "Network is unreachable"); run #6 38566981393 OK, artifact ime-db_20261014T125121Z.dump.age; decryption test on Dany's PC OK, 90/90 TABLE DATA. Docker restore test + second key copy still pending. See ACTIVITY_LOG.
 2026-10-11 — Backup (merged 412df58): GitHub Actions daily pg_dump 17 → age → artifact 7 days; skips green until secret SUPABASE_DB_URL exists; new age key (private key only on Dany's PC). Stub test 13/13; real DB not tested yet. See docs/BACKUP_RESTORE.md + ACTIVITY_LOG.
 2026-10-11 — Manual §2/§15/§17/§18 corrected to production (docs, 3103ad5): Gemini, Telegram/WhatsApp/Web Push, missing tables/functions, undeployed functions removed. Other sections still list them. See ACTIVITY_LOG.
 2026-10-11 — /admin/welcome-email (merged b01d1b3, prod READY): 10-language editor, confirm before save, email preview, read-only send stats; no migration. Tests 294/294.
-2026-10-11 — Subscription admin MERGED (7cd6aad) + Vercel prod READY; migration applied in prod; preview tested by Dany (LaShonda row created, co-guardian excluded); expiry cron still OFF (Dany turns it on) — admin_set_subscription + /admin/billing (all parents, confirm, change trace), 14-day trial on email confirm, expiry cron built disabled. Prod dry run (BEGIN…ROLLBACK) all PASS. Waits for Dany. See docs/ACTIVITY_LOG.md.
