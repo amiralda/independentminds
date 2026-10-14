@@ -3,7 +3,8 @@
 //
 //   { action: "draft", topic, scheduled_for, campaign }
 //     -> writes the English version with gpt-4.1 from the topic + IME_FACTS,
-//        inserts the EN row (pending_approval). 409 if the campaign exists.
+//        inserts the EN row (pending_approval). 409 if the campaign exists,
+//        422 (nothing saved) if the text did not come out in English.
 //   { action: "translate", campaign, language }
 //     -> translates the EN row into one language and inserts it
 //        (pending_approval). Already there -> 200 { skipped: true }.
@@ -13,7 +14,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { IME_FACTS } from "../_shared/ime-facts.ts";
 import {
-  TRANSLATION_LANGUAGES, checkScheduledFor, isValidCampaign, type ArticleLanguage,
+  TRANSLATION_LANGUAGES, checkScheduledFor, isValidCampaign, looksEnglish, type ArticleLanguage,
 } from "../_shared/article-generation.ts";
 import { haitiDate } from "../_shared/haiti-time.ts";
 
@@ -30,7 +31,9 @@ const LANGUAGE_NAMES: Record<ArticleLanguage, string> = {
   AR: "Arabic", ZH: "Simplified Chinese", DE: "German", JA: "Japanese", RU: "Russian",
 };
 
-export const DRAFT_SYSTEM_PROMPT = `You write newsletter articles for Independent Minds EDU (IME), a web platform for families who homeschool.
+export const DRAFT_SYSTEM_PROMPT = `WRITE THE ARTICLE IN ENGLISH, whatever the language of the topic. The title and the whole content must be in English. Example: a topic written in French or in Haitian Creole -> an article written in English (the 9 other languages are translated from it later).
+
+You write newsletter articles for Independent Minds EDU (IME), a web platform for families who homeschool.
 
 FACT BASE — the only features you may describe:
 """
@@ -38,10 +41,14 @@ ${IME_FACTS}
 """
 
 Rules:
-- Describe ONLY what is in the fact base. Never invent a feature, a plan, a price, a date or an integration. If the topic asks about something that does not exist, write the article without it (do not say it is coming).
+- The fact base is the complete list. If something is not written in it, it does not exist: do not deduce it, do not complete it, do not assume it. Never invent a feature, a plan, a price, a date or an integration. If the topic asks about something that does not exist, write the article without it (do not say it is coming).
 - Length: 500-700 words.
+- Structure: at most 4 sections with "## " headings. No "Conclusion" section (and no closing summary section under another name).
+- Start with a problem or an observation about families' lives, not with a list of what the platform does.
+- Mention at most 3 IME features in the whole article, and only where they answer the problem described. The article is about the problem, not a feature brochure.
 - Markdown: "## " for section headings, **bold** for key words. No H1 — the title goes in the "title" field only.
 - Tone: analytical and concrete. No marketing language. Never use "revolutionary", "game-changing", "empower" or similar hype words.
+- Use English words only: no French, Kreyòl or other words (only the names Independent Minds EDU, IME and Mr A).
 - No focus on a single country or culture: IME is a global platform.
 - Use numbers, studies or quotes ONLY if the topic provides them, exactly as given, with the source the topic gives. NEVER invent statistics, studies or quotes.
 - Respond with a JSON object only: {"title": "...", "content": "... markdown ..."}`;
@@ -50,7 +57,7 @@ export function translateSystemPrompt(language: ArticleLanguage): string {
   const name = LANGUAGE_NAMES[language];
   const extra: Partial<Record<ArticleLanguage, string>> = {
     HT: `
-- Haitian Creole: standard, natural Kreyòl Ayisyen — not a literal translation from French. Standard spelling (è, ò). Correct contractions: m ap, w ap, l ap, n ap, y ap, p ap, t ap. Never use "à" in Kreyòl words. Do not invent words for technical terms: keep them in English and fit them naturally into Kreyòl grammar.`,
+- Haitian Creole: standard, natural Kreyòl Ayisyen — not a literal translation from French. Standard spelling (è, ò). Correct contractions: m ap, w ap, l ap, n ap, y ap, p ap, t ap. Never use "à" in Kreyòl words. Never use French words (e.g. not "fonctionnalités": write "fonksyon"). Do not invent words for technical terms: keep them in English and fit them naturally into Kreyòl grammar.`,
     AR: `
 - Arabic: write so the text reads correctly right-to-left. Keep the Markdown markers ("## ", "**", "- ") in place; Latin-script proper names stay as they are.`,
   };
@@ -60,6 +67,7 @@ Rules:
 - Translate the MEANING, not word for word. The text must read as if a native ${name} speaker wrote it.
 - Keep the Markdown structure and the same sections, in the same order.
 - Do not add or remove information.
+- Use ${name} words only: no words from another language, except the names below${language === "HT" ? " and the technical terms kept in English (see below)" : ""}.
 - These names stay unchanged: Independent Minds EDU, IME, Mr A, Manager, Co-Guardian.${extra[language] ?? ""}
 - Respond with a JSON object only: {"title": "...", "content": "... markdown ..."}`;
 }
@@ -156,7 +164,11 @@ Deno.serve(async (req) => {
       if (existErr) throw new Error(`lookup failed [${existErr.code ?? "db"}]`);
       if (existing && existing.length > 0) return json({ error: "Campaign already exists" }, 409);
 
-      const article = await callAI(DRAFT_SYSTEM_PROMPT, `Topic (from the editor; may include figures and sources to use):\n"""\n${topic.trim()}\n"""`);
+      const article = await callAI(DRAFT_SYSTEM_PROMPT, `Topic (from the editor; may include figures and sources to use; it may be in any language — write the article in English):\n"""\n${topic.trim()}\n"""`);
+      // The EN row is the source of the 9 translations: never store another language as EN.
+      if (!looksEnglish(`${article.title}\n${article.content}`)) {
+        return json({ error: "The article did not come out in English, so nothing was saved. Click Generate again." }, 422);
+      }
 
       const { error: insErr } = await admin.from(TABLE).insert({
         campaign, language: "EN", title: article.title, content: article.content,

@@ -48,6 +48,9 @@ vi.mock("https://esm.sh/@supabase/supabase-js@2", () => ({
 }));
 
 let handler: (req: Request) => Promise<Response>;
+let DRAFT_SYSTEM_PROMPT = "";
+// Default AI text: reads as English (looksEnglish) for the draft.
+const aiBody = (lang: string) => `## Section\n\nBody in ${lang}: this is the plan for the family and it works.`;
 const ai = { calls: [] as { system: string; user: string }[], fail: new Set<string>(), reply: null as null | { title: string; content: string } };
 
 beforeAll(async () => {
@@ -70,10 +73,10 @@ beforeAll(async () => {
     ai.calls.push({ system, user });
     const lang = /from English into (.+?)\.\n/.exec(system)?.[1] ?? "English";
     if ([...ai.fail].some((f) => lang.startsWith(f))) return new Response("boom", { status: 502 });
-    const content = JSON.stringify(ai.reply ?? { title: `Title (${lang})`, content: `## Section\n\nBody in ${lang}` });
+    const content = JSON.stringify(ai.reply ?? { title: `Title (${lang})`, content: aiBody(lang) });
     return new Response(JSON.stringify({ choices: [{ message: { content } }] }), { status: 200 });
   });
-  await import("../../../supabase/functions/generate-article/index");
+  ({ DRAFT_SYSTEM_PROMPT } = await import("../../../supabase/functions/generate-article/index"));
 });
 
 afterAll(() => vi.unstubAllGlobals());
@@ -126,10 +129,10 @@ describe("draft", () => {
   it("writes the EN row as pending_approval with the date and returns it", async () => {
     const res = await draft();
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ campaign: "daily-routine-2099-01", title: "Title (English)", content: "## Section\n\nBody in English" });
+    expect(await res.json()).toEqual({ campaign: "daily-routine-2099-01", title: "Title (English)", content: aiBody("English") });
     expect(db.inserts).toEqual([{
       campaign: "daily-routine-2099-01", language: "EN", title: "Title (English)",
-      content: "## Section\n\nBody in English", status: "pending_approval", scheduled_for: SAT,
+      content: aiBody("English"), status: "pending_approval", scheduled_for: SAT,
     }]);
     expect(ai.calls[0].system).toContain("WHAT DOES NOT EXIST");
     expect(ai.calls[0].system).toMatch(/NEVER invent statistics/);
@@ -170,9 +173,32 @@ describe("draft", () => {
   });
 
   it("drops a leading H1 the model may add", async () => {
-    ai.reply = { title: "T", content: "# T\n\n## A\n\nb" };
+    ai.reply = { title: "T", content: "# T\n\n## A\n\nThe plan is for the family and it works." };
     await draft();
-    expect(db.inserts[0].content).toBe("## A\n\nb");
+    expect(db.inserts[0].content).toBe("## A\n\nThe plan is for the family and it works.");
+  });
+
+  it("refuses a draft that did not come out in English: 422, nothing inserted", async () => {
+    // The real test-jenerasyon-1 failure: a Kreyòl topic gave a Kreyòl "EN" row.
+    ai.reply = {
+      title: "Kijan pou yon fanmi kenbe yon ritm lekòl lakay pandan yon semèn ki chaje",
+      content: "## Planifye chak jou ak Klarite\n\nLè yon semèn vin chaje ak anpil aktivite, **planifikasyon** vin pi enpòtan toujou pou fanmi ki ap fè lekòl lakay.",
+    };
+    const res = await draft({ topic: "Kijan pou yon fanmi kenbe yon ritm lekòl lakay" });
+    expect(res.status).toBe(422);
+    expect((await res.json()).error).toMatch(/did not come out in English/);
+    expect(db.inserts).toEqual([]);
+  });
+
+  it("the draft prompt opens with the English rule and limits the structure", () => {
+    expect(DRAFT_SYSTEM_PROMPT.split("\n")[0]).toMatch(/^WRITE THE ARTICLE IN ENGLISH/);
+    expect(DRAFT_SYSTEM_PROMPT).toMatch(/French or in Haitian Creole -> an article written in English/);
+    expect(DRAFT_SYSTEM_PROMPT).toMatch(/at most 4 sections/);
+    expect(DRAFT_SYSTEM_PROMPT).toMatch(/No "Conclusion" section/);
+    expect(DRAFT_SYSTEM_PROMPT).toMatch(/at most 3 IME features/);
+    expect(DRAFT_SYSTEM_PROMPT).toMatch(/not written in it, it does not exist/);
+    expect(DRAFT_SYSTEM_PROMPT).toMatch(/NO built-in or ready-made templates/);
+    expect(DRAFT_SYSTEM_PROMPT).toMatch(/No built-in or pre-made schedule templates/);
   });
 });
 
@@ -186,7 +212,7 @@ describe("translate", () => {
     expect(res.status).toBe(200);
     expect(db.inserts).toEqual([{
       campaign: "daily-routine-2099-01", language: "HT", title: "Title (Haitian Creole (Kreyòl Ayisyen))",
-      content: "## Section\n\nBody in Haitian Creole (Kreyòl Ayisyen)", status: "pending_approval", scheduled_for: SAT,
+      content: aiBody("Haitian Creole (Kreyòl Ayisyen)"), status: "pending_approval", scheduled_for: SAT,
     }]);
     expect(ai.calls[0].system).toContain("m ap, w ap, l ap");
     expect(JSON.parse(ai.calls[0].user)).toEqual({ title: "Routine", content: "## A\n\nb" });

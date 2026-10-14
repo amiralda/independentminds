@@ -77,3 +77,23 @@ export function checkScheduledFor(ymd: unknown, today: string): ScheduleCheck {
   if (!isSaturday(ymd)) return { ok: false, reason: "not_saturday", suggestion: nearestSaturday(ymd, today) };
   return { ok: true };
 }
+
+// English function words: frequent in any English prose, (almost) absent from
+// the other 9 languages. "a" and "in" are left out (also Kreyòl, Spanish,
+// Portuguese, German words).
+const ENGLISH_MARKERS = new Set(["the", "and", "that", "with", "for", "of", "to", "is", "are", "this", "your", "their", "it"]);
+
+/** Share of English function words among the words of `text` (Markdown ignored). */
+export function englishWordShare(text: string): number {
+  const words = text.toLowerCase().match(/[\p{L}']+/gu) ?? [];
+  if (words.length === 0) return 0;
+  return words.filter((w) => ENGLISH_MARKERS.has(w)).length / words.length;
+}
+
+/**
+ * True when the text reads as English. Real English articles score about
+ * 0.15-0.25; Kreyòl, French, Spanish... about 0-0.02.
+ */
+export function looksEnglish(text: string, minShare = 0.08): boolean {
+  return englishWordShare(text) >= minShare;
+}

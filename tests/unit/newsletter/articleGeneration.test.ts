@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
-  TRANSLATION_LANGUAGES, campaignFromTopic, checkScheduledFor, isSaturday, isValidCampaign, nearestSaturday, slugify,
+  TRANSLATION_LANGUAGES, campaignFromTopic, checkScheduledFor, englishWordShare, isSaturday, isValidCampaign, looksEnglish, nearestSaturday, slugify,
 } from "../../../supabase/functions/_shared/article-generation";
 
 describe("slug / campaign", () => {
@@ -68,5 +68,32 @@ describe("Saturday rule", () => {
 
   it("translation languages are the 9 non-English ones", () => {
     expect(TRANSLATION_LANGUAGES).toEqual(["HT", "FR", "ES", "PT", "AR", "ZH", "DE", "JA", "RU"]);
+  });
+});
+
+describe("looksEnglish (guard on the EN draft)", () => {
+  const en = "## Why routines break\n\nWhen a week fills up with appointments and errands, the school day is often the first thing to slip. Families who homeschool know that a plan made on Sunday rarely survives Wednesday, and that the cost is not only lost lessons but also the time spent deciding, every morning, what to do next. **A written plan** for each student removes that daily negotiation.";
+  const others: Record<string, string> = {
+    HT: "## Planifye chak jou ak Klarite\n\nLè yon semèn vin chaje ak anpil aktivite, **planifikasyon** vin pi enpòtan toujou pou fanmi ki ap fè lekòl lakay. Sou platfòm Independent Minds EDU (IME), yon paran ka bati orè chak jou pou chak elèv nan fanmi an.",
+    FR: "## Pourquoi les routines se brisent\n\nQuand une semaine se remplit de rendez-vous, la journée d'école est souvent la première chose qui glisse. Les fonctionnalités de la plateforme aident les familles à planifier chaque jour pour chaque élève.",
+    ES: "## Por qué se rompen las rutinas\n\nCuando una semana se llena de citas y recados, la jornada escolar suele ser lo primero que se pierde. Las familias que educan en casa saben que un plan hecho el domingo rara vez sobrevive al miércoles.",
+    PT: "## Por que as rotinas se quebram\n\nQuando uma semana se enche de compromissos, o dia de estudo costuma ser a primeira coisa a escapar. As famílias que educam em casa sabem que um plano feito no domingo raramente sobrevive à quarta-feira.",
+    DE: "## Warum Routinen zerbrechen\n\nWenn sich eine Woche mit Terminen füllt, ist der Schultag oft das Erste, was verrutscht. Familien, die zu Hause unterrichten, wissen, dass ein Plan vom Sonntag selten den Mittwoch übersteht.",
+    JA: "## ルーティンが崩れる理由\n\n予定が詰まった週には、まず学習の時間が後回しになりがちです。",
+  };
+
+  it("accepts real English prose", () => {
+    expect(looksEnglish(en)).toBe(true);
+    expect(englishWordShare(en)).toBeGreaterThan(0.12);
+  });
+
+  it("refuses the other languages, including the Kreyòl 'EN' row of test-jenerasyon-1", () => {
+    for (const [lang, text] of Object.entries(others)) {
+      expect({ lang, english: looksEnglish(text) }).toEqual({ lang, english: false });
+    }
+  });
+
+  it("refuses empty text", () => {
+    expect(looksEnglish("")).toBe(false);
   });
 });
