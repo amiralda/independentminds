@@ -1,5 +1,17 @@
 # Activity Log
 
+## 2026-10-14 — Backup database: premye vrè backup + tès dekripsyon
+- Summary: GitHub secret `SUPABASE_DB_URL` set on 2026-10-14 (the database password was reset for it). The backup workflow now produces real encrypted dumps.
+- Failed runs before the fix (all "Dump and encrypt" step, annotation `could not connect to the database: ... port 5432 failed: Network is unreachable`): #3 `38495770879` (2026-10-14 01:26:53 UTC, manual), #4 `38524584542` (2026-10-14 06:50:24 UTC, schedule), #5 `38566117296` (2026-10-14 12:44:21 UTC, manual). Cause: the secret held the "Direct connection" URI, which is IPv6-only; GitHub-hosted runners have no IPv6. Fixed by switching to the "Session pooler" URI (`pooler.supabase.com`, IPv4, port 5432). **For the future: always the session pooler, never direct.**
+- Earlier runs #1 `38216640685` (2026-10-12) and #2 `38359868344` (2026-10-13) were green but "Backup skipped" (secret not set yet, 0 artifacts).
+- First successful backup: run #6 `38566981393` (manual), started 2026-10-14 12:51:01 UTC, job 12:51:04 → 12:51:41 UTC, conclusion success, all steps green. Artifact `ime-db_20261014T125121Z.dump.age` (created 12:51:39 UTC): run summary reports 701 800 bytes (the .age file), pg_dump 17.11, "0 unreadable tables excluded"; GitHub API lists the artifact at 701 978 bytes (artifact container size). Run conclusion, steps and artifact checked through the public GitHub API; the summary text itself is not readable without auth (values from Dany).
+- Decryption test on Dany's PC (2026-10-14): `age -d` with the private key succeeded (exit 0) → `restore.dump` 701 440 bytes; dump header: archive created 2026-10-14 13:51:21, dumped from 17.6, pg_dump 17.11; local pg_restore 17.11; `pg_restore --list` → 90 TABLE DATA entries, including public.profiles, public.students, public.daily_plan, public.subscriptions, public.messages_log, public.welcome_emails, auth.users, storage.objects. Checked against production (by Dany): 90 tables in total (public 55, auth 27, storage 8) → 90/90, zero missing tables. Temporary files (decrypted dump, .age copy, extracted .age) deleted; the downloaded `.dump.age.zip` is still on Dany's Desktop.
+- NOT done yet: the full Docker restore test (docs/BACKUP_RESTORE.md §3 steps 4-6); a second copy of the private key.
+- Files touched: `CLAUDE.md`, `docs/ACTIVITY_LOG.md` (docs only, no code).
+- Validation: docs only.
+- Risks + rollback: `git revert` of the commit.
+- Blockers/human actions needed (Dany): copy the private key to a second location; run the Docker restore test.
+
 ## 2026-10-11 — Autonomous session (Dany away): welcome-email admin, manual §2/15/17/18, database backup
 ### 1. /admin/welcome-email (feat/welcome-email-admin → merged `b01d1b3`)
 - Summary: new admin page modelled on AdminNewsletterDetail: language select over the 10 `welcome_emails` rows, edit title + content (Markdown), live preview, "Preview as email" with the real `renderNewsletterEmail` template (shared component `EmailPreviewButton`, extracted from the newsletter page — same behaviour there, optional `note`), amber "no approval step, goes live immediately" banner, AlertDialog confirmation before every save ("Save and use now"), read-only stats from `welcome_email_sends` (sent / failed / not sent-unsubscribed / in progress / welcomed before automation, last sent date, sent per language). Save = UPDATE (title, content) on one language, re-reads the row (0 rows = refused → error). Nav entry + route. 18 new i18n keys × 10 languages.
