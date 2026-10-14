@@ -5,6 +5,8 @@
 // production notes: OPERATIONAL_MANUAL_v4.md §2/§18 (corrected 2026-10-11),
 // the deployed edge function list, src/pages/, src/config/plans.ts and the
 // notification migrations. Pure TypeScript, no imports.
+// Corrected 2026-10-14 after the first test article: templates are only the
+// weeks a family saved (src/components/ScheduleTemplates.tsx; no built-ins).
 
 export const IME_FACTS = `
 INDEPENDENT MINDS EDU (IME) — WHAT EXISTS TODAY
@@ -13,7 +15,8 @@ IME is a web platform for families who homeschool or support their children's le
 
 DAILY SCHEDULE
 - For each student, the parent builds a daily schedule of tasks ("blocks"): a subject, a start time and an end time.
-- Weekly schedule templates: save a week as a template, apply it later, or copy last week forward. Built-in templates exist for elementary (K-5), middle school (6-8) and a flexible week.
+- Saved weeks ("templates"): the parent can save a student's current week (Monday to Friday) under a name of their choice, then apply that saved week to the current week of a student later. Saved weeks belong to the family. There are NO built-in or ready-made templates: a family only has the weeks it saved itself, and a new family has none.
+- "Copy last week": copies a student's tasks from last Monday-Friday to this week.
 - Schedule import from a file: the parent can download a CSV template, or upload a schedule file (CSV, TSV, TXT, PDF, image or Excel .xlsx). Simple CSV files are read in the browser; other files are read by AI. Nothing is saved until the parent checks a preview of every row and confirms the import.
 
 STUDENTS
@@ -82,5 +85,6 @@ SA KI PA EGZISTE — WHAT DOES NOT EXIST (never describe or imply these)
 - No public archive of newsletter articles yet.
 - No Google sign-in (currently unavailable).
 - No per-permission controls for co-guardians (they have full family access).
+- No built-in or pre-made schedule templates (not for elementary, middle school, a "flexible week" or anything else); families only reuse weeks they saved themselves.
 - No curriculum or course content sold or provided by IME; families choose their own materials.
 `.trim();
