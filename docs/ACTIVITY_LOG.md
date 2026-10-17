@@ -1,5 +1,36 @@
 # Activity Log
 
+## 2026-10-17 — Legal documents v1.0 (Terms, Privacy, Refund) merged
+
+- **Summary:** Replaced all three legal pages with full v1.0 drafts written for IME as it actually works — a paid platform where a parent creates accounts for their own children, sold internationally in ten languages. The operating entity is now named: **Kolabo Services LLC, 10 James Court, Glassboro, NJ 08028, USA**, governing law **New Jersey**. Dany chose to publish from his home address for now, having been told the trade-off (a residential address on public legal pages is permanently scrapeable; a registered-agent or virtual-office address is the usual alternative). Merged on the lawyer's **interim** approval — his update has not arrived yet.
+
+- **Decisions recorded (Dany, 2026-10-17):**
+  - Entity: trade under the existing Kolabo Services LLC rather than registering a separate LLC for IME. Rationale: pre-revenue; a separate entity solves a problem that does not exist yet and would delay first revenue by weeks. Revisit once IME has recurring revenue of its own.
+  - Per-plan limits approved (full matrix in the "Plan Gating Spec"): students 2/5/unlimited, Mr A questions per month 30/200/1000, saved weeks 1/10/unlimited, co-guardians 0/1/3, manager Pro-only, rewards catalogue 5/25/unlimited, weekly report and AI schedule import from Plus up. Never gated on any plan: daily plan, check-ins, points, trophies, wallet, daily reminder — the child-facing features.
+  - No free tier for now. The 14-day trial is the free tier; revisit at ~100 paying families.
+
+- **Files touched:** `src/pages/TermsOfService.tsx`, `src/pages/PrivacyPolicy.tsx`, `src/pages/RefundPolicy.tsx`, `CLAUDE.md`, `docs/ACTIVITY_LOG.md`.
+
+- **Bugs found in the old text, and fixed:**
+  1. **Live on production since March 2026:** a global find/replace had put the word "unknown" where "any" belonged throughout the Terms — "warranties of unknown kind", "at unknown time", "the parent or legal guardian of unknown students you manage", "for unknown unlawful purpose". Several clauses were meaningless as written.
+  2. The Privacy page's SEO description claimed **"COPPA-compliant"** — an unverified legal compliance claim, and precisely the point a lawyer most needs to assess. Removed.
+  3. Intellectual property was attributed to "KòdLabo" rather than the operating entity. Now Kolabo Services LLC.
+  4. Terms and Privacy carried no link to the Refund page. Added, so the three cross-link.
+
+- **Structure:** the Refund page moved off i18n keys onto the inline `sectionsEN`/`sectionsHT` pattern the other two already used, so all three are consistent and the prose stays out of the 417KB main i18n bundle. Verified after build: the pages compile to separate lazy chunks (Privacy 20.8KB, Refund 10.2KB, Terms 23.6KB), so none of this reaches the main bundle. The `refund.section.*` keys in `i18n.tsx` are now unused and can be removed in a later cleanup; `refund.title`, `refund.description`, `terms.title` and `privacy.title` are still referenced.
+
+- **Language:** EN + HT only, matching the existing pattern for these pages; the other eight fall back to English. Deliberate — translating before the lawyer's update lands would mean translating text that is about to change. English is the authoritative version.
+
+- **Validation:** `tsc --noEmit` clean; `eslint` clean on all three files; `vitest` **294/294** passing; production build succeeds. Re-run after the address was filled in: same results.
+
+- **Risks + rollback:** No migration, no schema change, no edge function, no auth/RLS/payment code touched — text and one SEO string only. Rollback: `git revert 0c188de 8dee1b8`, which restores the previous pages (including the "unknown" bug, so prefer a forward fix).
+
+- **Blockers / human actions needed:**
+  - The lawyer's update has not arrived. When it does: apply it, raise the version number on all three pages, and email existing users if anything material changed — Terms §17 and Privacy §18 both promise 30 days' notice.
+  - Confirm `support@independentmindsedu.org` actually routes to Dany. All three pages now send users there and the Refund page promises a reply within 3 business days.
+  - Signup still has no consent checkbox and stores no record of which version a user agreed to. Without it there is no proof of what anyone accepted. Small schema addition; should land before the first paying family.
+  - `npm ci` fails from a clean clone (private Lovable registry entries in `package-lock.json` return 403). Worked around locally without committing the lockfile; needs its own fix.
+
 ## 2026-10-14 — Backup database: premye vrè backup + tès dekripsyon
 - Summary: GitHub secret `SUPABASE_DB_URL` set on 2026-10-14 (the database password was reset for it). The backup workflow now produces real encrypted dumps.
 - Failed runs before the fix (all "Dump and encrypt" step, annotation `could not connect to the database: ... port 5432 failed: Network is unreachable`): #3 `38495770879` (2026-10-14 01:26:53 UTC, manual), #4 `38524584542` (2026-10-14 06:50:24 UTC, schedule), #5 `38566117296` (2026-10-14 12:44:21 UTC, manual). Cause: the secret held the "Direct connection" URI, which is IPv6-only; GitHub-hosted runners have no IPv6. Fixed by switching to the "Session pooler" URI (`pooler.supabase.com`, IPv4, port 5432). **For the future: always the session pooler, never direct.**

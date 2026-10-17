@@ -49,7 +49,7 @@ Do NOT swap to `pk_live_...`/`sk_live_...` until ALL 5 are done:
 - [x] Email DNS corrected (2026-09-24 — confirmed by the user: Resend domain independentmindsedu.org verified and a real test send succeeded in a separate session; corroborated here by production messages_log: daily cron emails status 'sent' since 2026-09-21, 0 'failed' in the last 3 days — see docs/ACTIVITY_LOG.md)
 - [x] Supabase failure rate investigated (2026-08-30 — root causes identified, not yet fixed; see docs/ACTIVITY_LOG.md)
 - [x] `search_path` fixed on `has_role`, `handle_new_user`, `rls_auto_enable` (confirmed already locked down 2026-09-06 from a prior session; also closed anon/PUBLIC RPC exposure on all 3 this session — see ACTIVITY_LOG)
-- [ ] Final pricing/terms review completed
+- [ ] Final pricing/terms review completed — **partially done 2026-10-17.** Legal text: v1.0 merged (0c188de), lawyer gave INTERIM approval, his update has NOT arrived yet. Pricing: Dany approved the per-plan limit matrix (see the "Plan Gating Spec" doc), but **the limits are not built** — every plan still gets every feature, so /pricing does not describe the product. This box stays unchecked until (a) the lawyer's update is applied and (b) plan gating ships. Do not flip live keys before both.
 - [x] AI Tutor actually working (2026-09-22 — final decision: OpenAI direct (Dany's own account), not Lovable's gateway or OpenRouter. Model `gpt-4.1`. `ai-tutor` migrated off `google/gemini-2.5-flash`, `AI_GATEWAY_URL`/`AI_GATEWAY_API_KEY` now point at a real OpenAI account, live-tested end to end against the deployed function — 200, real streaming response, `model` field confirmed `gpt-4.1-2025-04-14`. `extract-schedule` (shares the same secrets; deployed v1 on 2026-10-01 for the flexible schedule import) fixed to the same model in source for consistency — see docs/ACTIVITY_LOG.md)
 When all 5 are checked, confirm with user before touching live keys.
 
@@ -113,6 +113,10 @@ Details: docs/AUDIT_REPORT.md
 ## Pending (open items — propose, do not apply without Dany)
 - **Database backup:** live since 2026-10-14 (first real backup run #6, decryption test 90/90 TABLE DATA; secret must be the session pooler URI, never direct). Still to do (Dany): copy the private age key to a second location (not done yet); full Docker restore test (docs/BACKUP_RESTORE.md §3 steps 4-6).
 - **hello@independentmindsedu.org mailbox (Cloudflare Email Routing): not verified.** Replies to the newsletter/welcome email go there.
+- **Lawyer's update to the legal text: not received.** v1.0 is live on interim approval (merged 0c188de 2026-10-17). When the update arrives, apply it, raise the version number in all three pages, and email existing users if anything material changed (Terms §17 / Privacy §18 promise 30 days' notice).
+- **support@independentmindsedu.org mailbox: verification status unknown.** All three legal pages now point users there for refunds, privacy requests and account problems. A legal page promising a reply "within 3 business days" to an address nobody reads is a real problem — confirm it routes to Dany.
+- **`npm ci` fails from a clean clone.** 6 entries in package-lock.json resolve from the private Lovable registry `europe-west4-npm.pkg.dev/lovable-core-prod/...` (@playwright/test, playwright, playwright-core, framer-motion, motion-dom, motion-utils) and return 403. A Lovable remnant missed in T1. Fix by re-resolving those entries against registry.npmjs.org in its own commit.
+- **Legal text is EN + HT only.** The other 8 languages fall back to English. Translate after the lawyer's update lands, not before — translating text that is about to change wastes the work. HT and FR must be read by a person, not machine-translated.
 
 ## Logging rule (mandatory after EVERY completed task)
 After finishing any task, before reporting done:
@@ -132,8 +136,8 @@ Never skip this step. Never put long logs in
 CLAUDE.md — details go in ACTIVITY_LOG.md only.
 
 ## Recent
+2026-10-17 — Legal v1.0 MERGED (0c188de): Terms/Privacy/Refund rewritten + entity = Kolabo Services LLC, 10 James Court Glassboro NJ 08028, law = New Jersey. Lawyer gave INTERIM approval — update still coming, apply when it arrives. Fixed live bug: "unknown" where "any" belonged all through old Terms; removed unverified "COPPA-compliant" SEO claim. Tests 294/294. See ACTIVITY_LOG.
 2026-10-14 — Backup live (docs): secret SUPABASE_DB_URL = session pooler (direct = IPv6, runs #3-#5 failed "Network is unreachable"); run #6 38566981393 OK, artifact ime-db_20261014T125121Z.dump.age; decryption test on Dany's PC OK, 90/90 TABLE DATA. Docker restore test + second key copy still pending. See ACTIVITY_LOG.
 2026-10-11 — Backup (merged 412df58): GitHub Actions daily pg_dump 17 → age → artifact 7 days; skips green until secret SUPABASE_DB_URL exists; new age key (private key only on Dany's PC). Stub test 13/13; real DB not tested yet. See docs/BACKUP_RESTORE.md + ACTIVITY_LOG.
 2026-10-11 — Manual §2/§15/§17/§18 corrected to production (docs, 3103ad5): Gemini, Telegram/WhatsApp/Web Push, missing tables/functions, undeployed functions removed. Other sections still list them. See ACTIVITY_LOG.
 2026-10-11 — /admin/welcome-email (merged b01d1b3, prod READY): 10-language editor, confirm before save, email preview, read-only send stats; no migration. Tests 294/294.
-2026-10-11 — Subscription admin MERGED (7cd6aad) + Vercel prod READY; migration applied in prod; preview tested by Dany (LaShonda row created, co-guardian excluded); expiry cron still OFF (Dany turns it on) — admin_set_subscription + /admin/billing (all parents, confirm, change trace), 14-day trial on email confirm, expiry cron built disabled. Prod dry run (BEGIN…ROLLBACK) all PASS. Waits for Dany. See docs/ACTIVITY_LOG.md.
