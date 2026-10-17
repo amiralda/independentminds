@@ -13,7 +13,12 @@ const corsHeaders = {
 
 // Exact paths only (client sends window.location.pathname). A prefix check
 // with '/' in the list matched every page, so every error alerted the admins.
-const CRITICAL_PAGES = new Set(['/', '/login', '/admin', '/admin/system']);
+// A reported error on one of these pages raises an admin notification immediately.
+// The password pages were added 2026-10-17: a broken Auth SMTP credential breaks
+// password recovery as surely as it breaks signup, and that outage ran 17 days
+// unnoticed. Note the limit — this function rejects anonymous callers by design,
+// so it only catches a SIGNED-IN user hitting these pages, never a locked-out one.
+const CRITICAL_PAGES = new Set(['/', '/login', '/admin', '/admin/system', '/forgot-password', '/reset-password']);
 
 // "/login/" -> "/login"; "/" stays "/".
 const normalizePath = (p: string) => (p.length > 1 ? p.replace(/\/+$/, '') : p);

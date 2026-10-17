@@ -7,8 +7,10 @@
 // (Telegram nudges to students/parents, auto-marking tasks "Missed") written
 // for a schema that no longer exists (students.monitoring_enabled,
 // daily_plan.plan_date/start_time...). It was removed on 2026-09-26 by
-// decision; only the 5 admin alert rules below remain, unchanged.
+// decision; only the admin alert rules below remain. Rule 6 (signup blackout)
+// was added 2026-10-17 after a 17-day silent signup outage; see its comment.
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { assessSignupBlackout } from "../_shared/monitor-rules.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -141,6 +143,65 @@ Deno.serve(async (req) => {
         body: `${paymentFailureCount} Stripe payment failure event(s) were recorded in the last hour.`,
         metadata: { payment_failure_count: paymentFailureCount },
       });
+    }
+
+    // RULE 6: Signup blackout — no new account in 7 days.
+    //
+    // Added 2026-10-17 after a TOTAL signup outage ran for 17 days unnoticed:
+    // the Supabase Auth SMTP credential expired, so every /signup and /recover
+    // returned 500 and nobody could create an account or reset a password.
+    //
+    // Nothing in this database could see it. When GoTrue fails to send the
+    // confirmation email it rolls the new user back, so auth.users gains no
+    // row, and auth.audit_log_entries is empty on this project (audit events
+    // go to the log pipeline instead). The app's own email kept working the
+    // whole time — 168 sends, 0 failures — because that path is the Resend
+    // API, not Auth's SMTP. Every existing signal was green.
+    //
+    // This rule is deliberately weak: it measures the absence of success, not
+    // the presence of failure, so it cannot tell a real outage from a quiet
+    // week, and it takes 7 days to speak. It exists to put a FLOOR on how long
+    // a total outage can hide — 7 days instead of 17 and counting. The real
+    // fix is an active probe that exercises the auth email path on a schedule;
+    // see docs/ACTIVITY_LOG.md for that decision, which needs a probe mailbox.
+    //
+    // profiles is used rather than auth.users because handle_new_user creates
+    // exactly one profile per signup (verified 2026-10-17: 10 users, 10
+    // profiles, timestamps equal to the millisecond) and the auth schema is
+    // not exposed through PostgREST.
+    const SIGNUP_BLACKOUT_DAYS = 7;
+    const blackoutCutoff = new Date(Date.now() - SIGNUP_BLACKOUT_DAYS * 86400_000).toISOString();
+    const { count: recentSignups, error: signupErr } = await supabase
+      .from("profiles").select("id", { count: "exact", head: true }).gte("created_at", blackoutCutoff);
+
+    if (signupErr) {
+      console.error("[hourly-monitor] signup blackout check failed:", signupErr);
+    } else {
+      const { data: newest } = await supabase
+        .from("profiles").select("created_at").order("created_at", { ascending: false }).limit(1);
+      const lastSignupAt = (newest?.[0]?.created_at as string | undefined) ?? null;
+      const verdict = assessSignupBlackout(
+        recentSignups ?? 0, lastSignupAt, new Date(), SIGNUP_BLACKOUT_DAYS,
+      );
+
+      if (verdict.alert) {
+        await add({
+          type: "signup_blackout",
+          // Once a day at most: a slow-moving condition, not an incident feed.
+          dedupSince: oneDayAgo,
+          title: `No new signups in ${SIGNUP_BLACKOUT_DAYS} days`,
+          body: `No account has been created in ${SIGNUP_BLACKOUT_DAYS} days `
+            + `(the last one was ${verdict.daysQuiet} days ago). If that is unexpected, try signing up and `
+            + `resetting a password yourself: an expired Auth SMTP credential looks exactly like this `
+            + `and leaves no other trace anywhere.`,
+          metadata: {
+            last_signup_at: lastSignupAt,
+            days_since_last_signup: verdict.daysQuiet,
+            threshold_days: SIGNUP_BLACKOUT_DAYS,
+            how_to_check: "Supabase > Authentication > Emails > SMTP Settings, then try /forgot-password in production",
+          },
+        });
+      }
     }
 
     return json({ success: true, admins: adminIds.length, created });
