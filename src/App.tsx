@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { I18nProvider } from "@/lib/i18n";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { LegalConsentGate } from "@/components/LegalConsentGate";
 import { LanguageProfileSync } from "@/components/LanguageProfileSync";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -98,6 +99,12 @@ const App = () => (
             <LanguageProfileSync />
             <FeedbackWidget />
             <BrowserRouter>
+              {/* Blocking consent gate for accounts that predate the published legal
+                  text. Inside the router so it can link to /terms and /privacy, and
+                  a sibling of Routes so it overlays whichever page is open. It
+                  renders nothing for students, for signed-out visitors, and on the
+                  legal pages themselves. */}
+              <LegalConsentGate />
               <Suspense fallback={<RouteFallback />}>
                 <Routes>
                   <Route path="/login" element={<Login />} />

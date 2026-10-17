@@ -15,6 +15,7 @@ import { buildAppUrl } from "@/lib/siteUrl";
 import { buildOAuthRedirectUrl } from "@/lib/oauth";
 import { isPasswordLongEnough } from "@/lib/password";
 import { LEGAL_VERSIONS } from "@/config/legalVersions";
+import { renderLegalLinks } from "@/lib/legalLinks";
 
 // Google sign-in is hidden, not removed: every Google signup fails with
 // "Database error saving new user" because handle_new_user() requires
@@ -42,38 +43,6 @@ function trackAuthFailure(emailAttempted: string, failureType: string) {
     }),
   }).catch(() => {
     // Best-effort telemetry only.
-  });
-}
-
-/**
- * Renders the consent sentence with the two document names as links.
- *
- * Word order differs across the ten languages — Arabic, Japanese and German do
- * not put the document names where English does — so the sentence is split on
- * its {terms} and {privacy} placeholders rather than assembled from fragments.
- *
- * The links open in a new tab and stop propagation, so reading the Terms does
- * not toggle the checkbox or lose what the user has typed into the form.
- */
-function renderConsentLabel(template: string, termsLabel: string, privacyLabel: string) {
-  const linkClass = "underline hover:text-primary";
-  return template.split(/(\{terms\}|\{privacy\})/g).map((part, i) => {
-    if (part === "{terms}" || part === "{privacy}") {
-      const isTerms = part === "{terms}";
-      return (
-        <Link
-          key={i}
-          to={isTerms ? "/terms" : "/privacy"}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={linkClass}
-          onClick={(e) => e.stopPropagation()}
-        >
-          {isTerms ? termsLabel : privacyLabel}
-        </Link>
-      );
-    }
-    return <span key={i}>{part}</span>;
   });
 }
 
@@ -298,7 +267,7 @@ export default function Login() {
                 className="mt-0.5"
               />
               <label htmlFor="legal-consent" className="text-xs text-muted-foreground leading-tight cursor-pointer">
-                {renderConsentLabel(t("auth.consent.label"), t("terms.title"), t("privacy.title"))}
+                {renderLegalLinks(t("auth.consent.label"), t("terms.title"), t("privacy.title"))}
               </label>
             </div>
           )}
