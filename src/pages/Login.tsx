@@ -14,6 +14,7 @@ import { SEO } from "@/components/SEO";
 import { buildAppUrl } from "@/lib/siteUrl";
 import { buildOAuthRedirectUrl } from "@/lib/oauth";
 import { isPasswordLongEnough } from "@/lib/password";
+import { LEGAL_VERSIONS } from "@/config/legalVersions";
 
 // Google sign-in is hidden, not removed: every Google signup fails with
 // "Database error saving new user" because handle_new_user() requires
@@ -44,6 +45,38 @@ function trackAuthFailure(emailAttempted: string, failureType: string) {
   });
 }
 
+/**
+ * Renders the consent sentence with the two document names as links.
+ *
+ * Word order differs across the ten languages — Arabic, Japanese and German do
+ * not put the document names where English does — so the sentence is split on
+ * its {terms} and {privacy} placeholders rather than assembled from fragments.
+ *
+ * The links open in a new tab and stop propagation, so reading the Terms does
+ * not toggle the checkbox or lose what the user has typed into the form.
+ */
+function renderConsentLabel(template: string, termsLabel: string, privacyLabel: string) {
+  const linkClass = "underline hover:text-primary";
+  return template.split(/(\{terms\}|\{privacy\})/g).map((part, i) => {
+    if (part === "{terms}" || part === "{privacy}") {
+      const isTerms = part === "{terms}";
+      return (
+        <Link
+          key={i}
+          to={isTerms ? "/terms" : "/privacy"}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={linkClass}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {isTerms ? termsLabel : privacyLabel}
+        </Link>
+      );
+    }
+    return <span key={i}>{part}</span>;
+  });
+}
+
 export default function Login() {
   const { t, lang } = useI18n();
   const [email, setEmail] = useState("");
@@ -52,6 +85,7 @@ export default function Login() {
   const [passwordError, setPasswordError] = useState("");
   const [fullName, setFullName] = useState("");
   const [adultConfirmed, setAdultConfirmed] = useState(false);
+  const [legalAccepted, setLegalAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const navigate = useNavigate();
@@ -100,7 +134,15 @@ export default function Login() {
       toast.error(lang === "HT" ? "Ou dwe konfime ke ou gen 18 an oswa plis" : "You must confirm you are 18 or older");
       return;
     }
+    if (!legalAccepted) {
+      toast.error(t("auth.consent.required"));
+      return;
+    }
     setLoading(true);
+    // The consent fields below are the record of what this user agreed to.
+    // Supabase stores them atomically with the account, and the trigger
+    // `record_signup_consent` mirrors them into public.legal_consents.
+    const acceptedAt = new Date().toISOString();
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -110,6 +152,10 @@ export default function Login() {
           adult_confirmed: true,
           adult_confirmed_at: new Date().toISOString(),
           language: lang.toLowerCase(),
+          terms_accepted: true,
+          terms_accepted_at: acceptedAt,
+          terms_version: LEGAL_VERSIONS.terms,
+          privacy_version: LEGAL_VERSIONS.privacy,
         },
         emailRedirectTo: buildAppUrl("/"),
       },
@@ -242,6 +288,21 @@ export default function Login() {
             </div>
           )}
 
+          {/* Legal consent for sign-up. Required: no account is created without it. */}
+          {isSignUp && (
+            <div className="flex items-start gap-2">
+              <Checkbox
+                id="legal-consent"
+                checked={legalAccepted}
+                onCheckedChange={(checked) => setLegalAccepted(checked === true)}
+                className="mt-0.5"
+              />
+              <label htmlFor="legal-consent" className="text-xs text-muted-foreground leading-tight cursor-pointer">
+                {renderConsentLabel(t("auth.consent.label"), t("terms.title"), t("privacy.title"))}
+              </label>
+            </div>
+          )}
+
           {!isSignUp && (
             <div className="text-right">
               <button
@@ -256,7 +317,7 @@ export default function Login() {
           <Button
             type="submit"
             className="w-full font-display bg-secondary text-secondary-foreground hover:bg-secondary/90"
-            disabled={loading || (isSignUp && (!adultConfirmed || !fullName.trim()))}
+            disabled={loading || (isSignUp && (!adultConfirmed || !legalAccepted || !fullName.trim()))}
           >
             {isSignUp ? (
               <><UserPlus size={16} className="mr-2" /> {loading ? t("auth.creatingAccount") : t("action.signUp")}</>
