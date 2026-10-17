@@ -145,10 +145,16 @@ CREATE TRIGGER on_auth_user_created_record_consent
 --       WHERE n.nspname = 'public' AND p.proname = 'record_signup_consent';
 --      -- expected: 1
 --
--- c) Both triggers are present on auth.users and the original is untouched:
+-- c) auth.users carries FOUR non-internal triggers afterwards -- the three that
+--    were already there (verified in production 2026-10-17) plus the new one:
 --      SELECT tgname FROM pg_trigger
 --       WHERE tgrelid = 'auth.users'::regclass AND NOT tgisinternal ORDER BY tgname;
---      -- expected to include: on_auth_user_created, on_auth_user_created_record_consent
+--      -- expected exactly: on_auth_user_created,
+--      --                   on_auth_user_created_record_consent,
+--      --                   trial_on_email_confirmed,
+--      --                   welcome_on_email_confirmed
+--    If any of the original three is missing, STOP and roll back -- this
+--    migration must add a trigger, never replace one.
 --
 -- d) RLS is on and exactly two SELECT policies exist:
 --      SELECT relrowsecurity FROM pg_class WHERE oid = 'public.legal_consents'::regclass;
