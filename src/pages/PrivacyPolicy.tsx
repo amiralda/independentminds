@@ -14,7 +14,7 @@ export default function PrivacyPolicy() {
     <div className="min-h-screen bg-background">
       <SEO
         title="Privacy Policy — Independent Minds EDU"
-        description="How Independent Minds EDU collects, stores, and protects family and student data. COPPA-compliant homeschool management."
+        description="How Independent Minds EDU collects, stores, and protects family and student data in its homeschool management platform."
         path="/privacy"
       />
       <header className="sticky top-0 z-50 bg-primary shadow-md">
@@ -37,7 +37,7 @@ export default function PrivacyPolicy() {
               {isHT ? "Politik Konfidansyalite" : "Privacy Policy"}
             </h2>
             <p className="text-sm text-muted-foreground">
-              {isHT ? "Dènye mizajou: Mas 2026" : "Last updated: March 2026"}
+              {isHT ? "Vèsyon 1.0 — Dènye mizajou: Oktòb 2026" : "Version 1.0 — Last updated: October 2026"}
             </p>
           </div>
         </div>
@@ -61,6 +61,9 @@ export default function PrivacyPolicy() {
             <Link to="/terms" className="hover:underline" style={{ color: "#D4A017" }}>
               {isHT ? "Kondisyon Sèvis" : "Terms of Service"}
             </Link>
+            <Link to="/refund" className="hover:underline" style={{ color: "#D4A017" }}>
+              {isHT ? "Politik Ranbousman" : "Refund Policy"}
+            </Link>
             <Link to="/login" className="hover:underline" style={{ color: "#D4A017" }}>
               {isHT ? "Konekte" : "Login"}
             </Link>
@@ -73,176 +76,270 @@ export default function PrivacyPolicy() {
 
 const sectionsEN = [
   {
-    title: "Introduction",
+    title: "Who we are, and two things that are always true",
     content: [
-      "Independent Minds EDU is a bilingual homeschool management platform built by KòdLabo. This Privacy Policy explains how we collect, use, and protect your information when you use our platform at independentmindsedu.org.",
-      "For questions about this policy, contact us at privacy@independentmindsedu.org.",
+      "Kolabo Services LLC ([ENTITY ADDRESS]) operates Independent Minds EDU. This policy explains what we hold, why, and what you can do about it.",
+      "Two things are true of everything below: we do not sell your information, and we do not use it for advertising.",
     ],
   },
   {
-    title: "Information We Collect",
+    title: "What we collect about the adult who signs up",
     content: [
-      "Parent data: email address, display name, and language preference.",
-      "Student data: name, grade level, date of birth, nationality, photo (optional), enrollment date, academic records, block completion timestamps, check-in responses (mood, focus, comments), AI tutor session inputs, and reward point transactions.",
-      "Device data: IP address (for security purposes), browser type, and PWA install status.",
+      "Your email address and password, to create your account and let you sign in. A display name, to show who did what inside your family. Your interface language, to show the Service and send emails in your language. Your timezone and chosen reminder hour, to send the daily reminder at the right time of day where you live.",
+      "Payment records — plan, status, dates and Stripe identifiers — to run your subscription. We never see or hold your full card number; Stripe does.",
     ],
   },
   {
-    title: "How We Use This Information",
+    title: "What we collect about the student",
     content: [
-      "To operate the platform and deliver educational tracking services.",
-      "To send Telegram and WhatsApp notifications to the registered parent about student progress, alerts, and weekly summaries.",
-      "To generate AI tutor (Mr A) responses via Google Gemini. These interactions are session-based and conversation history is retained for continuity but can be cleared at unknown time.",
-      "We do NOT sell, share, or monetize unknown personal data. We do NOT display advertising of unknown kind.",
+      "This is a child's information, and we keep it to the minimum the Service needs: a first name or nickname and a level or grade, to identify whose schedule is whose; a photograph if you choose to add one, which you may remove at any time; the daily plan of subjects, tasks and durations; check-ins recording what was done and when, with any note or mood; points, trophies and reward requests; and questions put to the AI tutor with its replies.",
+      "We do not ask for a student's date of birth, address, phone number, school, national identifier, or health information. Please do not enter any of it.",
     ],
   },
   {
-    title: "Children's Privacy (COPPA)",
+    title: "What we collect automatically",
     content: [
-      "Independent Minds EDU is directed at children as students, managed exclusively by parents or legal guardians.",
-      "All student accounts are created exclusively by verified adult parents who have confirmed they are 18 years of age or older. Students cannot self-register.",
-      "We do not knowingly collect personal information from unknown child without verifiable parental consent.",
-      "Parents have the right to review, modify, and delete all data for their children at unknown time through the platform dashboard.",
-      "To request data access or deletion, contact privacy@independentmindsedu.org.",
+      "Account activity needed to run and secure the Service: sign-in times, failed sign-in attempts, technical error reports, and a log of emails we sent you and whether they were delivered. We use these to keep the Service working and to detect abuse — not to build a profile of anyone.",
+      "We use the cookies needed to keep you signed in and to remember your language. We do not use advertising or tracking cookies, and we do not run third-party analytics that follow you across other websites.",
     ],
   },
   {
-    title: "Data Sharing",
+    title: "Our lawful basis",
     content: [
-      "We share student data only with the following services, strictly for operational purposes:",
-      "• Google (Gemini AI) — for AI tutor responses, on a session-only basis",
-      "• Supabase and Vercel — for infrastructure hosting, authentication, and database services",
-      "• Telegram — for notification delivery to parents",
-      "• Twilio — for WhatsApp notifications when configured by the parent",
-      "We do not share data with data brokers, advertisers, or third-party analytics providers.",
+      "Where data-protection law requires us to name one: performance of a contract, to run the Service you subscribed to; consent, for a student's information, given by their parent or guardian, and for the newsletter, which you may withdraw at any time; legitimate interests, in keeping the Service secure and preventing abuse; and legal obligation, in keeping payment records as required.",
     ],
   },
   {
-    title: "Data Retention",
+    title: "Children's information — a child never signs themselves up",
     content: [
-      "Active accounts: data is retained for the life of the account.",
-      "Accounts inactive for 18 months receive a re-engagement notification.",
-      "Accounts inactive for 24 months receive a deletion warning with a 30-day grace period.",
-      "Parents can delete individual students or their entire account at unknown time via the dashboard settings.",
+      "No one under 18 can create an account on IME. A student account exists only because a parent or guardian created it for their own child, and in doing so gave consent for the information in it.",
+      "This is a deliberate design choice, not only a rule. The parent holds the account, decides what goes into it, sees everything in it, and can delete it.",
     ],
   },
   {
-    title: "Security",
+    title: "What the parent controls",
     content: [
-      "PostgreSQL database with Row-Level Security (RLS) enabled on all tables.",
-      "All data encrypted in transit via HTTPS/TLS.",
-      "JWT-based session management with automatic token refresh.",
-      "No plaintext storage of sensitive credentials. Telegram bot tokens are encrypted with AES-256-GCM before storage.",
+      "At any time, from inside the Service, a parent or guardian may see everything held about their child; correct or delete any of it, including the photograph; see and delete the child's AI tutor conversations; remove another adult's access to their child's information; delete the student account entirely, which deletes the plan, check-ins, points and tutor history; or ask us for a copy of it all by writing to support@independentmindsedu.org.",
+      "We will act on a verified parent request within 30 days, and usually much sooner.",
     ],
   },
   {
-    title: "Your Rights",
+    title: "We keep a child's information to a minimum",
     content: [
-      "Access — Parents can view all student data through the dashboard.",
-      "Correction — Parents can edit all student information at unknown time.",
-      "Deletion — Parents can delete individual students or their entire account.",
-      "Portability — Contact privacy@independentmindsedu.org for a data export.",
+      "We ask for no more about a child than the Service needs. No date of birth, no address, no phone number, no school, no identification number, no health information.",
+      "About a child we never: sell their information, use it for advertising, build a profile of them, show it to another family, or use it to train artificial-intelligence models.",
     ],
   },
   {
-    title: "Changes to This Policy",
+    title: "Who can see a student's information",
     content: [
-      "We will notify registered parents by email of unknown material changes to this policy before they take effect.",
+      "Only the people the parent chose. The parent who owns the account sees everything. A co-guardian the parent invited sees everything in that family. A manager the parent requested, and IME approved, sees that family's schedule and check-ins. An educator the parent assigned sees only the students assigned to them. The student sees their own information only.",
+      "No family can see another family's information. This is enforced in the database itself, not only in the interface.",
+    ],
+  },
+  {
+    title: "The AI tutor and a child's questions",
+    content: [
+      "When a student asks the AI tutor a question, that question and the context needed to answer it are sent to a third-party AI provider (currently OpenAI) to generate a reply. We do not send the student's photograph or your payment information.",
+      "The provider processes it to produce the answer. Under our arrangement with them, this content is not used to train their models.",
+      "If you would rather your child did not use the tutor, do not enable it for them. The rest of the Service works without it.",
+    ],
+  },
+  {
+    title: "If you believe we hold a child's information we should not",
+    content: [
+      "Write to support@independentmindsedu.org. If we learn we hold information about a child without a parent's or guardian's consent, we delete it.",
+    ],
+  },
+  {
+    title: "Who else is involved",
+    content: [
+      "We do not sell your information and we do not share it except with the companies that provide parts of the Service: Supabase, for the database, accounts and file storage, which holds everything you store in IME; Vercel, which hosts the website and receives technical request data; Stripe, which takes payments and receives your name, email and payment details — Stripe holds the card, we do not; Resend, which sends our email and receives recipient addresses and the message; OpenAI, which powers the AI tutor and receives tutor questions and the context needed to answer them; Cloudflare, for DNS and email routing; and GitHub, which stores our encrypted database backups, readable only with a private key we hold.",
+      "We may also disclose information where the law requires it, to protect the safety of a child or any person, or to enforce our Terms. If the Service is ever sold or reorganised, your information may transfer with it — you would be told, and this policy would continue to apply.",
+    ],
+  },
+  {
+    title: "Where your information goes",
+    content: [
+      "These providers operate primarily in the United States, so your information is stored and processed there, including when you use IME from another country.",
+      "If you are in the European Economic Area, the United Kingdom, or another place with similar rules, we rely on the standard safeguards those providers offer for international transfers.",
+    ],
+  },
+  {
+    title: "Email you receive, and stopping it",
+    content: [
+      "Account and security email — confirmation, password reset, payment notices — cannot be turned off; it is part of having an account.",
+      "Daily reminders and weekly reports can be turned off in your settings.",
+      "The newsletter and articles can be turned off at any time: every one carries a one-click unsubscribe, and the unsubscribe link in the email header works too. Unsubscribing never affects your account or the emails it needs to send you.",
+    ],
+  },
+  {
+    title: "Your rights",
+    content: [
+      "Whatever country you are in, you may see what we hold about you and your family; get a copy in a portable format; correct anything wrong; delete your family's information or any part of it; object to a use or ask us to restrict it; withdraw consent, for the newsletter or for a child's information; and complain to your national data-protection authority.",
+      "Most of these you can do yourself inside the Service. For the rest, write to support@independentmindsedu.org. We reply within 30 days and we do not charge for it. We will ask you to verify your identity first — particularly for a request about a child, where we must be sure the person asking is the parent.",
+    ],
+  },
+  {
+    title: "How long we keep things",
+    content: [
+      "Your account and family data: while your account is open. After you close your account: 30 days, so you can change your mind or ask for an export, then deleted. Payment records: as long as tax and accounting law requires, typically seven years. Email delivery logs: 12 months. Encrypted backups: seven days, then automatically destroyed.",
+      "Deleted information disappears from the Service immediately and from backups within seven days.",
+    ],
+  },
+  {
+    title: "How we protect it",
+    content: [
+      "Every connection uses HTTPS, and data is encrypted at rest by our database provider. Separation between families is enforced in the database itself, with row-level security, not merely hidden in the interface. Backups are encrypted before they leave the database, and can only be read with a private key held offline. Paid features and administrative actions are checked on our servers, not in your browser. Access to production systems is limited to the people who operate IME.",
+      "No service can promise perfect security. If a breach affects your information, we will tell you and the relevant authority as the law requires, without undue delay.",
+    ],
+  },
+  {
+    title: "Changes to this policy",
+    content: [
+      "If we change this policy materially we will raise its version, publish it here, and email you at least 30 days before it takes effect.",
     ],
   },
   {
     title: "Contact",
     content: [
-      "Email: privacy@independentmindsedu.org",
-      "Website: independentmindsedu.org",
+      "Kolabo Services LLC, [ENTITY ADDRESS]",
+      "Privacy questions and requests: support@independentmindsedu.org",
     ],
   },
 ];
 
 const sectionsHT = [
   {
-    title: "Entwodiksyon",
+    title: "Kilès nou ye, ak de bagay ki toujou vre",
     content: [
-      "Independent Minds EDU se yon platfòm jesyon lekòl kay bileng ki te bati pa KòdLabo. Politik Konfidansyalite sa a eksplike kijan nou kolekte, itilize, epi pwoteje enfòmasyon ou lè ou itilize platfòm nou an sou independentmindsedu.org.",
-      "Pou kesyon sou politik sa a, kontakte nou nan privacy@independentmindsedu.org.",
+      "Kolabo Services LLC ([ADRÈS KONPAYI A]) opere Independent Minds EDU. Politik sa a esplike sa nou kenbe, poukisa, ak sa ou ka fè sou sa.",
+      "De bagay vre pou tout sa ki anba a: nou pa vann enfòmasyon w, epi nou pa itilize l pou piblisite.",
     ],
   },
   {
-    title: "Enfòmasyon Nou Kolekte",
+    title: "Sa nou kolekte sou granmoun ki enskri a",
     content: [
-      "Done paran: adrès imèl, non afichaj, ak preferans lang.",
-      "Done elèv: non, nivo klas, dat nesans, nasyonalite, foto (opsyonèl), dat enskripsyon, dosye akademik, lè fini blòk, repons tcheke (imosyon, konsantrasyon, kòmantè), antre sesyon AI tutor, ak tranzaksyon pwen rekonpans.",
-      "Done aparèy: adrès IP (pou sekirite), tip navigatè, ak estati enstalasyon PWA.",
+      "Adrès imel ou ak modpas ou, pou kreye kont ou epi pou ou ka konekte. Yon non pou afiche, pou montre kilès ki fè kisa nan fanmi an. Lang entèfas ou, pou montre Sèvis la epi voye imel nan lang ou. Fizo orè w ak lè ou chwazi pou rapèl la, pou voye rapèl chak jou a nan bon lè kote w ap viv.",
+      "Dosye peman — plan, estati, dat ak idantifyan Stripe — pou fè abònman w mache. Nou pa janm wè ni kenbe nimewo konplè kat ou; se Stripe ki fè sa.",
     ],
   },
   {
-    title: "Kijan Nou Itilize Enfòmasyon Sa a",
+    title: "Sa nou kolekte sou elèv la",
     content: [
-      "Pou opere platfòm nan epi bay sèvis swivi edikasyon.",
-      "Pou voye notifikasyon Telegram ak WhatsApp bay paran ki enskri a konsènan pwogrè elèv, alèt, ak rezime chak semèn.",
-      "Pou jenere repons AI tutor (Mr A) atravè Google Gemini. Entèraksyon sa yo baze sou sesyon epi istwa konvèsasyon kenbe pou kontinyite men ou ka efase li nenpòt ki lè.",
-      "Nou PA vann, pataje, oswa monetize okenn done pèsonèl. Nou PA afiche piblisite.",
+      "Sa se enfòmasyon yon timoun, epi nou kenbe l nan minimòm Sèvis la bezwen: yon prenon oswa yon ti non ak yon nivo oswa klas, pou konnen ki orè ki pou kilès; yon foto si ou chwazi mete youn, ou ka retire l nenpòt kilè; plan chak jou a ak matyè, travay ak dire; check-in ki anrejistre sa ki fèt ak kilè, ak nenpòt nòt oswa imè; pwen, trofe ak demann rekonpans; ak kesyon yo poze AI tutor la ansanm ak repons li yo.",
+      "Nou pa mande dat nesans yon elèv, adrès li, nimewo telefòn li, lekòl li, nimewo idantifikasyon nasyonal ni enfòmasyon sante. Tanpri pa antre anyen nan sa yo.",
     ],
   },
   {
-    title: "Konfidansyalite Timoun (COPPA)",
+    title: "Sa nou kolekte otomatikman",
     content: [
-      "Independent Minds EDU vize timoun kòm elèv, ki jere eksklizivman pa paran oswa gadyen legal.",
-      "Tout kont elèv kreye eksklizivman pa paran adilt ki verifye ki gen 18 an oswa plis. Elèv pa ka oto-enskri.",
-      "Nou pa kolekte enfòmasyon pèsonèl nan men okenn timoun san konsantman paran verifye.",
-      "Paran gen dwa revize, modifye, epi efase tout done pou pitit yo nenpòt ki lè atravè tablo bò platfòm nan.",
-      "Pou mande aksè done oswa sipresyon, kontakte privacy@independentmindsedu.org.",
+      "Aktivite kont lan nou bezwen pou fè Sèvis la mache ak pou sekirize l: lè koneksyon, tantativ koneksyon ki echwe, rapò erè teknik, ak yon jounal imel nou voye ba ou ak si yo rive. Nou itilize sa yo pou kenbe Sèvis la ap mache ak pou detekte abi — pa pou bati yon pwofil sou pèsonn.",
+      "Nou itilize cookie nou bezwen pou kenbe w konekte ak pou sonje lang ou. Nou pa itilize cookie piblisite ni cookie swiv, epi nou pa fè analiz ki swiv ou sou lòt sit entènèt.",
     ],
   },
   {
-    title: "Pataje Done",
+    title: "Baz legal nou",
     content: [
-      "Nou pataje done elèv sèlman ak sèvis sa yo, strik pou rezon operasyonèl:",
-      "• Google (Gemini AI) — pou repons AI tutor, sou baz sesyon sèlman",
-      "• Supabase ak Vercel — pou èbèjman enfrastrikti, otantifikasyon, ak sèvis baz done",
-      "• Telegram — pou livrezon notifikasyon bay paran",
-      "• Twilio — pou notifikasyon WhatsApp lè paran konfigire li",
-      "Nou pa pataje done ak koutye done, piblisite, oswa founisè analiz tyès pati.",
+      "Kote lwa pwoteksyon done mande nou nonmen youn: egzekisyon yon kontra, pou fè Sèvis ou abònen an mache; konsantman, pou enfòmasyon yon elèv, ke paran oswa gadyen li bay, epi pou newsletter la, ou ka retire l nenpòt kilè; enterè lejitim, pou kenbe Sèvis la an sekirite epi anpeche abi; ak obligasyon legal, pou kenbe dosye peman jan lalwa mande.",
     ],
   },
   {
-    title: "Retansyon Done",
+    title: "Enfòmasyon timoun — yon timoun pa janm enskri tèt li",
     content: [
-      "Kont aktif: done kenbe pou tout vi kont lan.",
-      "Kont inaktif pou 18 mwa resevwa yon notifikasyon re-angajman.",
-      "Kont inaktif pou 24 mwa resevwa yon avètisman sipresyon ak yon peryòd gras 30 jou.",
-      "Paran ka efase elèv endividyèl oswa tout kont yo nenpòt ki lè atravè paramèt tablo bò a.",
+      "Okenn moun ki poko gen 18 an pa ka kreye yon kont sou IME. Yon kont elèv egziste sèlman paske yon paran oswa yon gadyen kreye l pou pwòp pitit li, epi lè l fè sa li bay konsantman pou enfòmasyon ki ladan l.",
+      "Se yon chwa konsepsyon espre, se pa sèlman yon règ. Paran an kenbe kont lan, deside sa ki antre ladan l, wè tout sa ki ladan l, epi li ka efase l.",
     ],
   },
   {
-    title: "Sekirite",
+    title: "Sa paran an kontwole",
     content: [
-      "Baz done PostgreSQL ak Sekirite Nivo Ranje (RLS) aktive sou tout tab.",
-      "Tout done ankripte an transpo atravè HTTPS/TLS.",
-      "Jesyon sesyon baze sou JWT ak rafrechisman otomatik token.",
-      "Pa gen estokaj tèks klè pou done sansib. Token bot Telegram ankripte ak AES-256-GCM anvan estokaj.",
+      "Nenpòt kilè, depi andedan Sèvis la, yon paran oswa gadyen ka wè tout sa nou kenbe sou pitit li; korije oswa efase nenpòt nan yo, foto a ladan; wè epi efase konvèsasyon AI tutor pitit la; retire aksè yon lòt granmoun sou enfòmasyon pitit li; efase kont elèv la nèt, sa ki efase plan an, check-in yo, pwen yo ak istorik tutè a; oswa mande nou yon kopi tout bagay lè l ekri support@independentmindsedu.org.",
+      "N ap reponn yon demann paran nou verifye nan 30 jou, epi anjeneral byen pi vit.",
     ],
   },
   {
-    title: "Dwa Ou",
+    title: "Nou kenbe enfòmasyon timoun nan minimòm",
     content: [
-      "Aksè — Paran ka wè tout done elèv atravè tablo bò a.",
-      "Koreksyon — Paran ka modifye tout enfòmasyon elèv nenpòt ki lè.",
-      "Sipresyon — Paran ka efase elèv endividyèl oswa tout kont yo.",
-      "Pòtabilite — Kontakte privacy@independentmindsedu.org pou yon ekspòtasyon done.",
+      "Nou pa mande plis sou yon timoun pase sa Sèvis la bezwen. Pa gen dat nesans, pa gen adrès, pa gen nimewo telefòn, pa gen lekòl, pa gen nimewo idantifikasyon, pa gen enfòmasyon sante.",
+      "Sou yon timoun nou pa janm: vann enfòmasyon li, itilize l pou piblisite, bati yon pwofil sou li, montre l bay yon lòt fanmi, ni itilize l pou antrene modèl entèlijans atifisyèl.",
     ],
   },
   {
-    title: "Chanjman nan Politik Sa a",
+    title: "Kilès ki ka wè enfòmasyon yon elèv",
     content: [
-      "N ap notifye paran ki enskri pa imèl pou nenpòt chanjman enpòtan nan politik sa a anvan yo antre an vigè.",
+      "Sèlman moun paran an chwazi. Paran ki mèt kont lan wè tout bagay. Yon co-guardian paran an envite wè tout bagay nan fanmi sa a. Yon manager paran an mande, epi IME apwouve, wè orè ak check-in fanmi sa a. Yon edikatè paran an bay yon elèv wè sèlman elèv yo ba li yo. Elèv la wè sèlman pwòp enfòmasyon pa l.",
+      "Okenn fanmi pa ka wè enfòmasyon yon lòt fanmi. Se andedan database la menm sa anfòse, se pa sèlman nan entèfas la.",
+    ],
+  },
+  {
+    title: "AI tutor la ak kesyon yon timoun",
+    content: [
+      "Lè yon elèv poze AI tutor la yon kesyon, kesyon sa a ak kontèks li bezwen pou reponn ale jwenn yon konpayi AI deyò (kounye a OpenAI) pou jenere yon repons. Nou pa voye foto elèv la ni enfòmasyon peman w.",
+      "Konpayi an trete l pou pwodui repons lan. Anba antant nou gen avèk yo, yo pa itilize kontni sa a pou antrene modèl yo.",
+      "Si ou pito pitit ou pa itilize tutè a, pa aktive l pou li. Rès Sèvis la mache san li.",
+    ],
+  },
+  {
+    title: "Si ou kwè nou kenbe enfòmasyon yon timoun nou pa ta dwe genyen",
+    content: [
+      "Ekri support@independentmindsedu.org. Si nou aprann nou kenbe enfòmasyon sou yon timoun san konsantman yon paran oswa yon gadyen, nou efase yo.",
+    ],
+  },
+  {
+    title: "Kilès lòt moun ki enplike",
+    content: [
+      "Nou pa vann enfòmasyon w epi nou pa pataje yo eksepte ak konpayi ki bay pati nan Sèvis la: Supabase, pou database la, kont yo ak depo fichye, ki kenbe tout sa ou mete nan IME; Vercel, ki ebèje sit la epi resevwa done teknik demann yo; Stripe, ki pran peman epi resevwa non w, imel ou ak detay peman w — se Stripe ki kenbe kat la, se pa nou; Resend, ki voye imel nou epi resevwa adrès destinatè yo ak mesaj la; OpenAI, ki fè AI tutor la mache epi resevwa kesyon tutè yo ak kontèks pou reponn yo; Cloudflare, pou DNS ak routing imel; ak GitHub, ki konsève backup database chiffre nou yo, ki ka li sèlman ak yon kle prive nou kenbe.",
+      "Nou ka divilge enfòmasyon tou kote lalwa mande sa, pou pwoteje sekirite yon timoun oswa nenpòt moun, oswa pou fè Kondisyon nou yo respekte. Si Sèvis la ta janm vann oswa reòganize, enfòmasyon w ka transfere avè l — n ap di w sa, epi politik sa a ap kontinye aplike.",
+    ],
+  },
+  {
+    title: "Kote enfòmasyon w ale",
+    content: [
+      "Konpayi sa yo opere sitou Ozetazini, donk nou konsève epi trete enfòmasyon w la, menm lè ou itilize IME depi yon lòt peyi.",
+      "Si ou nan Espas Ekonomik Ewopeyen an, Wayòm Ini a, oswa yon lòt kote ki gen règ sanblab, nou konte sou pwoteksyon estanda konpayi sa yo ofri pou transfè entènasyonal.",
+    ],
+  },
+  {
+    title: "Imel ou resevwa, ak kijan pou rete yo",
+    content: [
+      "Imel kont ak sekirite — konfimasyon, reyinisyalizasyon modpas, avi peman — pa ka etenn; yo fè pati gen yon kont.",
+      "Rapèl chak jou ak rapò chak semèn ka etenn nan paramèt ou.",
+      "Newsletter la ak atik yo ka etenn nenpòt kilè: chak youn gen yon dezabònman an yon sèl klik, epi lyen dezabònman ki nan antèt imel la mache tou. Dezabòne pa janm afekte kont ou ni imel li bezwen voye ba ou.",
+    ],
+  },
+  {
+    title: "Dwa w",
+    content: [
+      "Nenpòt peyi ou ye, ou ka wè sa nou kenbe sou ou ak fanmi w; jwenn yon kopi nan yon fòma pòtab; korije nenpòt bagay ki pa kòrèk; efase enfòmasyon fanmi w oswa nenpòt pati ladan yo; opoze yon itilizasyon oswa mande nou limite l; retire konsantman, pou newsletter la oswa pou enfòmasyon yon timoun; epi fè yon plent bay otorite pwoteksyon done nan peyi w.",
+      "Pifò nan sa yo ou ka fè yo ou menm andedan Sèvis la. Pou rès la, ekri support@independentmindsedu.org. Nou reponn nan 30 jou epi nou pa fè w peye pou sa. N ap mande w verifye idantite w anvan — sitou pou yon demann sou yon timoun, kote nou dwe asire nou moun k ap mande a se paran an.",
+    ],
+  },
+  {
+    title: "Konbyen tan nou kenbe bagay yo",
+    content: [
+      "Kont ou ak done fanmi w: pandan kont ou louvri. Apre ou fèmen kont ou: 30 jou, pou ou ka chanje lide oswa mande yon ekspòtasyon, apre sa nou efase yo. Dosye peman: osi lontan lwa taks ak kontabilite mande, anjeneral sèt an. Jounal livrezon imel: 12 mwa. Backup chiffre: sèt jou, apre sa yo detwi otomatikman.",
+      "Enfòmasyon ou efase disparèt nan Sèvis la imedyatman epi nan backup yo nan sèt jou.",
+    ],
+  },
+  {
+    title: "Kijan nou pwoteje yo",
+    content: [
+      "Chak koneksyon pase sou HTTPS, epi konpayi database nou an chiffre done yo lè yo nan repo. Separasyon ant fanmi yo anfòse andedan database la menm, ak row-level security, se pa sèlman kache nan entèfas la. Nou chiffre backup yo anvan yo kite database la, epi yo ka li sèlman ak yon kle prive nou kenbe offline. Nou verifye feature ki peye ak aksyon administratif sou sèvè nou yo, pa nan navigatè w. Aksè sou sistèm pwodiksyon limite ak moun k ap opere IME.",
+      "Okenn sèvis pa ka pwomèt sekirite pafè. Si yon vyolasyon afekte enfòmasyon w, n ap di w sa ak otorite ki konsène a jan lalwa mande, san reta.",
+    ],
+  },
+  {
+    title: "Chanjman nan politik sa a",
+    content: [
+      "Si nou chanje politik sa a nan yon fason enpòtan, n ap monte vèsyon l, pibliye l isit la, epi voye yon imel ba ou omwen 30 jou anvan li pran efè.",
     ],
   },
   {
     title: "Kontak",
     content: [
-      "Imèl: privacy@independentmindsedu.org",
-      "Sit wèb: independentmindsedu.org",
+      "Kolabo Services LLC, [ADRÈS KONPAYI A]",
+      "Kesyon ak demann sou konfidansyalite: support@independentmindsedu.org",
     ],
   },
 ];
