@@ -154,7 +154,7 @@ const sectionsEN = [
   {
     title: "Contact",
     content: [
-      "Kolabo Services LLC, [ENTITY ADDRESS] — support@independentmindsedu.org",
+      "Kolabo Services LLC, 10 James Court, Glassboro, NJ 08028, USA — support@independentmindsedu.org",
     ],
   },
 ];
@@ -240,7 +240,7 @@ const sectionsHT = [
   {
     title: "Kontak",
     content: [
-      "Kolabo Services LLC, [ADRÈS KONPAYI A] — support@independentmindsedu.org",
+      "Kolabo Services LLC, 10 James Court, Glassboro, NJ 08028, USA — support@independentmindsedu.org",
     ],
   },
 ];

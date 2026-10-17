@@ -78,7 +78,7 @@ const sectionsEN = [
   {
     title: "Who we are, and two things that are always true",
     content: [
-      "Kolabo Services LLC ([ENTITY ADDRESS]) operates Independent Minds EDU. This policy explains what we hold, why, and what you can do about it.",
+      "Kolabo Services LLC (10 James Court, Glassboro, NJ 08028, USA) operates Independent Minds EDU. This policy explains what we hold, why, and what you can do about it.",
       "Two things are true of everything below: we do not sell your information, and we do not use it for advertising.",
     ],
   },
@@ -203,7 +203,7 @@ const sectionsEN = [
   {
     title: "Contact",
     content: [
-      "Kolabo Services LLC, [ENTITY ADDRESS]",
+      "Kolabo Services LLC, 10 James Court, Glassboro, NJ 08028, USA",
       "Privacy questions and requests: support@independentmindsedu.org",
     ],
   },
@@ -213,7 +213,7 @@ const sectionsHT = [
   {
     title: "Kilès nou ye, ak de bagay ki toujou vre",
     content: [
-      "Kolabo Services LLC ([ADRÈS KONPAYI A]) opere Independent Minds EDU. Politik sa a esplike sa nou kenbe, poukisa, ak sa ou ka fè sou sa.",
+      "Kolabo Services LLC (10 James Court, Glassboro, NJ 08028, USA) opere Independent Minds EDU. Politik sa a esplike sa nou kenbe, poukisa, ak sa ou ka fè sou sa.",
       "De bagay vre pou tout sa ki anba a: nou pa vann enfòmasyon w, epi nou pa itilize l pou piblisite.",
     ],
   },
@@ -338,7 +338,7 @@ const sectionsHT = [
   {
     title: "Kontak",
     content: [
-      "Kolabo Services LLC, [ADRÈS KONPAYI A]",
+      "Kolabo Services LLC, 10 James Court, Glassboro, NJ 08028, USA",
       "Kesyon ak demann sou konfidansyalite: support@independentmindsedu.org",
     ],
   },

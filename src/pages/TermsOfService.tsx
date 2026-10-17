@@ -77,7 +77,7 @@ const sectionsEN = [
   {
     title: "Who you are agreeing with",
     content: [
-      "These Terms are an agreement between you and Kolabo Services LLC, a New Jersey limited liability company of [ENTITY ADDRESS] (\"IME\", \"we\", \"us\"), which operates Independent Minds EDU at www.independentmindsedu.org (the \"Service\").",
+      "These Terms are an agreement between you and Kolabo Services LLC, a New Jersey limited liability company of 10 James Court, Glassboro, NJ 08028, USA (\"IME\", \"we\", \"us\"), which operates Independent Minds EDU at www.independentmindsedu.org (the \"Service\").",
       "By creating an account or using the Service you accept these Terms. If you do not accept them, do not use the Service.",
     ],
   },
@@ -215,7 +215,7 @@ const sectionsEN = [
   {
     title: "Contact",
     content: [
-      "Kolabo Services LLC, [ENTITY ADDRESS]",
+      "Kolabo Services LLC, 10 James Court, Glassboro, NJ 08028, USA",
       "support@independentmindsedu.org — www.independentmindsedu.org",
     ],
   },
@@ -225,7 +225,7 @@ const sectionsHT = [
   {
     title: "Ak kilès ou ap fè antant lan",
     content: [
-      "Kondisyon sa yo se yon antant ant ou ak Kolabo Services LLC, yon konpayi ki anrejistre nan New Jersey, ki chita nan [ADRÈS KONPAYI A] (\"IME\", \"nou\"), ki opere Independent Minds EDU sou www.independentmindsedu.org (\"Sèvis la\").",
+      "Kondisyon sa yo se yon antant ant ou ak Kolabo Services LLC, yon konpayi ki anrejistre nan New Jersey, ki chita nan 10 James Court, Glassboro, NJ 08028, USA (\"IME\", \"nou\"), ki opere Independent Minds EDU sou www.independentmindsedu.org (\"Sèvis la\").",
       "Lè ou kreye yon kont oswa ou itilize Sèvis la, ou aksepte Kondisyon sa yo. Si ou pa aksepte yo, pa itilize Sèvis la.",
     ],
   },
@@ -363,7 +363,7 @@ const sectionsHT = [
   {
     title: "Kontak",
     content: [
-      "Kolabo Services LLC, [ADRÈS KONPAYI A]",
+      "Kolabo Services LLC, 10 James Court, Glassboro, NJ 08028, USA",
       "support@independentmindsedu.org — www.independentmindsedu.org",
     ],
   },
