@@ -1,0 +1,591 @@
+<title>Independent Minds EDU</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap">
+
+<style>
+/* Layout: a centred 1080px column; the Monday-Friday week grid is the page's
+   signature object and repeats as the structural motif. Brand taken from the
+   app's own tokens (tailwind.config.ts, src/index.css) so the landing page and
+   the platform read as one product. */
+:root {
+  --green:      hsl(160 68% 37%);
+  --green-deep: hsl(160 68% 24%);
+  --gold:       hsl(43 89% 61%);
+  --navy:       hsl(212 56% 23%);
+  --ink:        hsl(212 30% 14%);
+  --muted:      hsl(212 14% 42%);
+  --line:       hsl(160 14% 88%);
+  --surface:    hsl(150 30% 98%);
+  --card:       hsl(0 0% 100%);
+  --bg:         hsl(0 0% 100%);
+  --done:       hsl(160 40% 95%);
+  --font-display: 'Fredoka', ui-rounded, 'Segoe UI', sans-serif;
+  --font-body:    'Inter', system-ui, -apple-system, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --green:      hsl(160 52% 52%);
+    --green-deep: hsl(160 45% 72%);
+    --gold:       hsl(43 80% 64%);
+    --navy:       hsl(205 30% 92%);
+    --ink:        hsl(205 25% 93%);
+    --muted:      hsl(205 14% 66%);
+    --line:       hsl(205 16% 24%);
+    --surface:    hsl(205 24% 13%);
+    --card:       hsl(205 22% 16%);
+    --bg:         hsl(205 27% 10%);
+    --done:       hsl(160 24% 20%);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --green:      hsl(160 52% 52%);
+  --green-deep: hsl(160 45% 72%);
+  --gold:       hsl(43 80% 64%);
+  --navy:       hsl(205 30% 92%);
+  --ink:        hsl(205 25% 93%);
+  --muted:      hsl(205 14% 66%);
+  --line:       hsl(205 16% 24%);
+  --surface:    hsl(205 24% 13%);
+  --card:       hsl(205 22% 16%);
+  --bg:         hsl(205 27% 10%);
+  --done:       hsl(160 24% 20%);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+body::before {
+  content: ""; position: fixed; inset: 0 0 auto;
+  height: env(safe-area-inset-top, 0px); z-index: 20; background: var(--bg);
+}
+.wrap {
+  max-width: 1080px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+h1, h2, h3 { font-family: var(--font-display); font-weight: 600; text-wrap: balance; margin: 0; line-height: 1.15; }
+p { margin: 0; }
+a { color: inherit; }
+
+/* ---------- header ---------- */
+header {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10;
+  background: var(--bg); border-bottom: 1px solid var(--line);
+}
+.bar { display: flex; align-items: center; gap: 16px; padding-block: 12px; }
+.mark { font-family: var(--font-display); font-weight: 600; font-size: 1.05rem; color: var(--navy); margin-right: auto; display: flex; align-items: center; gap: 9px; text-decoration: none; }
+.mark svg { flex: none; }
+.langs { display: flex; gap: 2px; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 3px; }
+.langs button {
+  font: inherit; font-size: .78rem; font-weight: 500; letter-spacing: .03em;
+  border: 0; background: none; color: var(--muted); cursor: pointer;
+  padding: 4px 10px; border-radius: 999px;
+}
+.langs button[aria-pressed="true"] { background: var(--card); color: var(--navy); box-shadow: 0 1px 2px hsl(212 30% 14% / .1); }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  font-family: var(--font-display); font-weight: 500; font-size: .95rem;
+  padding: 11px 20px; border-radius: 10px; text-decoration: none;
+  border: 1px solid transparent; white-space: nowrap;
+}
+.btn-primary { background: var(--green); color: #fff; }
+.btn-primary:hover { background: var(--green-deep); }
+:root[data-theme="dark"] .btn-primary, :root:not([data-theme="light"]) .btn-primary { color: hsl(205 27% 10%); }
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) .btn-primary { color: #fff; } }
+.btn-ghost { border-color: var(--line); color: var(--navy); background: var(--card); }
+.btn-ghost:hover { border-color: var(--green); }
+.bar .btn { padding: 8px 15px; font-size: .88rem; }
+.hide-sm { display: none; }
+@media (min-width: 620px) { .hide-sm { display: inline-flex; } }
+
+/* ---------- sections ---------- */
+section { border-bottom: 1px solid var(--line); }
+section > .wrap { padding-block: clamp(44px, 7vw, 76px); }
+.eyebrow {
+  font-family: var(--font-display); font-size: .74rem; font-weight: 600;
+  letter-spacing: .13em; text-transform: uppercase; color: var(--green);
+  margin-bottom: 14px;
+}
+.lede { font-size: clamp(1rem, 2.2vw, 1.12rem); color: var(--muted); max-width: 62ch; }
+h2 { font-size: clamp(1.5rem, 3.6vw, 2.05rem); margin-bottom: 14px; }
+h3 { font-size: 1.04rem; font-weight: 600; }
+
+/* ---------- hero ---------- */
+.hero > .wrap { padding-block: clamp(40px, 7vw, 72px); display: grid; gap: clamp(32px, 5vw, 56px); }
+@media (min-width: 900px) { .hero > .wrap { grid-template-columns: 1.02fr .98fr; align-items: center; } }
+.hero h1 { font-size: clamp(2rem, 5.6vw, 3.1rem); letter-spacing: -.015em; color: var(--navy); }
+.hero .lede { margin-top: 18px; font-size: clamp(1.02rem, 2.4vw, 1.17rem); }
+.cta-row { display: flex; flex-wrap: wrap; gap: 11px; margin-top: 26px; }
+.trial-note { margin-top: 13px; font-size: .85rem; color: var(--muted); }
+
+/* ---------- the week ---------- */
+.week {
+  background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+  padding: 16px; box-shadow: 0 12px 34px hsl(212 30% 14% / .07);
+  min-width: 0;
+}
+.week-top { display: flex; align-items: baseline; gap: 10px; margin-bottom: 13px; }
+.week-top strong { font-family: var(--font-display); font-size: .95rem; color: var(--navy); }
+.week-top span { font-size: .76rem; color: var(--muted); margin-left: auto; font-variant-numeric: tabular-nums; }
+.days { display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px; }
+.day { min-width: 0; }
+.day > b {
+  display: block; font-family: var(--font-display); font-size: .68rem; font-weight: 600;
+  letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
+  padding-bottom: 7px; margin-bottom: 7px; border-bottom: 1px solid var(--line);
+}
+.task {
+  font-size: .72rem; line-height: 1.3; padding: 7px 6px; border-radius: 7px;
+  background: var(--surface); margin-bottom: 5px; color: var(--ink);
+  border-left: 2px solid var(--line); overflow-wrap: anywhere;
+}
+.task.done { background: var(--done); border-left-color: var(--green); color: var(--green-deep); }
+.task.done::before { content: "✓ "; font-weight: 700; }
+.task.ai { border-left-color: var(--gold); }
+.week-foot { margin-top: 13px; padding-top: 12px; border-top: 1px solid var(--line); font-size: .78rem; color: var(--muted); display: flex; gap: 7px; align-items: center; }
+.dot { width: 7px; height: 7px; border-radius: 99px; background: var(--green); flex: none; }
+
+/* ---------- generic grids ---------- */
+.grid { display: grid; gap: 18px; }
+@media (min-width: 640px) { .cols-2 { grid-template-columns: 1fr 1fr; } }
+@media (min-width: 860px) { .cols-3 { grid-template-columns: repeat(3, 1fr); } }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 13px; padding: 20px; min-width: 0; }
+.card h3 { color: var(--navy); margin-bottom: 7px; }
+.card p { font-size: .91rem; color: var(--muted); }
+
+/* ---------- is / isn't ---------- */
+.ledger { display: grid; gap: 0; border: 1px solid var(--line); border-radius: 13px; overflow: hidden; }
+@media (min-width: 740px) { .ledger { grid-template-columns: 1fr 1fr; } }
+.ledger > div { padding: 22px; min-width: 0; }
+.ledger > div + div { border-top: 1px solid var(--line); }
+@media (min-width: 740px) { .ledger > div + div { border-top: 0; border-left: 1px solid var(--line); } }
+.ledger h3 { margin-bottom: 12px; color: var(--navy); }
+.ledger ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 9px; }
+.ledger li { font-size: .91rem; padding-left: 24px; position: relative; color: var(--muted); }
+.yes li::before { content: "✓"; position: absolute; left: 0; color: var(--green); font-weight: 700; }
+.no  li::before { content: "—"; position: absolute; left: 0; color: var(--muted); }
+.is-not { background: var(--surface); }
+
+/* ---------- roles ---------- */
+.roles { display: grid; gap: 11px; }
+@media (min-width: 700px) { .roles { grid-template-columns: 1fr 1fr; } }
+.role { display: flex; gap: 13px; padding: 15px; border: 1px solid var(--line); border-radius: 11px; background: var(--card); min-width: 0; }
+.role .ic { width: 34px; height: 34px; border-radius: 9px; background: var(--surface); display: grid; place-items: center; flex: none; font-size: 1rem; }
+.role b { font-family: var(--font-display); font-weight: 600; color: var(--navy); font-size: .93rem; display: block; }
+.role span { font-size: .85rem; color: var(--muted); }
+
+/* ---------- languages ---------- */
+.lang-strip { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+.lang-chip { font-size: .84rem; padding: 6px 13px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); color: var(--navy); }
+
+/* ---------- pricing ---------- */
+.price-band { background: var(--surface); }
+.price-figure { font-family: var(--font-display); font-size: clamp(2.1rem, 6vw, 2.9rem); font-weight: 600; color: var(--navy); line-height: 1; }
+.price-figure small { font-size: .95rem; font-weight: 400; color: var(--muted); font-family: var(--font-body); }
+
+/* ---------- news ---------- */
+.article { display: flex; flex-direction: column; gap: 9px; }
+.article time { font-size: .76rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.article h3 { font-size: 1.02rem; color: var(--navy); }
+
+/* ---------- footer ---------- */
+footer { background: var(--surface); }
+footer > .wrap { padding-block: 34px; display: grid; gap: 18px; }
+.foot-links { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: .86rem; }
+.foot-links a { color: var(--muted); text-decoration: none; }
+.foot-links a:hover { color: var(--green); text-decoration: underline; }
+.foot-note { font-size: .79rem; color: var(--muted); }
+
+a:focus-visible, button:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; border-radius: 6px; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<header>
+  <div class="wrap bar">
+    <a class="mark" href="#top">
+      <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true">
+        <rect x="1" y="1" width="24" height="24" rx="7" fill="currentColor" opacity=".1"/>
+        <path d="M7 13.4l3.6 3.6L19 8.6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Independent Minds EDU
+    </a>
+    <div class="langs" role="group" aria-label="Language">
+      <button type="button" data-lang="EN" aria-pressed="true">EN</button>
+      <button type="button" data-lang="HT" aria-pressed="false">HT</button>
+      <button type="button" data-lang="FR" aria-pressed="false">FR</button>
+    </div>
+    <a class="btn btn-ghost hide-sm" href="https://www.independentmindsedu.org/login" data-i18n="nav.signin">Sign in</a>
+    <a class="btn btn-primary" href="https://www.independentmindsedu.org/login" data-i18n="nav.start">Start free</a>
+  </div>
+</header>
+
+<main id="top">
+
+<section class="hero">
+  <div class="wrap">
+    <div>
+      <h1 data-i18n="hero.h1">The school week, held together.</h1>
+      <p class="lede" data-i18n="hero.lede">You decide what your children learn. Independent Minds EDU holds the week around it — the plan, the record of what was actually done, and a reason for your child to keep going.</p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="https://www.independentmindsedu.org/login" data-i18n="hero.cta">Start your 14 days free</a>
+        <a class="btn btn-ghost" href="https://www.independentmindsedu.org/login" data-i18n="hero.cta2">I already have an account</a>
+      </div>
+      <p class="trial-note" data-i18n="hero.note">No card needed to start. Cancel any time.</p>
+    </div>
+
+    <div class="week" aria-label="A planned school week">
+      <div class="week-top">
+        <strong data-i18n="week.name">Marvin — Grade 4</strong>
+        <span data-i18n="week.range">Mon 13 – Fri 17</span>
+      </div>
+      <div class="days">
+        <div class="day">
+          <b data-i18n="week.mon">Mon</b>
+          <div class="task done" data-i18n="week.t1">Reading, 30 min</div>
+          <div class="task done" data-i18n="week.t2">Fractions</div>
+          <div class="task" data-i18n="week.t3">Science: water</div>
+        </div>
+        <div class="day">
+          <b data-i18n="week.tue">Tue</b>
+          <div class="task done" data-i18n="week.t4">Writing</div>
+          <div class="task done" data-i18n="week.t5">Fractions</div>
+        </div>
+        <div class="day">
+          <b data-i18n="week.wed">Wed</b>
+          <div class="task done" data-i18n="week.t6">Reading, 30 min</div>
+          <div class="task ai" data-i18n="week.t7">Ask Mr A</div>
+          <div class="task" data-i18n="week.t8">History</div>
+        </div>
+        <div class="day">
+          <b data-i18n="week.thu">Thu</b>
+          <div class="task" data-i18n="week.t9">Writing</div>
+          <div class="task" data-i18n="week.t10">Geography</div>
+        </div>
+        <div class="day">
+          <b data-i18n="week.fri">Fri</b>
+          <div class="task" data-i18n="week.t11">Review</div>
+          <div class="task" data-i18n="week.t12">Art</div>
+        </div>
+      </div>
+      <div class="week-foot"><span class="dot"></span><span data-i18n="week.foot">7 of 12 checked in this week</span></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="eyebrow" data-i18n="how.eyebrow">How it works</p>
+    <h2 data-i18n="how.h2">Three things, every week.</h2>
+    <div class="grid cols-3" style="margin-top:26px">
+      <div class="card">
+        <h3 data-i18n="how.1t">You build the week</h3>
+        <p data-i18n="how.1b">Lay out Monday to Friday for each child. Paste a schedule you already have and it becomes tasks. Save a week you like and apply it again later.</p>
+      </div>
+      <div class="card">
+        <h3 data-i18n="how.2t">Your child checks in</h3>
+        <p data-i18n="how.2b">They sign in to their own view and mark what they finished, with a note or how it felt. You see it as it happens.</p>
+      </div>
+      <div class="card">
+        <h3 data-i18n="how.3t">The record keeps itself</h3>
+        <p data-i18n="how.3b">Every check-in is kept. A reminder goes out each morning at the hour you choose, and a summary of the week arrives on Sunday.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="eyebrow" data-i18n="pos.eyebrow">Where we stand</p>
+    <h2 data-i18n="pos.h2">We don't teach your children. You do.</h2>
+    <p class="lede" data-i18n="pos.lede">Most homeschool software either hands you a calendar and leaves, or sells you a curriculum and takes over. This is neither.</p>
+    <div class="ledger" style="margin-top:26px">
+      <div class="yes">
+        <h3 data-i18n="pos.yesT">What IME does</h3>
+        <ul>
+          <li data-i18n="pos.y1">Holds the week's plan for every child</li>
+          <li data-i18n="pos.y2">Keeps a record of what was actually done</li>
+          <li data-i18n="pos.y3">Gives your child points, trophies and a reason to show up</li>
+          <li data-i18n="pos.y4">Lets the other adults in a child's life see the same thing you do</li>
+          <li data-i18n="pos.y5">Answers your child's questions with a study assistant you can switch off</li>
+        </ul>
+      </div>
+      <div class="no is-not">
+        <h3 data-i18n="pos.noT">What IME is not</h3>
+        <ul>
+          <li data-i18n="pos.n1">Not a curriculum. You choose every subject and book</li>
+          <li data-i18n="pos.n2">Not a school, and not accredited</li>
+          <li data-i18n="pos.n3">No grades, no credits, no diploma</li>
+          <li data-i18n="pos.n4">Not proof that you meet your local homeschool law — check with your own authority</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="eyebrow" data-i18n="who.eyebrow">Everyone who helps</p>
+    <h2 data-i18n="who.h2">A child is rarely taught by one person.</h2>
+    <p class="lede" data-i18n="who.lede">Invite the people who already help, and give each of them exactly what they need — nothing more.</p>
+    <div class="roles" style="margin-top:24px">
+      <div class="role"><span class="ic" aria-hidden="true">🏠</span><span><b data-i18n="who.1t">Parent</b><span data-i18n="who.1b">Owns the family. Plans, invites, billing, everything.</span></span></div>
+      <div class="role"><span class="ic" aria-hidden="true">🎒</span><span><b data-i18n="who.2t">Student</b><span data-i18n="who.2b">Their own sign-in, their own day, their own points.</span></span></div>
+      <div class="role"><span class="ic" aria-hidden="true">🤝</span><span><b data-i18n="who.3t">Co-guardian</b><span data-i18n="who.3b">The second parent. Same view, same emails, no billing.</span></span></div>
+      <div class="role"><span class="ic" aria-hidden="true">👵</span><span><b data-i18n="who.4t">Manager</b><span data-i18n="who.4b">A grandparent or helper who oversees the week without owning it.</span></span></div>
+      <div class="role"><span class="ic" aria-hidden="true">📘</span><span><b data-i18n="who.5t">Educator</b><span data-i18n="who.5b">A tutor who sees only the students assigned to them.</span></span></div>
+      <div class="role"><span class="ic" aria-hidden="true">🔒</span><span><b data-i18n="who.6t">Nobody else</b><span data-i18n="who.6b">No family can see another family's children. Enforced in the database, not just hidden.</span></span></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="eyebrow" data-i18n="lang.eyebrow">Ten languages</p>
+    <h2 data-i18n="lang.h2">In the language your family actually speaks at home.</h2>
+    <p class="lede" data-i18n="lang.lede">Every screen, every reminder, every weekly report. Each person in a family can use a different one — a child in Creole, a grandmother in French, a tutor in English, all on the same week.</p>
+    <div class="lang-strip">
+      <span class="lang-chip">English</span><span class="lang-chip">Kreyòl Ayisyen</span><span class="lang-chip">Français</span>
+      <span class="lang-chip">Español</span><span class="lang-chip">Português</span><span class="lang-chip">العربية</span>
+      <span class="lang-chip">中文</span><span class="lang-chip">Deutsch</span><span class="lang-chip">日本語</span><span class="lang-chip">Русский</span>
+    </div>
+  </div>
+</section>
+
+<section class="price-band">
+  <div class="wrap">
+    <p class="eyebrow" data-i18n="price.eyebrow">Price</p>
+    <h2 data-i18n="price.h2">Free for two weeks. Then from $5 a month.</h2>
+    <p class="price-figure" style="margin-top:18px">$5<small data-i18n="price.per">/month, per family</small></p>
+    <p class="lede" style="margin-top:14px" data-i18n="price.lede">Plans go up to $25 for larger families and heavier use. One subscription covers your whole family — every child, every adult you invite.</p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="https://www.independentmindsedu.org/login" data-i18n="price.cta">Start your 14 days free</a>
+      <a class="btn btn-ghost" href="https://www.independentmindsedu.org/pricing" data-i18n="price.cta2">See the plans</a>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="eyebrow" data-i18n="news.eyebrow">Writing</p>
+    <h2 data-i18n="news.h2">What we've been thinking about.</h2>
+    <p class="lede" data-i18n="news.lede">We write for homeschooling families, in all ten languages, and send it on Saturdays.</p>
+    <div class="grid cols-3" style="margin-top:26px">
+      <article class="card article">
+        <time datetime="2026-10-17">17 October 2026</time>
+        <h3 data-i18n="news.1t">The growth has stopped. The question has changed.</h3>
+        <p data-i18n="news.1b">Homeschooling numbers have levelled off after years of climbing. What families are asking for now is different.</p>
+      </article>
+      <article class="card article">
+        <time datetime="2026-10-10">10 October 2026</time>
+        <h3 data-i18n="news.2t">Now every guardian gets the same emails</h3>
+        <p data-i18n="news.2b">Why both parents, and anyone else helping, should be looking at the same week.</p>
+      </article>
+      <article class="card article">
+        <time datetime="2026-09-26">26 September 2026</time>
+        <h3 data-i18n="news.3t">Homeschooling, your way: meet Independent Minds EDU</h3>
+        <p data-i18n="news.3b">What we built, who it is for, and what we deliberately left out.</p>
+      </article>
+    </div>
+    <div class="cta-row">
+      <a class="btn btn-ghost" href="https://www.independentmindsedu.org/login" data-i18n="news.cta">Get these by email</a>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap" style="text-align:center">
+    <h2 data-i18n="end.h2">Sunday night doesn't have to start from nothing.</h2>
+    <p class="lede" style="margin:14px auto 0" data-i18n="end.lede">Set up one child, build one week, and see whether it holds. Two weeks free is long enough to know.</p>
+    <div class="cta-row" style="justify-content:center">
+      <a class="btn btn-primary" href="https://www.independentmindsedu.org/login" data-i18n="end.cta">Start your 14 days free</a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-links">
+      <a href="https://www.independentmindsedu.org/login" data-i18n="nav.signin">Sign in</a>
+      <a href="https://www.independentmindsedu.org/pricing" data-i18n="foot.pricing">Plans</a>
+      <a href="https://www.independentmindsedu.org/terms" data-i18n="foot.terms">Terms of Service</a>
+      <a href="https://www.independentmindsedu.org/privacy" data-i18n="foot.privacy">Privacy Policy</a>
+      <a href="https://www.independentmindsedu.org/refund" data-i18n="foot.refund">Refund Policy</a>
+    </div>
+    <p class="foot-note">
+      <span data-i18n="foot.note">Independent Minds EDU is operated by Kolabo Services LLC, New Jersey, USA.</span>
+      <span id="foot-mail">support@independentmindsedu.org</span>
+    </p>
+  </div>
+</footer>
+
+<script>
+const STRINGS = {
+  HT: {
+    "nav.signin": "Konekte", "nav.start": "Kòmanse gratis",
+    "hero.h1": "Semèn lekòl la, kenbe ansanm.",
+    "hero.lede": "Se ou ki deside sa pitit ou ap aprann. Independent Minds EDU kenbe semèn nan antoure l — plan an, dosye sa ki fèt vre, ak yon rezon pou pitit ou kontinye.",
+    "hero.cta": "Kòmanse 14 jou gratis ou yo", "hero.cta2": "Mwen gen yon kont deja",
+    "hero.note": "Pa gen kat pou kòmanse. Anile nenpòt kilè.",
+    "week.name": "Marvin — 4yèm ane", "week.range": "Len 13 – Van 17",
+    "week.mon": "Len", "week.tue": "Mad", "week.wed": "Mèk", "week.thu": "Jed", "week.fri": "Van",
+    "week.t1": "Lekti, 30 min", "week.t2": "Fraksyon", "week.t3": "Syans: dlo",
+    "week.t4": "Ekriti", "week.t5": "Fraksyon", "week.t6": "Lekti, 30 min",
+    "week.t7": "Mande Mr A", "week.t8": "Istwa", "week.t9": "Ekriti",
+    "week.t10": "Jewografi", "week.t11": "Revizyon", "week.t12": "Atizay",
+    "week.foot": "7 sou 12 check-in fèt semèn sa a",
+    "how.eyebrow": "Kijan li mache", "how.h2": "Twa bagay, chak semèn.",
+    "how.1t": "Ou bati semèn nan",
+    "how.1b": "Mete lendi jiska vandredi pou chak timoun. Kole yon orè ou gen deja epi li tounen travay. Sovgade yon semèn ou renmen epi aplike l ankò pita.",
+    "how.2t": "Pitit ou fè check-in",
+    "how.2b": "Li konekte nan pwòp vi pa l epi li make sa l fini, ak yon nòt oswa kijan li te santi l. Ou wè l lè l ap fèt.",
+    "how.3t": "Dosye a kenbe tèt li",
+    "how.3b": "Chak check-in rete. Yon rapèl soti chak maten nan lè ou chwazi a, epi yon rezime semèn nan rive dimanch.",
+    "pos.eyebrow": "Kote nou kanpe", "pos.h2": "Nou pa anseye pitit ou. Se ou ki fè sa.",
+    "pos.lede": "Pifò lojisyèl lekòl lakay swa ba w yon kalandriye epi yo ale, swa yo vann ou yon kourikoulòm epi yo pran plas ou. Sa a se ni youn ni lòt.",
+    "pos.yesT": "Sa IME fè",
+    "pos.y1": "Kenbe plan semèn nan pou chak timoun",
+    "pos.y2": "Kenbe yon dosye sa ki fèt vre",
+    "pos.y3": "Bay pitit ou pwen, trofe, ak yon rezon pou l parèt",
+    "pos.y4": "Kite lòt granmoun nan lavi yon timoun wè menm bagay ak ou",
+    "pos.y5": "Reponn kesyon pitit ou ak yon asistan etid ou ka etenn",
+    "pos.noT": "Sa IME pa ye",
+    "pos.n1": "Se pa yon kourikoulòm. Ou chwazi chak matyè ak chak liv",
+    "pos.n2": "Se pa yon lekòl, epi li pa akredite",
+    "pos.n3": "Pa gen nòt, pa gen kredi, pa gen diplòm",
+    "pos.n4": "Se pa prèv ou respekte lwa lekòl lakay kote w ye — tcheke ak otorite pa w",
+    "who.eyebrow": "Tout moun ki ede", "who.h2": "Se raman yon sèl moun ki anseye yon timoun.",
+    "who.lede": "Envite moun ki deja ede yo, epi bay chak egzakteman sa li bezwen — anyen anplis.",
+    "who.1t": "Paran", "who.1b": "Mèt fanmi an. Plan, envitasyon, fakti, tout bagay.",
+    "who.2t": "Elèv", "who.2b": "Pwòp koneksyon pa l, pwòp jounen pa l, pwòp pwen pa l.",
+    "who.3t": "Co-guardian", "who.3b": "Dezyèm paran an. Menm vi, menm imel, pa gen fakti.",
+    "who.4t": "Manager", "who.4b": "Yon granparan oswa yon èd ki siveye semèn nan san li pa mèt li.",
+    "who.5t": "Edikatè", "who.5b": "Yon tutè ki wè sèlman elèv yo ba li yo.",
+    "who.6t": "Pèsonn lòt", "who.6b": "Okenn fanmi pa ka wè timoun yon lòt fanmi. Anfòse nan database la, se pa sèlman kache.",
+    "lang.eyebrow": "Dis lang", "lang.h2": "Nan lang fanmi w pale lakay la vre.",
+    "lang.lede": "Chak ekran, chak rapèl, chak rapò semèn. Chak moun nan yon fanmi ka sèvi ak yon lang diferan — yon timoun an Kreyòl, yon grann an Fransè, yon tutè an Anglè, tout sou menm semèn nan.",
+    "price.eyebrow": "Pri", "price.h2": "Gratis pandan de semèn. Apre sa apati $5 pa mwa.",
+    "price.per": "/mwa, pou tout fanmi an",
+    "price.lede": "Plan yo monte jiska $25 pou fanmi ki pi gwo ak itilizasyon ki pi fò. Yon sèl abònman kouvri tout fanmi w — chak timoun, chak granmoun ou envite.",
+    "price.cta": "Kòmanse 14 jou gratis ou yo", "price.cta2": "Gade plan yo",
+    "news.eyebrow": "Ekriti", "news.h2": "Sa n ap reflechi sou li.",
+    "news.lede": "Nou ekri pou fanmi ki fè lekòl lakay, nan tout dis lang yo, epi nou voye l samdi.",
+    "news.1t": "Kwasans lan kanpe. Kesyon an chanje.",
+    "news.1b": "Chif lekòl lakay yo poze apre plizyè ane y ap monte. Sa fanmi yo ap mande kounye a diferan.",
+    "news.2t": "Kounye a chak gadyen jwenn menm imel yo",
+    "news.2b": "Poukisa tou de paran, ak nenpòt moun k ap ede, dwe ap gade menm semèn nan.",
+    "news.3t": "Lekòl lakay, jan pa w: men Independent Minds EDU",
+    "news.3b": "Sa nou bati, pou kilès li ye, ak sa nou kite deyò espre.",
+    "news.cta": "Resevwa yo pa imel",
+    "end.h2": "Dimanch swa pa oblije kòmanse ak anyen.",
+    "end.lede": "Mete yon timoun, bati yon semèn, epi gade si li kenbe. De semèn gratis se ase pou w konnen.",
+    "end.cta": "Kòmanse 14 jou gratis ou yo",
+    "foot.pricing": "Plan yo", "foot.terms": "Kondisyon Sèvis", "foot.privacy": "Politik Konfidansyalite", "foot.refund": "Politik Ranbousman",
+    "foot.note": "Kolabo Services LLC, New Jersey, Etazini, opere Independent Minds EDU."
+  },
+  FR: {
+    "nav.signin": "Se connecter", "nav.start": "Commencer",
+    "hero.h1": "La semaine d'école, bien tenue.",
+    "hero.lede": "C'est vous qui décidez ce que vos enfants apprennent. Independent Minds EDU tient la semaine autour : le plan, la trace de ce qui a vraiment été fait, et une raison pour votre enfant de continuer.",
+    "hero.cta": "Commencer mes 14 jours gratuits", "hero.cta2": "J'ai déjà un compte",
+    "hero.note": "Aucune carte requise. Annulez quand vous voulez.",
+    "week.name": "Marvin — CM1", "week.range": "Lun 13 – Ven 17",
+    "week.mon": "Lun", "week.tue": "Mar", "week.wed": "Mer", "week.thu": "Jeu", "week.fri": "Ven",
+    "week.t1": "Lecture, 30 min", "week.t2": "Fractions", "week.t3": "Sciences : l'eau",
+    "week.t4": "Écriture", "week.t5": "Fractions", "week.t6": "Lecture, 30 min",
+    "week.t7": "Demander à Mr A", "week.t8": "Histoire", "week.t9": "Écriture",
+    "week.t10": "Géographie", "week.t11": "Révision", "week.t12": "Arts",
+    "week.foot": "7 sur 12 validés cette semaine",
+    "how.eyebrow": "Comment ça marche", "how.h2": "Trois choses, chaque semaine.",
+    "how.1t": "Vous construisez la semaine",
+    "how.1b": "Posez du lundi au vendredi pour chaque enfant. Collez un emploi du temps existant et il devient des tâches. Enregistrez une semaine qui vous plaît et réappliquez-la plus tard.",
+    "how.2t": "Votre enfant valide",
+    "how.2b": "Il se connecte à sa propre vue et coche ce qu'il a terminé, avec une note ou son ressenti. Vous le voyez en direct.",
+    "how.3t": "La trace se garde toute seule",
+    "how.3b": "Chaque validation est conservée. Un rappel part chaque matin à l'heure que vous choisissez, et un résumé de la semaine arrive le dimanche.",
+    "pos.eyebrow": "Notre position", "pos.h2": "Nous n'enseignons pas à vos enfants. C'est vous.",
+    "pos.lede": "La plupart des logiciels d'école à la maison vous tendent un calendrier puis s'en vont, ou vous vendent un programme et prennent votre place. Celui-ci ne fait ni l'un ni l'autre.",
+    "pos.yesT": "Ce que fait IME",
+    "pos.y1": "Tient le plan de la semaine pour chaque enfant",
+    "pos.y2": "Garde la trace de ce qui a vraiment été fait",
+    "pos.y3": "Donne à votre enfant des points, des trophées et une raison de s'y mettre",
+    "pos.y4": "Permet aux autres adultes de voir la même chose que vous",
+    "pos.y5": "Répond aux questions de votre enfant avec un assistant que vous pouvez désactiver",
+    "pos.noT": "Ce que IME n'est pas",
+    "pos.n1": "Pas un programme scolaire. Vous choisissez chaque matière et chaque livre",
+    "pos.n2": "Pas une école, et pas accrédité",
+    "pos.n3": "Ni notes, ni crédits, ni diplôme",
+    "pos.n4": "Pas une preuve de conformité à votre loi locale — vérifiez auprès de votre autorité",
+    "who.eyebrow": "Tous ceux qui aident", "who.h2": "Un enfant est rarement instruit par une seule personne.",
+    "who.lede": "Invitez ceux qui aident déjà, et donnez à chacun exactement ce qu'il lui faut — rien de plus.",
+    "who.1t": "Parent", "who.1b": "Responsable de la famille. Plans, invitations, facturation, tout.",
+    "who.2t": "Élève", "who.2b": "Sa connexion, sa journée, ses points.",
+    "who.3t": "Co-responsable", "who.3b": "Le deuxième parent. Même vue, mêmes emails, pas de facturation.",
+    "who.4t": "Gestionnaire", "who.4b": "Un grand-parent ou une aide qui suit la semaine sans en être responsable.",
+    "who.5t": "Enseignant", "who.5b": "Un tuteur qui ne voit que les élèves qui lui sont confiés.",
+    "who.6t": "Personne d'autre", "who.6b": "Aucune famille ne voit les enfants d'une autre. Imposé dans la base de données, pas seulement masqué.",
+    "lang.eyebrow": "Dix langues", "lang.h2": "Dans la langue que votre famille parle vraiment à la maison.",
+    "lang.lede": "Chaque écran, chaque rappel, chaque rapport hebdomadaire. Chacun peut en choisir une différente — un enfant en créole, une grand-mère en français, un tuteur en anglais, sur la même semaine.",
+    "price.eyebrow": "Tarif", "price.h2": "Gratuit deux semaines. Ensuite à partir de 5 $ par mois.",
+    "price.per": "/mois, par famille",
+    "price.lede": "Les formules vont jusqu'à 25 $ pour les familles nombreuses et les usages intensifs. Un seul abonnement couvre toute la famille — chaque enfant, chaque adulte invité.",
+    "price.cta": "Commencer mes 14 jours gratuits", "price.cta2": "Voir les formules",
+    "news.eyebrow": "Nos écrits", "news.h2": "Ce à quoi nous réfléchissons.",
+    "news.lede": "Nous écrivons pour les familles qui instruisent à la maison, dans les dix langues, et l'envoyons le samedi.",
+    "news.1t": "La croissance s'est arrêtée. La question a changé.",
+    "news.1b": "Les chiffres de l'école à la maison se stabilisent après des années de hausse. Ce que les familles demandent aujourd'hui est différent.",
+    "news.2t": "Désormais chaque responsable reçoit les mêmes emails",
+    "news.2b": "Pourquoi les deux parents, et toute personne qui aide, devraient regarder la même semaine.",
+    "news.3t": "L'école à la maison, à votre façon : voici Independent Minds EDU",
+    "news.3b": "Ce que nous avons construit, pour qui, et ce que nous avons volontairement laissé de côté.",
+    "news.cta": "Les recevoir par email",
+    "end.h2": "Le dimanche soir n'a pas à repartir de zéro.",
+    "end.lede": "Ajoutez un enfant, construisez une semaine, et voyez si ça tient. Deux semaines gratuites suffisent pour le savoir.",
+    "end.cta": "Commencer mes 14 jours gratuits",
+    "foot.pricing": "Formules", "foot.terms": "Conditions d'utilisation", "foot.privacy": "Politique de confidentialité", "foot.refund": "Politique de remboursement",
+    "foot.note": "Independent Minds EDU est exploité par Kolabo Services LLC, New Jersey, États-Unis."
+  }
+};
+
+const EN = {};
+document.querySelectorAll("[data-i18n]").forEach(el => { EN[el.dataset.i18n] = el.textContent; });
+
+function setLang(code) {
+  const dict = code === "EN" ? EN : STRINGS[code];
+  if (!dict) return;
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const v = dict[el.dataset.i18n] ?? EN[el.dataset.i18n];
+    if (v != null) el.textContent = v;
+  });
+  document.documentElement.lang = code === "HT" ? "ht" : code === "FR" ? "fr" : "en";
+  document.querySelectorAll(".langs button").forEach(b => {
+    b.setAttribute("aria-pressed", String(b.dataset.lang === code));
+  });
+  try { localStorage.setItem("ime-landing-lang", code); } catch {}
+}
+
+document.querySelectorAll(".langs button").forEach(b => {
+  b.addEventListener("click", () => setLang(b.dataset.lang));
+});
+
+// Open in the visitor's own language when we have it, otherwise English.
+let initial = "EN";
+try {
+  const saved = localStorage.getItem("ime-landing-lang");
+  if (saved && (saved === "EN" || STRINGS[saved])) initial = saved;
+  else {
+    const nav = (navigator.language || "").slice(0, 2).toLowerCase();
+    if (nav === "ht") initial = "HT";
+    else if (nav === "fr") initial = "FR";
+  }
+} catch {}
+if (initial !== "EN") setLang(initial);
+</script>
