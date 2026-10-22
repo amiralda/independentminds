@@ -64,13 +64,19 @@ jobs:
       - name: Check E2E secrets
         id: secrets-check
         run: |
-          if [ -z "$PLAYWRIGHT_URL" ]; then
+          # The Playwright suite needs the target URL as well as the Supabase
+          # admin credentials used by the test helpers. If any of them is
+          # missing, skip E2E instead of failing so CI stays green until the
+          # full secret set is configured.
+          if [ -z "$PLAYWRIGHT_URL" ] || [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
             echo "skip=true" >> $GITHUB_OUTPUT
           else
             echo "skip=false" >> $GITHUB_OUTPUT
           fi
         env:
           PLAYWRIGHT_URL: ${{ secrets.PLAYWRIGHT_BASE_URL }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
       - name: Skip E2E (no secrets)
         if: steps.secrets-check.outputs.skip == 'true'
