@@ -136,8 +136,8 @@ Never skip this step. Never put long logs in
 CLAUDE.md — details go in ACTIVITY_LOG.md only.
 
 ## Recent
+2026-11-07 — Security audit 7 Doors (branch fix/security-audit-7-doors, NOT merged): prod DB — admin role removed from test-admin@independentminds.test (password was in public .env.test history), beta_requests rate-limit trigger (probe: dup email blocked, status forced pending, rolled back); code — Turnstile dormant until VITE_TURNSTILE_SITE_KEY set (Login + MFA re-auth). Tests 294/294, build OK, tsc unchanged vs main (451 pre-existing). See ACTIVITY_LOG.
 2026-10-17 — Legal v1.0 MERGED (0c188de): Terms/Privacy/Refund rewritten + entity = Kolabo Services LLC, 10 James Court Glassboro NJ 08028, law = New Jersey. Lawyer gave INTERIM approval — update still coming, apply when it arrives. Fixed live bug: "unknown" where "any" belonged all through old Terms; removed unverified "COPPA-compliant" SEO claim. Tests 294/294. See ACTIVITY_LOG.
 2026-10-14 — Backup live (docs): secret SUPABASE_DB_URL = session pooler (direct = IPv6, runs #3-#5 failed "Network is unreachable"); run #6 38566981393 OK, artifact ime-db_20261014T125121Z.dump.age; decryption test on Dany's PC OK, 90/90 TABLE DATA. Docker restore test + second key copy still pending. See ACTIVITY_LOG.
 2026-10-11 — Backup (merged 412df58): GitHub Actions daily pg_dump 17 → age → artifact 7 days; skips green until secret SUPABASE_DB_URL exists; new age key (private key only on Dany's PC). Stub test 13/13; real DB not tested yet. See docs/BACKUP_RESTORE.md + ACTIVITY_LOG.
 2026-10-11 — Manual §2/§15/§17/§18 corrected to production (docs, 3103ad5): Gemini, Telegram/WhatsApp/Web Push, missing tables/functions, undeployed functions removed. Other sections still list them. See ACTIVITY_LOG.
-2026-10-11 — /admin/welcome-email (merged b01d1b3, prod READY): 10-language editor, confirm before save, email preview, read-only send stats; no migration. Tests 294/294.
