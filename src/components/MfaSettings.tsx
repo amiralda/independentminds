@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/PasswordInput";
 import { Shield, ShieldCheck, QrCode, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { TurnstileWidget, TURNSTILE_SITE_KEY } from "@/components/TurnstileWidget";
 
 export function MfaSettings() {
   const { t, lang } = useI18n();
@@ -17,6 +18,8 @@ export function MfaSettings() {
   const [mfaEnabled, setMfaEnabled] = useState(false);
   const [disableMode, setDisableMode] = useState(false);
   const [disablePassword, setDisablePassword] = useState("");
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaResetKey, setCaptchaResetKey] = useState(0);
 
   useEffect(() => {
     (async () => {
@@ -81,7 +84,9 @@ export function MfaSettings() {
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email: user.email,
         password: disablePassword,
+        options: captchaToken ? { captchaToken } : undefined,
       });
+      setCaptchaResetKey((k) => k + 1);
       if (signInError) {
         toast.error(t("mfa.incorrectPassword"));
         setLoading(false);
@@ -130,12 +135,13 @@ export function MfaSettings() {
               required
             />
           </div>
+          <TurnstileWidget onToken={setCaptchaToken} resetKey={captchaResetKey} language={lang} />
           <div className="flex gap-2">
             <Button
               size="sm"
               variant="destructive"
               onClick={handleDisable}
-              disabled={!disablePassword || loading}
+              disabled={!disablePassword || loading || (!!TURNSTILE_SITE_KEY && !captchaToken)}
               className="flex-1 text-xs"
             >
               {loading ? <Loader2 size={14} className="animate-spin mr-1" /> : null}

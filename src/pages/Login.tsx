@@ -14,6 +14,7 @@ import { SEO } from "@/components/SEO";
 import { buildAppUrl } from "@/lib/siteUrl";
 import { buildOAuthRedirectUrl } from "@/lib/oauth";
 import { isPasswordLongEnough } from "@/lib/password";
+import { TurnstileWidget, TURNSTILE_SITE_KEY } from "@/components/TurnstileWidget";
 
 // Google sign-in is hidden, not removed: every Google signup fails with
 // "Database error saving new user" because handle_new_user() requires
@@ -54,6 +55,8 @@ export default function Login() {
   const [adultConfirmed, setAdultConfirmed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaResetKey, setCaptchaResetKey] = useState(0);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectPath = searchParams.get('redirect');
@@ -71,8 +74,13 @@ export default function Login() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+      options: captchaToken ? { captchaToken } : undefined,
+    });
     setLoading(false);
+    setCaptchaResetKey((k) => k + 1);
     if (error) {
       trackAuthFailure(email, "password_sign_in");
       toast.error(error.message);
@@ -112,9 +120,11 @@ export default function Login() {
           language: lang.toLowerCase(),
         },
         emailRedirectTo: buildAppUrl("/"),
+        ...(captchaToken ? { captchaToken } : {}),
       },
     });
     setLoading(false);
+    setCaptchaResetKey((k) => k + 1);
     if (error) {
       toast.error(error.message);
     } else {
@@ -253,10 +263,11 @@ export default function Login() {
               </button>
             </div>
           )}
+          <TurnstileWidget onToken={setCaptchaToken} resetKey={captchaResetKey} language={lang} />
           <Button
             type="submit"
             className="w-full font-display bg-secondary text-secondary-foreground hover:bg-secondary/90"
-            disabled={loading || (isSignUp && (!adultConfirmed || !fullName.trim()))}
+            disabled={loading || (!!TURNSTILE_SITE_KEY && !captchaToken) || (isSignUp && (!adultConfirmed || !fullName.trim()))}
           >
             {isSignUp ? (
               <><UserPlus size={16} className="mr-2" /> {loading ? t("auth.creatingAccount") : t("action.signUp")}</>
